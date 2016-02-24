@@ -1,0 +1,22 @@
+TODO (what the framework should do):
+
+- test that given set of rpms (jdk x os x arch) satisfies:
+
+	- names of the pkgs are as expected
+	- all subpackages are present
+	- download single-arch (+noarch) parts of build from brew/koji
+	- none subpackage is empty unless expected
+	- provides are as expected
+	- plugin, javaws, jcontrol sanity
+		- if plugin pkg is present, then javaws and jcontrol files should be in that pkg
+		- if plugin pkg is present, then it should provide javaws and jcontrol
+	- broken symlinks
+	- alternatives are correct
+	- alternatives and binaries in bin or jre/bin are correct
+	- man page corresponds to existing manpages, to alternatives and to binaries in bin jre/bin
+	- desktop shortcuts are sane
+	- all connections of  binaries x desktop files x alternatives are sane
+	- download whole build from brew/koji (a set of rpms for each arch) and check:
+		- correct set of architectures is present
+		- test each architecture separately
+
