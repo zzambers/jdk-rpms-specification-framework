@@ -19,5 +19,3 @@ TODO (what the framework should do):
 	- download whole build from brew/koji (a set of rpms for each arch) and check:
 		- correct set of architectures is present
 		- test each architecture separately
-
-
