@@ -4,7 +4,7 @@
 
 import sys
 import argparse
-from outputControl.LoggingAccess import LoggingAccess
+from outputControl.logging_access import LoggingAccess
 
 
 def createParser():

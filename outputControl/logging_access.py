@@ -1,4 +1,4 @@
-from outputControl.FileLog import FileLog
+from outputControl.file_log import FileLog
 
 class Singleton(type):
     _instances = {}
