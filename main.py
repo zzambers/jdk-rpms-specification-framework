@@ -4,6 +4,8 @@
 
 import sys
 import argparse
+from outputControl.LoggingAccess import LoggingAccess
+
 
 def createParser():
     parser = argparse.ArgumentParser()
@@ -15,14 +17,14 @@ def createParser():
     return parser
 
 def runTasks( args ):
-    if( args.version ):
-        print( "jdks_specification_framework, version 0.1" )
+    if( True | args.version ):
+        LoggingAccess().stdout( "jdks_specification_framework, version 0.1" )
         return
 
 def main( argv ):
     parser = createParser()
     args = parser.parse_args()
-    if( len( argv ) < 1 ):
+    if( len( argv ) < 0 ):
         parser.print_help()
     else:
         runTasks( args )
