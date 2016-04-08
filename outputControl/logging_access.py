@@ -1,4 +1,4 @@
-from outputControl.file_log import FileLog
+import outputControl.file_log
 
 
 class Singleton(type):
@@ -15,8 +15,7 @@ class LoggingAccess(metaclass=Singleton):
 
     def stdout(self, arg2):
         print(arg2)
-        FileLog().println(arg2)
-
+        outputControl.file_log.FileLog().println(arg2)
 
     def log(self, arg2):
-        FileLog().println(arg2)
+        outputControl.file_log.FileLog().println(arg2)

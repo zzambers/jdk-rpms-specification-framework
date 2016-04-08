@@ -1,6 +1,7 @@
 from subprocess import Popen, PIPE
 
-from outputControl.logging_access import LoggingAccess
+import outputControl.logging_access
+
 
 # TODO add here generated / vendor specific / list or dictionary of possible subpkg names
 
@@ -25,19 +26,19 @@ class DynamicArches(metaclass=Singleton):
         self.power64 = None
 
     def getDynamicArches(self, arch):
-        LoggingAccess().log("Getting dynamic arches for: "+arch)
-        proc = Popen(['rpmbuild', '--eval', '%{'+arch+'}'], stdout=PIPE)
+        outputControl.logging_access.LoggingAccess().log("Getting dynamic arches for: " + arch)
+        proc = Popen(['rpmbuild', '--eval', '%{' + arch + '}'], stdout=PIPE)
         out, err = proc.communicate()
-        output=out.decode('utf-8').strip()  # utf-8 works in your case
-        LoggingAccess().log("got: " + output)
-        li=output.split(" ")
+        output = out.decode('utf-8').strip()  # utf-8 works in your case
+        outputControl.logging_access.LoggingAccess().log("got: " + output)
+        li = output.split(" ")
         for i in range(len(li)):
-            li[i]=li[i].strip();
+            li[i] = li[i].strip();
         return li
 
     def getArm32Achs(self):
         if (self.arm32 == None):
-            self.arm32=self.getDynamicArches("arm")
+            self.arm32 = self.getDynamicArches("arm")
         return self.arm32
 
     def getIx86Archs(self):
@@ -52,17 +53,17 @@ class DynamicArches(metaclass=Singleton):
 
 
 def getArm32Achs():
-    #return ["armv7hl"]
+    # return ["armv7hl"]
     return DynamicArches().getArm32Achs()
 
 
 def getPower64Achs():
-    #return ["ppc64"]
+    # return ["ppc64"]
     return DynamicArches().getPower64Achs()
 
 
 def getIx86archs():
-    #return ["i386", "i686"]
+    # return ["i386", "i686"]
     return DynamicArches().getIx86Archs()
 
 

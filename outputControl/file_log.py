@@ -1,5 +1,7 @@
 import datetime as dt
 
+import config.runtime_config
+
 
 class Singleton(type):
     _instances = {}
@@ -14,7 +16,7 @@ class FileLog(metaclass=Singleton):
     pass
 
     def __init__(self):
-        self.target = open("jsf.log", 'w');
+        self.target = open(config.runtime_config.RuntimeConfig().getLogsFile(), 'w')
         self.println("#" + dt.datetime.today().strftime("%Y-%m-%d %H:%M:%S"))
 
     def println(self, arg2):
