@@ -1,8 +1,5 @@
 from subprocess import Popen, PIPE
 
-from PIL._imaging import outline
-from sepolgen import output
-
 from outputControl.logging_access import LoggingAccess
 
 # TODO add here generated / vendor specific / list or dictionary of possible subpkg names
