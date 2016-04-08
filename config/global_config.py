@@ -1,18 +1,66 @@
+from subprocess import Popen, PIPE
+
+from PIL._imaging import outline
+from sepolgen import output
+
+from outputControl.logging_access import LoggingAccess
+
 # TODO add here generated / vendor specific / list or dictionary of possible subpkg names
 
-# TODO get this list by rpmbuild --eval power64 arm ix86
+class Singleton(type):
+    _instances = {}
+
+    def __call__(cls, *args, **kwargs):
+        if cls not in cls._instances:
+            cls._instances[cls] = super(Singleton, cls).__call__(*args, **kwargs)
+        return cls._instances[cls]
+
+
+# Some arches have more then one varint. rpmbuild  is keeping en eye on this so currently known trouble makers are --eval there.
+# power64 arm ix86
+class DynamicArches(metaclass=Singleton):
+    arm32=None
+    ix86 = None
+    power64 = None
+    pass;
+
+    def getDynamicArches(self, arch):
+        LoggingAccess().stdout("Getting dynamic arches for: "+arch)
+        proc = Popen(['rpmbuild', '--eval', '%{'+arch+'}'], stdout=PIPE)
+        out, err = proc.communicate()
+        output=out.decode('utf-8').strip()  # utf-8 works in your case
+        LoggingAccess().stdout("got: " + output)
+        return output.split(" +")
+
+    def getArm32Achs(self):
+        if (self.arm32 == None):
+            self.arm32=self.getDynamicArches("arm")
+        return self.arm32
+
+    def getIx86Archs(self):
+        if (self.ix86 == None):
+            self.ix86 = self.getDynamicArches("ix86")
+        return self.ix86
+
+    def getPower64Achs(self):
+        if (self.power64 == None):
+            self.power64 = self.getDynamicArches("power64")
+        return self.power64
 
 
 def getArm32Achs():
-    return ["armv7hl"]
+    #return ["armv7hl"]
+    return DynamicArches().getArm32Achs()
 
 
 def getPower64Achs():
-    return ["ppc64"]
+    #return ["ppc64"]
+    return DynamicArches().getPower64Achs()
 
 
 def getIx86archs():
-    return ["i386", "i686"]
+    #return ["i386", "i686"]
+    return DynamicArches().getIx86Archs()
 
 
 def getArchs():
