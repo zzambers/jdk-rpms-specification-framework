@@ -1,4 +1,6 @@
 #ignore compiled Python files
 *.pyc
-# initial log saved to working directory
-jsf.log
+# default logs saved to working directory
+*jsf.log
+# idea project properties
+.idea
