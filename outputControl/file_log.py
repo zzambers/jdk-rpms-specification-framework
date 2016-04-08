@@ -22,3 +22,4 @@ class FileLog(metaclass=Singleton):
     def println(self, arg2):
         self.target.write(arg2)
         self.target.write("\n")
+        self.target.flush()

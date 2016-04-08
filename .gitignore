@@ -4,3 +4,5 @@
 *jsf.log
 # idea project properties
 .idea
+# default dir for rpms to be tested
+rpms

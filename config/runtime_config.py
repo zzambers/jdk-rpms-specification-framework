@@ -1,4 +1,5 @@
 import outputControl.logging_access
+import testcases.utils.rpm_list
 
 VERSION_STRING = "jdks_specification_framework, version 0.1"
 
@@ -18,6 +19,12 @@ class RuntimeConfig(metaclass=Singleton):
     def __init__(self):
         self.pkgsDir = "rpms"
         self.logsFile = "jsf.log"
+        self.rpmList = None
+
+    def getRpmList(self):
+        if self.rpmList == None:
+            self.rpmList = testcases.utils.rpm_list.RpmList(self.getPkgsDir())
+        return self.rpmList
 
     def setLogsFile(self, nwFile):
         oldValue = self.logsFile;
