@@ -1,25 +1,18 @@
-#!/usr/bin/env python3
-
-"""Main entry point to jdks_specification_framework."""
-
 import sys
 
 import config.general_parser
 import config.runtime_config
 from outputControl import logging_access
-from testcases.nameTest import name_test
 
 
-def runTasks():
-    logging_access.LoggingAccess().log("Running all testsuites")
-    name_test.testAll()
-
+def testAll():
+    logging_access.LoggingAccess().log("Running name_test")
 
 def main(argv):
     args = config.general_parser.GeneralParser().parser.parse_args(argv)
     canContinue = config.runtime_config.RuntimeConfig().setFromParser(args)
     if canContinue:
-        runTasks()
+        testAll()
 
 
 if __name__ == "__main__":
