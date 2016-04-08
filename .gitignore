@@ -1,2 +1,4 @@
 #ignore compiled Python files
 *.pyc
+# initial log saved to working directory
+jsf.log
