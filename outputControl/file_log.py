@@ -12,10 +12,11 @@ class Singleton(type):
 
 class FileLog(metaclass=Singleton):
     target = None;
+    pass
 
     def __init__(self):
         self.target = open("jsf.log", 'w');
-        self.println("#" + dt.datetime.today().strftime("%Y-%m-%d %H:%m:%S"))
+        self.println("#" + dt.datetime.today().strftime("%Y-%m-%d %H:%M:%S"))
 
     def println(self, arg2):
         self.target.write(arg2)
