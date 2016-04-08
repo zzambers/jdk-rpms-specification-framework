@@ -10,7 +10,7 @@ class Singleton(type):
         return cls._instances[cls]
 
 
-class FileLog:
+class FileLog(metaclass=Singleton):
     target = None;
 
     def __init__(self):
