@@ -7,6 +7,7 @@ from outputControl.logging_access import LoggingAccess
 
 # TODO add here generated / vendor specific / list or dictionary of possible subpkg names
 
+
 class Singleton(type):
     _instances = {}
 
@@ -19,18 +20,23 @@ class Singleton(type):
 # Some arches have more then one varint. rpmbuild  is keeping en eye on this so currently known trouble makers are --eval there.
 # power64 arm ix86
 class DynamicArches(metaclass=Singleton):
-    arm32=None
-    ix86 = None
-    power64 = None
     pass;
 
+    def __init__(self):
+        self.arm32 = None
+        self.ix86 = None
+        self.power64 = None
+
     def getDynamicArches(self, arch):
-        LoggingAccess().stdout("Getting dynamic arches for: "+arch)
+        LoggingAccess().log("Getting dynamic arches for: "+arch)
         proc = Popen(['rpmbuild', '--eval', '%{'+arch+'}'], stdout=PIPE)
         out, err = proc.communicate()
         output=out.decode('utf-8').strip()  # utf-8 works in your case
-        LoggingAccess().stdout("got: " + output)
-        return output.split(" +")
+        LoggingAccess().log("got: " + output)
+        li=output.split(" ")
+        for i in range(len(li)):
+            li[i]=li[i].strip();
+        return li
 
     def getArm32Achs(self):
         if (self.arm32 == None):

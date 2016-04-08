@@ -16,3 +16,7 @@ class LoggingAccess(metaclass=Singleton):
     def stdout(self, arg2):
         print(arg2)
         FileLog().println(arg2)
+
+
+    def log(self, arg2):
+        FileLog().println(arg2)

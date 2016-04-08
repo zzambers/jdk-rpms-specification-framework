@@ -11,7 +11,6 @@ class Singleton(type):
 
 
 class FileLog(metaclass=Singleton):
-    target = None;
     pass
 
     def __init__(self):
