@@ -2,20 +2,11 @@
 
 """Main entry point to jdks_specification_framework."""
 
-import argparse
 import sys
+import config.global_config
+import config.general_parser
 
 from outputControl.logging_access import LoggingAccess
-
-
-def createParser():
-    parser = argparse.ArgumentParser()
-
-    parser.add_argument("-v", "--version",
-                        help="display the version of the framework",
-                        action="store_true")
-
-    return parser
 
 
 def runTasks(args):
@@ -25,10 +16,9 @@ def runTasks(args):
 
 
 def main(argv):
-    parser = createParser()
-    args = parser.parse_args()
-    if (len(argv) < 0):
-        parser.print_help()
+    args = config.general_parser.GeneralParser().parser.parse_args()
+    if len(argv) < 0:
+        config.general_parser.GeneralParser().parser.print_help()
     else:
         runTasks(args)
 
