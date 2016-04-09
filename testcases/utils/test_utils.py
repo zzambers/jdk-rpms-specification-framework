@@ -2,6 +2,11 @@ import os
 
 from outputControl import logging_access
 
+def closeSuite(passed, failed):
+    logging_access.LoggingAccess().stdout("done - Passed: " + str(passed) + " from total: " + str(passed + failed))
+    if failed != 0:
+        raise Exception(str(failed) + " tests failed")
+
 
 def result(boolval):
     """Return string Passed/FAILED corresponding to boolean True/False."""
@@ -17,7 +22,7 @@ def get_rpms(directory):
 
 def get_files(directory, file_suffix=""):
     """Walk `directory' and get a list of all rpms names in it."""
-    logging_access.LoggingAccess().log("Searching in " + directory)
+    logging_access.LoggingAccess().log("Searching in " + directory + " for: *" + file_suffix)
     resList = []
     for root, dirs, files in os.walk(directory):
         for f in files:

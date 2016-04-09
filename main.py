@@ -8,11 +8,17 @@ import config.general_parser
 import config.runtime_config
 from outputControl import logging_access
 from testcases.nameTest import name_test
+import testcases.utils.test_utils as tu
 
 
 def runTasks():
     logging_access.LoggingAccess().log("Running all testsuites")
-    name_test.testAll()
+    plist=[]
+    flist=[]
+    passed, failed = name_test.testAll()
+    plist.append(passed)
+    flist.append(failed)
+    tu.closeSuite(sum(plist), sum(flist))
 
 
 def main(argv):
