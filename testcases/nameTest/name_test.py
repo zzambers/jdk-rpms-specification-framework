@@ -1,12 +1,18 @@
 """"Test that given set of rpms has the right names."""
 
 import sys
+import re
 
 import config.general_parser
 import config.global_config as gc
 import config.runtime_config
 import testcases.utils.pkg_name_split as split
 import testcases.utils.base_test
+
+CRES_JAVA_REGEXE = re.compile("^java-(1.[5-8].[0-1])|(9)-.*-.*-.*\..*.rpm$")
+# java-1.X.0 or just 9-whatever1-whatever2-whatever3.whatever4.rpm
+# w1 = vendor, w2 = version
+# w3 = release, w4 = arch .rpm
 
 
 def aInB(a, b):
@@ -17,9 +23,20 @@ def aNotNone(a, b):
     return a != None
 
 
+def aMatchesB(a, b):
+    return b.match(a)
+
+
+def justCopy(a):
+    return a
+
+
 class NameTest(testcases.utils.base_test.BaseTest):
     def checkFilesAgainstValues(self, values, function):
         return self.checkFilesAgainstComparator(values, function, aInB)
+
+    def checkWholeName(self, value):
+        return self.checkFilesAgainstComparator(value, justCopy, aMatchesB)
 
     def checkFilesAgainstNone(self, function):
         return self.checkFilesAgainstComparator(None, function, aNotNone)
@@ -64,6 +81,14 @@ class NameTest(testcases.utils.base_test.BaseTest):
 
     def test_arches(self):
         failed = self.checkFilesAgainstValues(gc.getAllArchs(), split.get_arch)
+        assert failed == 0
+
+    def test_wholeName(self):
+        """This is testing whole name by regex. It may sound redundant, but:
+        The rest of the test checks validity of individual hunks. Not the order.
+        The regex catches at least java->version->dashes->dot->arch->.rpm
+        """
+        failed = self.checkWholeName(CRES_JAVA_REGEXE)
         assert failed == 0
 
 

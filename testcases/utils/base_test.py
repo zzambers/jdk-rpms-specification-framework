@@ -35,9 +35,10 @@ class BaseTest:
                     self.passed += 1
                     la.LoggingAccess().stdout(tu.result(True) + ": " + type(self).__name__ + "." + a)
                 except BaseException:
-                    la.LoggingAccess().stdout(tu.result(False) + ": " + type(self).__name__ + "." + a)
+                    la.LoggingAccess().stdout(
+                        tu.result(False) + ": " + type(self).__name__ + "." + a + " from " + inspect.stack()[1][1])
                     self.failed += 1
-                    # traceback.print_exc()
+                    traceback.print_exc()
         la.LoggingAccess().log(
             "finished suite: " + type(self).__name__ + " - failed/total: " + str(self.failed) + "/" + str(
                 self.failed + self.passed))
