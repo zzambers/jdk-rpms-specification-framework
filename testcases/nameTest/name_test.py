@@ -42,7 +42,7 @@ class NameTest(testcases.utils.base_test.BaseTest):
         return self.checkFilesAgainstComparator(None, function, aNotNone)
 
     def checkFilesAgainstComparator(self, values, function, comparator):
-        rpms = config.runtime_config.RuntimeConfig().getRpmList().getAll()
+        rpms = config.runtime_config.RuntimeConfig().getRpmList().getAllNames()
         failed = 0
         for file in rpms:
             self.log("checking: " + file)

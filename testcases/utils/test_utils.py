@@ -27,8 +27,18 @@ def get_files(directory, file_suffix=""):
     for root, dirs, files in os.walk(directory):
         for f in files:
             if f.endswith(file_suffix) & os.path.isfile(directory + "/" + f):
-                resList.append(f)
+                resList.append(directory + "/" + f)
         for d in dirs:
             if os.path.isdir(directory + "/" + d):
                 resList = resList + (get_files(directory + "/" + d, file_suffix))
+    return resList
+
+def get_top_dirs(directory):
+    """Walk `directory' and get a list of all top directory names in it."""
+    logging_access.LoggingAccess().log("Searching in " + directory + " for: top dirs")
+    resList = []
+    for root, dirs, files in os.walk(directory):
+        for d in dirs:
+            if os.path.isdir(directory + "/" + d):
+                resList.append(d)
     return resList
