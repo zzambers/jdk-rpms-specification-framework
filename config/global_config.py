@@ -66,9 +66,14 @@ def getIx86archs():
     # return ["i386", "i686"]
     return DynamicArches().getIx86Archs()
 
+def getHardcodedArchs():
+    return ["x86_64", "ppc", "ppc64le", "s390", "s390x", "aarch64"]
+
+def getGeneratedArchs():
+    return getIx86archs() + getPower64Achs() + getArm32Achs()
 
 def getArchs():
-    return ["x86_64", "ppc", "ppc64le", "s390", "s390x", "aarch64"] + getIx86archs() + getPower64Achs() + getArm32Achs()
+    return getHardcodedArchs() + getGeneratedArchs()
 
 
 def getAllArchs():
