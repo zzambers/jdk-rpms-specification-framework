@@ -8,6 +8,7 @@ import config.general_parser
 import config.runtime_config
 from outputControl import logging_access
 from testcases.nameTest import name_test
+from testcases.nameTest import initibuild_test
 import testcases.utils.test_utils as tu
 
 
@@ -15,6 +16,9 @@ def runTasks():
     logging_access.LoggingAccess().log("Running all testsuites")
     plist=[]
     flist=[]
+    passed, failed = initibuild_test.testAll()
+    plist.append(passed)
+    flist.append(failed)
     passed, failed = name_test.testAll()
     plist.append(passed)
     flist.append(failed)
