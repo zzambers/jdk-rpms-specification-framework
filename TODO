@@ -2,7 +2,9 @@ TODO (what the framework should do):
 
 - test that given set of rpms (jdk x os x arch) satisfies:
 
-	- names of the pkgs are as expected
+	* names of the pkgs are as expected
+	- priority check
+	 	- debugpackage have lowered, contains version/release, length is known, prefix s known
 	- all subpackages are present
 	- download single-arch (+noarch) parts of build from brew/koji
 	- none subpackage is empty unless expected
@@ -21,3 +23,6 @@ TODO (what the framework should do):
 		- test each architecture separately
 
 - write in human-readable form, what it itself test
+
+- todo
+* done
