@@ -34,9 +34,9 @@ class BaseTest:
                     callable(self)
                     self.passed += 1
                     la.LoggingAccess().stdout(tu.result(True) + ": " + type(self).__name__ + "." + a)
-                except BaseException:
+                except BaseException as ex:
                     la.LoggingAccess().stdout(
-                        tu.result(False) + ": " + type(self).__name__ + "." + a + " from " + inspect.stack()[1][1])
+                        tu.result(False) + ": " + type(self).__name__ + "." + a + " ("+str(ex)+") from " + inspect.stack()[1][1])
                     self.failed += 1
                     traceback.print_exc()
         la.LoggingAccess().log(
