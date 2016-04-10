@@ -92,6 +92,10 @@ class NameTest(testcases.utils.base_test.BaseTest):
         failed = self.checkFilesAgainstValues(gc.getAllArchs(), split.get_arch)
         assert failed == 0
 
+    def test_dist(self):
+        failed = self.checkFilesAgainstNone(split.get_dist)
+        assert failed == 0
+
     def test_wholeName(self):
         """This is testing whole name by regex. It may sound redundant, but:
         The rest of the test checks validity of individual hunks. Not the order.
