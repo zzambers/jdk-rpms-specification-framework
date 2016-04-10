@@ -68,6 +68,14 @@ class NameTest(testcases.utils.base_test.BaseTest):
         failed = self.checkFilesAgainstValues(gc.LIST_OF_POSSIBLE_VENDORS, split.get_vendor)
         assert failed == 0
 
+    def test_majorPackage(self):
+        failed = self.checkFilesAgainstNone(split.get_major_package_name)
+        assert failed == 0
+
+    def test_package(self):
+        failed = self.checkFilesAgainstNone(split.get_package_name)
+        assert failed == 0
+
     def test_version(self):
         failed = self.checkFilesAgainstNone(split.get_minor_ver)
         assert failed == 0
