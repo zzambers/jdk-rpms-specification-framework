@@ -21,7 +21,7 @@ def aInB(a, b):
 
 
 def aNotNone(a, b):
-    return a != None
+    return a is not None
 
 
 def aMatchesB(a, b):
