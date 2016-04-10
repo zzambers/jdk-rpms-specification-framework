@@ -9,10 +9,11 @@ import config.runtime_config
 import testcases.utils.pkg_name_split as split
 import testcases.utils.base_test
 
-CRES_JAVA_REGEXE = re.compile("^java-(1.[5-8].[0-1])|(9)-.*-.*-.*\..*.rpm$")
+JAVA_REGEX="^java-(1\.[5-8]\.[0-9])|(9)-.*-.*-.*\..*.rpm$"
 # java-1.X.0 or just 9-whatever1-whatever2-whatever3.whatever4.rpm
 # w1 = vendor, w2 = version
 # w3 = release, w4 = arch .rpm
+CRES_JAVA_REGEXE = re.compile(JAVA_REGEX)
 
 
 def aInB(a, b):
