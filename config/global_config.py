@@ -90,5 +90,8 @@ def getSrcrpmArch():
 
 JAVA_STRING = "java"
 
+FEDORA = "Fedora"
+RHEL= "RHEL"
+
 LIST_OF_POSSIBLE_VENDORS = ["ibm", "oracle", "openjdk"]
 LIST_OF_POSSIBLE_VERSIONS = ["1.6.0", "1.7.0", "1.8.0", "9" ]

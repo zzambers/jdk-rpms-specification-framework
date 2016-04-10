@@ -134,3 +134,28 @@ class RpmList:
         bb = self.getBuildWithoutSrpm(arch)
         bb.append(srpm)
         return bb
+
+
+    def isFedora(self):
+        return self.getDist().startswith("fc")
+
+    def isRhel(self):
+        return self.getDist().startswith("el")
+
+    def getOs(self):
+        if self.isFedora():
+            return gc.FEDORA
+        if self.isRhel():
+            return gc.RHEL
+        return None
+
+    def getOsVersion(self):
+        if self.isFedora():
+            return self.getDist()[2:]
+        if self.isRhel():
+            return str(self.getDist()[2:]).replace("_",".")
+        return None
+
+    def getOsVersionMajor(self):
+        return re.sub("\..*","",self.getOsVersion())
+

@@ -105,6 +105,16 @@ class InitTest(testcases.utils.base_test.BaseTest):
                 self.log("  " + pkg)
             assert len(arches) > 0
 
+    def test_os(self):
+        l=config.runtime_config.RuntimeConfig().getRpmList()
+        self.log("Os: "+l.getOs())
+        self.log("Version: " + l.getOsVersion())
+        self.log("Version major: " + l.getOsVersionMajor())
+        assert l.isFedora() | l.isRhel()
+        assert l.isFedora() != l.isRhel()
+        assert l.getOs() is not None
+        assert l.getOsVersion() is not None
+        assert l.getOsVersionMajor() is not None
 
 def testAll():
     return InitTest().execute_tests()
