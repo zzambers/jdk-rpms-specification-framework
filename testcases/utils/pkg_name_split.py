@@ -1,4 +1,5 @@
 from collections import namedtuple
+import config.global_config as gc
 
 RpmNameParts = namedtuple('RpmNameParts',
                           ['java', 'java_ver', 'vendor', 'pkg',
@@ -19,9 +20,14 @@ def _hyphen_split(name):
     name = name.strip()
     hyphen_parts = name.split('-')
     num_h = len(hyphen_parts)
-    java, java_ver, vendor, *pkg, version, whole_end = hyphen_parts
-    pkg = '-'.join(pkg)
-    return ([java, java_ver, vendor, pkg, version, whole_end])
+    if (name.startswith(gc.ITW)):
+        icedtea, web,  *pkg, version, whole_end = hyphen_parts
+        pkg = '-'.join(pkg)
+        return ([gc.ITW, gc.ITW, gc.ITW, pkg, version, whole_end])
+    else:
+        java, java_ver, vendor, *pkg, version, whole_end = hyphen_parts
+        pkg = '-'.join(pkg)
+        return ([java, java_ver, vendor, pkg, version, whole_end])
 
 
 def _get_ith_part(i, name):

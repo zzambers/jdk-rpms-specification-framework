@@ -9,11 +9,14 @@ import config.runtime_config
 import testcases.utils.pkg_name_split as split
 import testcases.utils.base_test
 
-JAVA_REGEX="^java-(1\.[5-8]\.[0-9])|(9)-.*-.*-.*\..*.rpm$"
+JAVA_REGEX="^java-(1\.[5-8]\.[0-9])|([1-9][0-9]*)-.*-.*-.*\..*.rpm$"
 # java-1.X.0 or just 9-whatever1-whatever2-whatever3.whatever4.rpm
 # w1 = vendor, w2 = version
 # w3 = release, w4 = arch .rpm
 CRES_JAVA_REGEXE = re.compile(JAVA_REGEX)
+
+ITW_REGEX="^icedtea-web-.*-.*\..*.rpm$"
+CRES_ITW_REGEXE = re.compile(ITW_REGEX)
 
 
 def aInB(a, b):
@@ -25,7 +28,12 @@ def aNotNone(a, b):
 
 
 def aMatchesB(a, b):
-    return b.match(a)
+    if (config.runtime_config.RuntimeConfig().getRpmList().getVendor() == gc.ITW):
+        b2= CRES_ITW_REGEXE.match(a)
+        return  b2
+    else:
+        b1 = CRES_JAVA_REGEXE.match(a)
+        return b1
 
 
 def justCopy(a):
@@ -36,8 +44,8 @@ class NameTest(testcases.utils.base_test.BaseTest):
     def checkFilesAgainstValues(self, values, function):
         return self.checkFilesAgainstComparator(values, function, aInB)
 
-    def checkWholeName(self, value):
-        return self.checkFilesAgainstComparator(value, justCopy, aMatchesB)
+    def checkWholeName(self):
+        return self.checkFilesAgainstComparator(None, justCopy, aMatchesB)
 
     def checkFilesAgainstNone(self, function):
         return self.checkFilesAgainstComparator(None, function, aNotNone)
@@ -57,7 +65,7 @@ class NameTest(testcases.utils.base_test.BaseTest):
         return failed
 
     def test_prefix(self):
-        failed = self.checkFilesAgainstValues([gc.JAVA_STRING], split.get_javaprefix)
+        failed = self.checkFilesAgainstValues([gc.JAVA_STRING, gc.ITW], split.get_javaprefix)
         assert failed == 0
 
     def test_version(self):
@@ -101,8 +109,8 @@ class NameTest(testcases.utils.base_test.BaseTest):
         The rest of the test checks validity of individual hunks. Not the order.
         The regex catches at least java->version->dashes->dot->arch->.rpm
         """
-        failed = self.checkWholeName(CRES_JAVA_REGEXE)
-        assert failed == 0
+        failed1 = self.checkWholeName()
+        assert failed1 == 0
 
 
 def testAll():

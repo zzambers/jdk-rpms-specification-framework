@@ -62,8 +62,8 @@ class RpmList:
         vers = self.getMajorVersion()
         old_naming_regex = re.compile("^[0-9].[0-9].[0-9]$")
         if old_naming_regex.match(vers):
-            return int(vers.split(".")[1])
-        return int(vers)
+            return vers.split(".")[1]
+        return vers
 
     def getJava(self):
         return self.expectSingleMeberSet(split.get_javaprefix, "java prefix")

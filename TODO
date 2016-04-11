@@ -26,3 +26,6 @@ TODO (what the framework should do):
 
 - todo
 * done
+
+notes:
+	for sake of this testsuite, ITW is considered as special jdk, with plugin package only

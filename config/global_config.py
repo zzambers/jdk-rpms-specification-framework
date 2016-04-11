@@ -66,11 +66,14 @@ def getIx86archs():
     # return ["i386", "i686"]
     return DynamicArches().getIx86Archs()
 
+
 def getHardcodedArchs():
     return ["x86_64", "ppc", "ppc64le", "s390", "s390x", "aarch64"]
 
+
 def getGeneratedArchs():
     return getIx86archs() + getPower64Achs() + getArm32Achs()
+
 
 def getArchs():
     return getHardcodedArchs() + getGeneratedArchs()
@@ -91,7 +94,16 @@ def getSrcrpmArch():
 JAVA_STRING = "java"
 
 FEDORA = "Fedora"
-RHEL= "RHEL"
+RHEL = "RHEL"
 
-LIST_OF_POSSIBLE_VENDORS = ["ibm", "oracle", "openjdk"]
-LIST_OF_POSSIBLE_VERSIONS = ["1.6.0", "1.7.0", "1.8.0", "9" ]
+OPENJDK = "openjdk"
+ITW = "icedtea-web"
+IBM = "ibm"
+ORACLE = "oracle"
+
+LIST_OF_PROPRIETARY_VENDORS = [IBM, ORACLE]
+LIST_OF_OPEN_VENDORS_EXCEPT_ITW = [OPENJDK]
+LIST_OF_OPEN_VENDORS = LIST_OF_OPEN_VENDORS_EXCEPT_ITW + [ITW]
+LIST_OF_POSSIBLE_VENDORS = LIST_OF_PROPRIETARY_VENDORS + LIST_OF_OPEN_VENDORS
+LIST_OF_POSSIBLE_VENDORS_WITHOUT_ITW = LIST_OF_PROPRIETARY_VENDORS + LIST_OF_OPEN_VENDORS_EXCEPT_ITW
+LIST_OF_POSSIBLE_VERSIONS = [ITW, "1.6.0", "1.7.0", "1.8.0", "9"]

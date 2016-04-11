@@ -1,6 +1,7 @@
 from outputControl import logging_access as la
 import traceback
 import inspect
+import sys
 import testcases.utils.test_utils as tu
 import config.general_parser
 import config.runtime_config
@@ -35,9 +36,10 @@ class BaseTest:
                     self.passed += 1
                     la.LoggingAccess().stdout(tu.result(True) + ": " + type(self).__name__ + "." + a)
                 except BaseException as ex:
-                    la.LoggingAccess().stdout(
-                        tu.result(False) + ": " + type(self).__name__ + "." + a + " ("+str(ex)+") from " + inspect.stack()[1][1])
+                    m = tu.result(False) + ": " + type(self).__name__ + "." + a + " ("+str(ex)+") from " + inspect.stack()[1][1]
+                    la.LoggingAccess().stdout(m)
                     self.failed += 1
+                    print(m, file=sys.stderr)
                     traceback.print_exc()
         la.LoggingAccess().log(
             "finished suite: " + type(self).__name__ + " - failed/total: " + str(self.failed) + "/" + str(

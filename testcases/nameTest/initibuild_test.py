@@ -1,8 +1,10 @@
 """"Test whether the content of gc.dir is sane"""
 import sys
+import re
 import config.general_parser
 import config.runtime_config
 import testcases.utils.base_test
+import config.global_config as gc
 
 
 class InitTest(testcases.utils.base_test.BaseTest):
@@ -19,7 +21,7 @@ class InitTest(testcases.utils.base_test.BaseTest):
     def test_majorVersionSimplified(self):
         version = config.runtime_config.RuntimeConfig().getRpmList().getMajorVersionSimplified()
         self.log("Major version simplified is: " + str(version))
-        assert isinstance(version, int)
+        assert re.compile("[0-9]+").match(version) or version == gc.ITW
 
     def test_vendor(self):
         vendor = config.runtime_config.RuntimeConfig().getRpmList().getVendor()
