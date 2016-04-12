@@ -7,7 +7,7 @@ import config.general_parser
 import config.global_config as gc
 import config.runtime_config
 import testcases.utils.pkg_name_split as split
-import testcases.utils.base_test
+import testcases.utils.base_xtest
 from testcases.utils.configuration_specific import JdkConfiguration
 from outputControl import logging_access as la
 
@@ -59,7 +59,7 @@ class OthersRegexCheck(JdkConfiguration):
         return CRES_ITW_REGEXE.match(name)
 
 
-class NameTest(testcases.utils.base_test.BaseTest):
+class NameTest(testcases.utils.base_xtest.BaseTest):
 
     def aMatchesB(self, a, b):
             return self.csch.checkRegex(a)
@@ -158,7 +158,7 @@ def documentAll():
 
 
 def main(argv):
-    testcases.utils.base_test.defaultMain(argv, documentAll, testAll)
+    testcases.utils.base_xtest.defaultMain(argv, documentAll, testAll)
 
 
 if __name__ == "__main__":

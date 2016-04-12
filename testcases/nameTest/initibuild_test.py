@@ -5,7 +5,7 @@ import sys
 import config.general_parser
 import config.global_config as gc
 import config.runtime_config
-import testcases.utils.base_test
+import testcases.utils.base_xtest
 from outputControl import logging_access as la
 from testcases.utils.configuration_specific import JdkConfiguration
 
@@ -62,7 +62,7 @@ class OthersVersionCheck(InitTestSpecialChecks):
         la.LoggingAccess().log("non itw call for checkVendor")
         assert vendor in gc.LIST_OF_POSSIBLE_VENDORS_WITHOUT_ITW
 
-class InitTest(testcases.utils.base_test.BaseTest):
+class InitTest(testcases.utils.base_xtest.BaseTest):
     def test_java(self):
         java = config.runtime_config.RuntimeConfig().getRpmList().getJava()
         self.log("prefix is: " + java)
@@ -195,7 +195,7 @@ def documentAll():
 
 
 def main(argv):
-    testcases.utils.base_test.defaultMain(argv, documentAll, testAll)
+    testcases.utils.base_xtest.defaultMain(argv, documentAll, testAll)
 
 
 if __name__ == "__main__":

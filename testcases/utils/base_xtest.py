@@ -40,6 +40,7 @@ class BaseTest:
         self.setCSCH()
         methods = lsort(inspect.getmembers(self, predicate=inspect.ismethod))
         for a, b in methods:
+            #support per arch!
             if str(a).startswith("test_"):
                 self.indent = "      "
                 self.log("started: " + a + ":")
@@ -77,6 +78,7 @@ class BaseTest:
             self.csch.documenting = True
             methods = lsort(inspect.getmembers(self.csch, predicate=inspect.ismethod))
             for a, b in methods:
+                # support per arch!
                 if not str(a).startswith("_"):
                     self.indent = "      "
                     self.log("documenting: " + a + ":")
