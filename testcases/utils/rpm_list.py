@@ -49,7 +49,7 @@ class RpmList:
     def expectSingleMeberSet(self, function, pname):
         pset, props = self.getSetProperty(function)
         if len(pset) == 0:
-            raise Exception("No " + pname + "found")
+            raise Exception("No " + pname + " found")
         if len(pset) != 1:
             raise Exception("Expected only one " + pname + " - found: " + ",".join(pset))
         return props[0]
