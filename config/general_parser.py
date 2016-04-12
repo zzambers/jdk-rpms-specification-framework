@@ -17,6 +17,9 @@ def _createParser():
     lparser.add_argument("-v", "--version",
                          help="display the version of the framework",
                          action="store_true")
+    lparser.add_argument("-o", "--docs",
+                         help="instead fo testrun, generates documentation",
+                         action="store_true")
     lparser.add_argument("-d", "--dir",
                          help="set directory where to search for rpms. Dir with rpm files only, "
                               "or subdirs - architectures, which each have its builds. Default: " + config.runtime_config.RuntimeConfig().getPkgsDir())
