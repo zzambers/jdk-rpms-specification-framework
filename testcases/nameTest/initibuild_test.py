@@ -185,12 +185,6 @@ class InitTest(testcases.utils.base_test.BaseTest):
             self.log("Set OthersVersionCheck")
             self.csch = OthersVersionCheck()
 
-    def document(self):
-        specialLines = []
-        if self.csch is not None:
-            self.csch.documenting = True;
-            specialLines = self.csch.document()
-
 
 def testAll():
     return InitTest().execute_tests()
