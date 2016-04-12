@@ -1,50 +1,117 @@
-from outputControl import logging_access as la
-import traceback
+import abc
 import inspect
 import sys
-import testcases.utils.test_utils as tu
+import traceback
+
 import config.general_parser
 import config.runtime_config
+import testcases.utils.configuration_specific as cs
+import config.global_config
+import testcases.utils.test_utils as tu
+from outputControl import logging_access as la
 
 
-def defaultMain(argv, run):
+
+def defaultMain(argv, runDocs, runTests):
     args = config.general_parser.GeneralParser().parser.parse_args(argv)
     canContinue = config.runtime_config.RuntimeConfig().setFromParser(args)
     if canContinue:
-        passed, failed = run()
-        tu.closeSuite(passed, failed);
+        if config.runtime_config.RuntimeConfig().getDocs():
+            runDocs()
+        else:
+            passed, failed = runTests()
+            tu.closeTestSuite(passed, failed)
 
 
 class BaseTest:
     def __init__(self):
-        self.indent = "";
-        self.passed = 0;
-        self.failed = 0;
+        self.indent = ""
+        # configuration specific checks
+        self.csch = None
 
     def execute_tests(self):
+        """Call all test_ prefixed methods in overwritting class"""
+        passed = 0
+        failed = 0
         self.indent = "  "
-        self.log("started suite: " + type(self).__name__ + ":")
-        methods = inspect.getmembers(self, predicate=inspect.ismethod)
+        self.log("started tests in suite: " + type(self).__name__ + ":")
+        self.indent = "    "
+        self.log("Setting configuration-specific-checks")
+        self.setCSCH()
+        methods = lsort(inspect.getmembers(self, predicate=inspect.ismethod))
         for a, b in methods:
             if str(a).startswith("test_"):
-                self.indent = "    "
+                self.indent = "      "
                 self.log("started: " + a + ":")
-                callable = self.__class__.__dict__[a]
+                calllable = self.__class__.__dict__[a]
                 try:
-                    self.indent = "      "
-                    callable(self)
-                    self.passed += 1
+                    self.indent = "        "
+                    calllable(self)
+                    passed += 1
                     la.LoggingAccess().stdout(tu.result(True) + ": " + type(self).__name__ + "." + a)
                 except BaseException as ex:
-                    m = tu.result(False) + ": " + type(self).__name__ + "." + a + " ("+str(ex)+") from " + inspect.stack()[1][1]
+                    m = tu.result(False) + ": " + type(self).__name__ + "." + a + " (" + str(ex) + ") from " + \
+                        inspect.stack()[1][1]
                     la.LoggingAccess().stdout(m)
-                    self.failed += 1
+                    failed += 1
                     print(m, file=sys.stderr)
                     traceback.print_exc()
         la.LoggingAccess().log(
-            "finished suite: " + type(self).__name__ + " - failed/total: " + str(self.failed) + "/" + str(
-                self.failed + self.passed))
-        return self.passed, self.failed
+            "finished testing suite: " + type(self).__name__ +
+            " - failed/total: " + str(failed) + "/" + str(failed + passed))
+        return passed, failed
+
+    def execute_special_docs(self):
+        """Call and document all public methods in csch"""
+        documented = 0
+        ignored = 0
+        failed = 0
+        self.indent = "  "
+        self.log("started special docs for suite: " + type(self).__name__ + ":")
+        self.indent = "    "
+        self.log("Setting configuration-specific-checks")
+        self.setCSCH()
+        if self.csch is None:
+            self.log("configuration-specific-checks are not set. Nothing to do")
+        else:
+            self.csch.documenting = True
+            methods = lsort(inspect.getmembers(self.csch, predicate=inspect.ismethod))
+            for a, b in methods:
+                if not str(a).startswith("_"):
+                    self.indent = "      "
+                    self.log("documenting: " + a + ":")
+                    calllable = self.csch.__class__.__dict__[a]
+                    try:
+                        self.indent = "        "
+                        calllable(self.csch)
+                        self.log("Ignored : " + type(self.csch).__name__ + "." + a)
+                        ignored += 1
+                    except cs.DocumentationProcessing as doc:
+                        la.LoggingAccess().stdout(str(doc))
+                        self.log("Processed : " + type(self.csch).__name__ + "." + a)
+                        documented += 1
+                    except Exception as ex:
+                        m = "Error: " + type(self.csch).__name__ + "." + a + " (" + str(ex) + ") from " + inspect.stack()[1][1]
+                        failed += 1
+                        self.log(m)
+                        print(m, file=sys.stderr)
+                        traceback.print_exc()
+        la.LoggingAccess().log(
+            "finished documenting suite: " + type(self).__name__ +
+            " - documented/ignored/failed: " + str(documented) + "/" + str(ignored)+"/" + str(failed))
+        return documented, ignored, failed
 
     def log(self, arg):
         la.LoggingAccess().log(self.indent + arg)
+
+
+    @abc.abstractmethod
+    def setCSCH(self):
+        """Set csch as overwriteing test wishes"""
+        self.log("Nothing to set.")
+
+
+def lsort(someList):
+    if config.global_config.leSort:
+        return sorted(someList)
+    return someList

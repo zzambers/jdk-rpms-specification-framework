@@ -3,7 +3,8 @@ from subprocess import Popen, PIPE
 import outputControl.logging_access
 
 
-# TODO add here generated / vendor specific / list or dictionary of possible subpkg names
+# The get_methods nor find_on_disc are order-granting. However they seems tobe sorted... Sometimes. So this switch will ensure it.
+leSort = True
 
 
 class Singleton(type):
@@ -106,4 +107,7 @@ LIST_OF_OPEN_VENDORS_EXCEPT_ITW = [OPENJDK]
 LIST_OF_OPEN_VENDORS = LIST_OF_OPEN_VENDORS_EXCEPT_ITW + [ITW]
 LIST_OF_POSSIBLE_VENDORS = LIST_OF_PROPRIETARY_VENDORS + LIST_OF_OPEN_VENDORS
 LIST_OF_POSSIBLE_VENDORS_WITHOUT_ITW = LIST_OF_PROPRIETARY_VENDORS + LIST_OF_OPEN_VENDORS_EXCEPT_ITW
-LIST_OF_POSSIBLE_VERSIONS = [ITW, "1.6.0", "1.7.0", "1.8.0", "9"]
+LIST_OF_LEGACY_VERSIONS = ["1.6.0", "1.7.0", "1.8.0"]
+LIST_OF_NEW_VERSIONS = ["9"]
+LIST_OF_POSSIBLE_VERSIONS = [ITW] + LIST_OF_LEGACY_VERSIONS + LIST_OF_NEW_VERSIONS
+LIST_OF_POSSIBLE_VERSIONS_WITHOUT_ITW = LIST_OF_LEGACY_VERSIONS + LIST_OF_NEW_VERSIONS

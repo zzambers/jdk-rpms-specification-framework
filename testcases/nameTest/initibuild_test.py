@@ -1,32 +1,91 @@
 """"Test whether the content of gc.dir is sane"""
-import sys
 import re
+import sys
+
 import config.general_parser
+import config.global_config as gc
 import config.runtime_config
 import testcases.utils.base_test
-import config.global_config as gc
+from outputControl import logging_access as la
+from testcases.utils.configuration_specific import JdkConfiguration
 
+
+class InitTestSpecialChecks(JdkConfiguration):
+    pass
+
+
+class ItwVersionCheck(InitTestSpecialChecks):
+
+    def checkMajorVersionSimplified(self, version=None):
+        self._document("IcedTea-Web do not have any version contained in name.")
+        la.LoggingAccess().log("ITW special call for checkMajorVersionSimplified")
+        assert version == gc.ITW
+
+    def checkMajorVersion(self, version=None):
+        self.checkMajorVersionSimplified(version)
+
+    def checkPrefix(self, version=None):
+        self._document("IcedTea-Web do not have any prefix-based name. It is just " + gc.ITW + ".")
+        la.LoggingAccess().log("ITW special call for checkPrefix")
+        assert version == gc.ITW
+
+    def checkVendor(self, vendor=None):
+        self._document("IcedTea-Web do not have any vendor in name. It is just " + gc.ITW + ".")
+        la.LoggingAccess().log("ITW special call for checkVendor")
+        assert vendor == gc.ITW
+
+class OthersVersionCheck(InitTestSpecialChecks):
+
+    def checkMajorVersionSimplified(self, version=None):
+        self._document(
+            "All jdsk (except icedtea-web) have major version in name. eg: java-1.8.0-openjdk or java-9-oracle." \
+            " For legacy JDK (like jdk 1.6.0 or 1.7.1) the major version is included as middle number." \
+            " For modern jdks (jdk 9+)  the major version is just plain number. Eg.: java-9-ibm."
+            " The extracted middle number *is* number")
+        la.LoggingAccess().log("non itw call for checkMajorVersionSimplified")
+        assert re.compile("[0-9]+").match(version)
+        assert int(version) > 0
+
+    def checkMajorVersion(self, version=None):
+        self._document("The version string in middle of package name is one of: " + ",".join(
+            gc.LIST_OF_POSSIBLE_VERSIONS_WITHOUT_ITW))
+        assert version in gc.LIST_OF_POSSIBLE_VERSIONS_WITHOUT_ITW
+
+    def checkPrefix(self, version=None):
+        self._document("prefix of each java package is " + gc.JAVA_STRING + ".")
+        la.LoggingAccess().log("non itw call for checkPrefix")
+        assert version == gc.JAVA_STRING
+
+    def checkVendor(self, vendor=None):
+        self._document("The vendor string, suffix of package name is one of: " + ",".join(
+            gc.LIST_OF_POSSIBLE_VENDORS_WITHOUT_ITW))
+        la.LoggingAccess().log("non itw call for checkVendor")
+        assert vendor in gc.LIST_OF_POSSIBLE_VENDORS_WITHOUT_ITW
 
 class InitTest(testcases.utils.base_test.BaseTest):
     def test_java(self):
         java = config.runtime_config.RuntimeConfig().getRpmList().getJava()
         self.log("prefix is: " + java)
         assert java is not None
+        self.csch.checkPrefix(java)
 
     def test_majorVersion(self):
         version = config.runtime_config.RuntimeConfig().getRpmList().getMajorVersion()
         self.log("Major version is: " + version)
         assert version is not None
+        self.csch.checkMajorVersion(version)
 
     def test_majorVersionSimplified(self):
         version = config.runtime_config.RuntimeConfig().getRpmList().getMajorVersionSimplified()
         self.log("Major version simplified is: " + str(version))
-        assert re.compile("[0-9]+").match(version) or version == gc.ITW
+        assert version is not None
+        self.csch.checkMajorVersionSimplified(version)
 
     def test_vendor(self):
         vendor = config.runtime_config.RuntimeConfig().getRpmList().getVendor()
         self.log("Vendor is: " + vendor)
         assert vendor is not None
+        self.csch.checkVendor(vendor)
 
     def test_package(self):
         pkgs = config.runtime_config.RuntimeConfig().getRpmList().getPackages()
@@ -108,8 +167,8 @@ class InitTest(testcases.utils.base_test.BaseTest):
             assert len(arches) > 0
 
     def test_os(self):
-        l=config.runtime_config.RuntimeConfig().getRpmList()
-        self.log("Os: "+l.getOs())
+        l = config.runtime_config.RuntimeConfig().getRpmList()
+        self.log("Os: " + l.getOs())
         self.log("Version: " + l.getOsVersion())
         self.log("Version major: " + l.getOsVersionMajor())
         assert l.isFedora() | l.isRhel()
@@ -118,12 +177,31 @@ class InitTest(testcases.utils.base_test.BaseTest):
         assert l.getOsVersion() is not None
         assert l.getOsVersionMajor() is not None
 
+    def setCSCH(self):
+        if config.runtime_config.RuntimeConfig().getRpmList().getJava() == gc.ITW:
+            self.log("Set ItwVersionCheck")
+            self.csch = ItwVersionCheck()
+        else:
+            self.log("Set OthersVersionCheck")
+            self.csch = OthersVersionCheck()
+
+    def document(self):
+        specialLines = []
+        if self.csch is not None:
+            self.csch.documenting = True;
+            specialLines = self.csch.document()
+
+
 def testAll():
     return InitTest().execute_tests()
 
 
+def documentAll():
+    return InitTest().execute_special_docs()
+
+
 def main(argv):
-    testcases.utils.base_test.defaultMain(argv, testAll)
+    testcases.utils.base_test.defaultMain(argv, documentAll, testAll)
 
 
 if __name__ == "__main__":

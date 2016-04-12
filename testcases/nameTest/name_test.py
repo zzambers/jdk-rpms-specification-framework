@@ -117,8 +117,12 @@ def testAll():
     return NameTest().execute_tests()
 
 
+def documentAll():
+    return NameTest().execute_special_docs()
+
+
 def main(argv):
-    testcases.utils.base_test.defaultMain(argv, testAll)
+    testcases.utils.base_test.defaultMain(argv, documentAll, testAll)
 
 
 if __name__ == "__main__":

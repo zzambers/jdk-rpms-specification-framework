@@ -12,6 +12,22 @@ from testcases.nameTest import initibuild_test
 import testcases.utils.test_utils as tu
 
 
+def runDocks():
+    logging_access.LoggingAccess().log("Running documentation")
+    dlist = []
+    ilist = []
+    flist = []
+    passed, ignored, failed = initibuild_test.documentAll()
+    dlist.append(passed)
+    ilist.append(ignored)
+    flist.append(failed)
+    passed, ignored, failed = name_test.documentAll()
+    dlist.append(passed)
+    ilist.append(ignored)
+    flist.append(failed)
+    tu.closeDocSuite(sum(dlist), sum(ilist), sum(flist))
+
+
 def runTasks():
     logging_access.LoggingAccess().log("Running all testsuites")
     plist=[]
@@ -22,14 +38,17 @@ def runTasks():
     passed, failed = name_test.testAll()
     plist.append(passed)
     flist.append(failed)
-    tu.closeSuite(sum(plist), sum(flist))
+    tu.closeTestSuite(sum(plist), sum(flist))
 
 
 def main(argv):
     args = config.general_parser.GeneralParser().parser.parse_args(argv)
     canContinue = config.runtime_config.RuntimeConfig().setFromParser(args)
     if canContinue:
-        runTasks()
+        if config.runtime_config.RuntimeConfig().getDocs():
+            runDocks()
+        else:
+            runTasks()
 
 
 if __name__ == "__main__":

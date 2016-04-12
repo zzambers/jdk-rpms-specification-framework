@@ -2,10 +2,15 @@ import os
 
 from outputControl import logging_access
 
-def closeSuite(passed, failed):
+def closeTestSuite(passed, failed):
     logging_access.LoggingAccess().stdout("done - Passed: " + str(passed) + " from total: " + str(passed + failed))
     if failed != 0:
         raise Exception(str(failed) + " tests failed")
+
+def closeDocSuite(documented, ignored, failed):
+    logging_access.LoggingAccess().log("done - Documented: " + str(documented) + " from total: " + str(documented+ignored+failed))
+    if (failed+ignored) != 0:
+        raise Exception(str(failed+ignored) + " docs failed")
 
 
 def result(boolval):
