@@ -56,7 +56,7 @@ class OthersRegexCheck(JdkConfiguration):
     def checkRegex(self, name=None):
         self._document("RPM of jdks older then 9 and except itw must match following regex: "+JAVA_REGEX8)
         la.LoggingAccess().log("non ITW jdk older then 9 call for checkRegex")
-        return CRES_ITW_REGEXE.match(name)
+        return CRES_JAVA_REGEXE8.match(name)
 
 
 class NameTest(testcases.utils.base_xtest.BaseTest):
