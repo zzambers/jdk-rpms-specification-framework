@@ -17,7 +17,8 @@ def defaultMain(argv, runDocs, runTests):
     canContinue = config.runtime_config.RuntimeConfig().setFromParser(args)
     if canContinue:
         if config.runtime_config.RuntimeConfig().getDocs():
-            runDocs()
+            passed, ignored, failed = runDocs()
+            tu.closeDocSuite(passed, ignored, failed)
         else:
             passed, failed = runTests()
             tu.closeTestSuite(passed, failed)
