@@ -77,36 +77,41 @@ class BaseTestRunner:
         failed = 0
         self.indent = "  "
         self.log("started special docs for suite: " + type(self).__name__ + ":")
-        self.indent = "    "
-        self.log("Setting configuration-specific-checks")
-        self.setCSCH()
-        if self.csch is None:
-            self.log("configuration-specific-checks are not set. Nothing to do")
-        else:
-            self.csch.documenting = True
-            methods = lsort(inspect.getmembers(self.csch, predicate=inspect.ismethod))
-            for a, b in methods:
-                # support per arch!
-                if not str(a).startswith("_"):
-                    self.indent = "      "
-                    self.log("documenting: " + a + ":")
-                    calllable = self.csch.__class__.__dict__[a]
-                    try:
-                        self.indent = "        "
-                        calllable(self.csch)
-                        self.log("Ignored : " + type(self.csch).__name__ + "." + a)
-                        ignored += 1
-                    except cs.DocumentationProcessing as doc:
-                        la.LoggingAccess().stdout(str(doc))
-                        self.log("Processed : " + type(self.csch).__name__ + "." + a)
-                        documented += 1
-                    except Exception as ex:
-                        m = "Error: " + type(self.csch).__name__ + "." + a + " (" + str(ex) + ") from " + \
-                            inspect.stack()[1][1]
-                        failed += 1
-                        self.log(m)
-                        print(m, file=sys.stderr)
-                        traceback.print_exc()
+        archs = self._cleanArchs()
+        for i, arch in enumerate(archs):
+            self.indent = "    "
+            self.log("Setting configuration-specific-checks")
+            self.setCSCH()
+            if self.csch is None:
+                self.log("configuration-specific-checks are not set. Nothing to do")
+            else:
+                #on contrary with execute_tests, this walks methods on csh!!!
+                methods = lsort(inspect.getmembers(self.csch, predicate=inspect.ismethod))
+                for a, b in methods:
+                    self.current_arch = arch;
+                    if not str(a).startswith("_"):
+                            self.csch.documenting = True
+                            self.indent = "      "
+                            self.log("documenting: " + a +"["+self.current_arch + "] " + str(i + 1) + "/" + str(len(archs)))
+                            calllable = self.csch.__class__.__dict__[a]
+                            try:
+                                self.indent = "        "
+                                calllable(self.csch)
+                                self.log("Ignored : " + type(self.csch).__name__ + "." + a+"["+arch+"]")
+                                ignored += 1
+                            except cs.DocumentationProcessing as doc:
+                                la.LoggingAccess().stdout(str(doc))
+                                self.log("Processed : " + type(self.csch).__name__ + "." + a+"["+arch+"]")
+                                documented += 1
+                            except Exception as ex:
+                                m = "Error: " + type(self.csch).__name__ + "." + a+"["+arch+"]" + " (" + str(ex) + ") from " + \
+                                    inspect.stack()[1][1]
+                                failed += 1
+                                self.log(m)
+                                print(m, file=sys.stderr)
+                                traceback.print_exc()
+                            self.indent = "    "
+                            self.log("finished: " + a + "[" + self.current_arch + "] " + str(i + 1) + "/" + str(len(archs)))
         la.LoggingAccess().log(
             "finished documenting suite: " + type(self).__name__ +
             " - documented/ignored/failed: " + str(documented) + "/" + str(ignored) + "/" + str(failed))
