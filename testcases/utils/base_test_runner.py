@@ -1,10 +1,12 @@
 import inspect
 import sys
 import traceback
-import testcases.utils.configuration_specific as cs
-from outputControl import logging_access as la
-import testcases.utils.test_utils as tu
+from collections import OrderedDict
+
 import config.global_config
+import testcases.utils.configuration_specific as cs
+import testcases.utils.test_utils as tu
+from outputControl import logging_access as la
 
 
 def lsort(someList):
@@ -23,12 +25,47 @@ class Agregator():
 
     def add(self, arch, method, string):
         la.LoggingAccess().log("for " + method + " on " + arch)
-        self.lines.append(string)
+        self.lines.append((arch, method, string))
         la.LoggingAccess().log("  got: " + string)
 
-    def out(self):
+    def agregate1(self):
+        """Join all same documentatins under set of architectures"""
+        mapOfMaps = OrderedDict()
         for l in self.lines:
-            la.LoggingAccess().stdout(l)
+            if l[2] not in mapOfMaps:
+                mapOfMaps[l[2]] = [l[0]]
+            else:
+                arches = mapOfMaps[l[2]]
+                arches.append(l[0])
+                sarches = sorted(set(arches))
+                mapOfMaps[l[2]] = sarches
+        return mapOfMaps
+
+    def agregate2(self, mapOfArches):
+        mapResults = OrderedDict();
+        for key, svalue in mapOfArches.items():
+            value = list(svalue)
+            nwKey = None
+            if len(value) == 0:
+                nwKey = ("Everywhere(?):")
+            else:
+                if len(value) == 1 and value[0] == NON_ARCH_TEST:
+                    nwKey = ("On all architectures:")
+                else:
+                    nwKey = ("On - " + ",".join(value) + ":")
+            if nwKey not in mapResults:
+                mapResults[nwKey] = [key]
+            else:
+                mapResults[nwKey].append(key);
+        return mapResults
+
+    def out(self):
+        mapOfArches = self.agregate1()
+        mapResults = self.agregate2(mapOfArches);
+        for key, svalue in mapResults.items():
+            la.LoggingAccess().stdout(key)
+            for value in svalue:
+                la.LoggingAccess().stdout(" - " + value)
 
 
 class BaseTestRunner:
