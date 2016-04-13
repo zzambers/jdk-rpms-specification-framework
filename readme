@@ -1,0 +1,142 @@
+This nice framework is re-implementing general unit-test logic for several reasons:
+	- its not unittest - it is verifying external object(s) by some (hardcoded) rules
+		- the word hardcoded in case of python is not exactly right, but yes, the conditions are inisde .py files
+	- it is iterating over each test as many times as may arches are to be tested (simplifying)
+	- it is self documenting
+		- the testingmode can be replaced (-o) by writing mode so one can really see, what the package is verified against with all exceptions
+
+Input is task or build downloaded from koji/brew or substituted in ./rpms directory or in any directory sent inside via -d
+Output is pass/fail of verification of input (default) or written specification (-o) + logs in  ./jsf.log
+
+Under the hood
+	- The core runner is base_test_runner.BaseTestRunner. 
+		- this class have execute_tests method, which take all test_* methods and execute them. It iterate the method for each reliable arch (see lower)
+		- this class have execute_special_docs method, which take all test_-* methods and generate documentation from them
+		- developer of new tests should never ever touch this one, and hsould jsut politly call those methods
+	- actually base_xtest.BaseTest is extending BaseTestRunner (just for readability) and every new test class must extend it
+	- each test file should be runnable as standalone file. Author of new file can easily achieve this by using base_xtest.defaultMain as its main
+	- testing is done by python's normal assert keyword
+
+Handling multiple architectures
+	- by default each _test method in given testfile(BaseTest) is iterated for every native architecture included in input
+	- you can control this by overriding getTestedArchs method
+		- if the test don't wont loop of architectures, simply return None
+	- you can get current each method can access getCurrentArch
+		- if the test is not using loop of archs, you will get cosntant of NON_ARCH_TEST
+			-  you should not need it, as no-arch tests should have no reason to call getCurrentArch
+ 
+Handling special version/vendor/arch cases
+	- before each run of method for given arch, the method setCSCH is called
+		- you may benefit from getCurrentArch of course
+	- when you override this method, you can chose any logic you wont, to set self.csch to any[1] object you wont
+	- [1] this object must do only thing - to extend configuration_specific.JdkConfiguration, so it have access to _document method
+		- public methods in this object should be used to point to special corner case of the test
+		- all public methods MUST have all parameters with defaults
+		- all public methods should have first line of self._document("description of special case")
+		- see example [2]
+
+Documenting
+	- in documentation mode, the framework is iterating through all getTestedArchs and calling setCSCH
+		- on that self.csch instance, all public methods are invoken, and if it have self._document, then its message is included
+	- before printing out all messages are gathered by arch, and multiplied ones removed
+
+
+Accessing rpms
+	- config.runtime_config.RuntimeConfig().getRpmList() is yours friend
+		- config.runtime_config.RuntimeConfig().getRpmList().getCompleteBuild(self.getCurrentArch())
+		- config.runtime_config.RuntimeConfig().getRpmList().getBuildWithoutSrpm(self.getCurrentArch())
+		- getSubpackages()....
+			- are best friedns, and those may be simplified in BaseTest in future
+
+Logging
+	- test developer should use self.log() to log messages. Nothing else.
+	- you may look to LoggingAccess() singleton usages for details
+	- the verbose jsf.log (setupable by (-l) ) contains a lot of information about processed rutines
+
+Running it all together
+	- main.py can run all *_test.py files in testcases directory in batch
+		- on each of them it calls testAll for testing
+		- and documentAll for specification
+
+FAQ
+	- How to document rest of the test out of JdkConfiguration methods?
+		- in 99% you will implement documentAll in your _test.py file
+		- so LoggingAccess().stdout it all before calling execute_special_docs() to print out special cases
+		- this is candidate to rework (and so iterate over all test_methods )
+			Then the result of docs must be reworked to don't count ignored methods as failures
+
+	- stdout is messy
+		- redirect error stream:)
+
+[2] Example.
+	- When you set killTest to false, you will see:
+		- In testmode:
+			Passed: TestTest.test_checkTrue[Non_Arch]
+			done - Passed: 1 from total: 1
+		- in doc mode
+			Crazy test
+			On all architectures:
+			 - If the killTest is false, then this test actually test whether  tested is True.
+	- When you set killTest to true, you will see:
+		- In testmode:
+			FAILED: TestTest.test_checkTrue[Non_Arch] () from /.../file.py
+			done - Passed: 0 from total: 1
+		- in doc mode
+			Crazy test
+			On all architectures:
+			 - if killTest is true,  then the test fail whatever you do.
+		- and always a lot of logs....
+
+import sys
+import testcases.utils.core.base_xtest
+from outputControl import logging_access as la
+from testcases.utils.core.configuration_specific import JdkConfiguration
+
+class DocumentingTestKiller(JdkConfiguration):
+
+    def intrudeTest(self, checker=None):
+        self._document("if killTest is true,  then the test fail whatever you do.")
+        assert checker == False
+
+class DummyCsch(JdkConfiguration):
+
+    def intrudeTest(self, checker=None):
+        self._document("If the killTest is false, then this test actually test whether  tested is True.")
+        assert checker is not None
+
+
+class TestTest(testcases.utils.core.base_xtest.BaseTest):
+
+    tested = True
+    killTest = True
+
+    def test_checkTrue(self):
+        self.csch.intrudeTest(TestTest.tested)
+        assert TestTest.tested == True
+
+    def setCSCH(self):
+        if TestTest.killTest == True:
+            self.csch = DocumentingTestKiller()
+        else:
+            self.csch = DummyCsch()
+
+    def getTestedArchs(self):
+        return None
+
+
+
+def testAll():
+    return TestTest().execute_tests()
+
+
+def documentAll():
+    la.LoggingAccess().stdout("Crazy test")
+    return TestTest().execute_special_docs()
+
+
+def main(argv):
+    testcases.utils.core.base_xtest.defaultMain(argv, documentAll, testAll)
+
+
+if __name__ == "__main__":
+    main(sys.argv[1:])
