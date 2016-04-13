@@ -157,6 +157,7 @@ def testAll():
 
 
 def documentAll():
+    la.LoggingAccess().stdout("Package naming conventions:")
     return NameTest().execute_special_docs()
 
 

@@ -193,6 +193,7 @@ def testAll():
 
 
 def documentAll():
+    la.LoggingAccess().stdout("Build naming conventions")
     return InitTest().execute_special_docs()
 
 
