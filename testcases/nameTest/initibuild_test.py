@@ -185,6 +185,8 @@ class InitTest(testcases.utils.base_xtest.BaseTest):
             self.log("Set OthersVersionCheck")
             self.csch = OthersVersionCheck()
 
+    def getTestedArchs(self):
+        return None
 
 def testAll():
     return InitTest().execute_tests()

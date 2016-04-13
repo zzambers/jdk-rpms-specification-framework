@@ -6,10 +6,15 @@ from outputControl import logging_access as la
 import testcases.utils.test_utils as tu
 import config.global_config
 
+
 def lsort(someList):
     if config.global_config.leSort:
         return sorted(someList)
     return someList
+
+
+# dont missplace with noarch architecture
+NON_ARCH_TEST = "Non_Arch"
 
 
 class BaseTestRunner:
@@ -17,6 +22,15 @@ class BaseTestRunner:
         self.indent = ""
         # configuration specific checks
         self.csch = None
+        self.current_arch = None
+
+    def _cleanArchs(self):
+        r = self.getTestedArchs()
+        if r is None or len(r) == 0:
+            return [NON_ARCH_TEST]
+        else:
+            return r
+
 
     def execute_tests(self):
         """Call all test_ prefixed methods in overwritting class"""
@@ -24,32 +38,37 @@ class BaseTestRunner:
         failed = 0
         self.indent = "  "
         self.log("started tests in suite: " + type(self).__name__ + ":")
-        self.indent = "    "
-        self.log("Setting configuration-specific-checks")
-        self.setCSCH()
+        archs = self._cleanArchs()
         methods = lsort(inspect.getmembers(self, predicate=inspect.ismethod))
         for a, b in methods:
-            #support per arch!
-            if str(a).startswith("test_"):
-                self.indent = "      "
-                self.log("started: " + a + ":")
-                calllable = self.__class__.__dict__[a]
-                try:
-                    self.indent = "        "
-                    calllable(self)
-                    passed += 1
-                    la.LoggingAccess().stdout(tu.result(True) + ": " + type(self).__name__ + "." + a)
-                except BaseException as ex:
-                    m = tu.result(False) + ": " + type(self).__name__ + "." + a + " (" + str(ex) + ") from " + \
-                        inspect.stack()[1][1]
-                    la.LoggingAccess().stdout(m)
-                    failed += 1
-                    print(m, file=sys.stderr)
-                    traceback.print_exc()
+            for i, arch in enumerate(archs):
+                self.current_arch=arch;
+                if str(a).startswith("test_"):
+                    self.indent = "    "
+                    self.log("Setting configuration-specific-checks")
+                    self.setCSCH()
+                    self.log("running: " + a +"["+self.current_arch + "] " + str(i + 1) + "/" + str(len(archs)))
+                    self.indent = "      "
+                    calllable = self.__class__.__dict__[a]
+                    try:
+                        self.indent = "        "
+                        calllable(self)
+                        passed += 1
+                        la.LoggingAccess().stdout(tu.result(True) + ": " + type(self).__name__ + "." + a+"["+arch+"]")
+                    except BaseException as ex:
+                        m = tu.result(False) + ": " + type(self).__name__ + "." + a+"["+arch+"]" + " (" + str(ex) + ") from " + \
+                            inspect.stack()[1][1]
+                        la.LoggingAccess().stdout(m)
+                        failed += 1
+                        print(m, file=sys.stderr)
+                        traceback.print_exc()
+                    self.indent = "    "
+                    self.log("finished: " + a + "[" + self.current_arch + "] " + str(i + 1) + "/" + str(len(archs)))
         la.LoggingAccess().log(
             "finished testing suite: " + type(self).__name__ +
             " - failed/total: " + str(failed) + "/" + str(failed + passed))
         return passed, failed
+
 
     def execute_special_docs(self):
         """Call and document all public methods in csch"""
@@ -82,15 +101,17 @@ class BaseTestRunner:
                         self.log("Processed : " + type(self.csch).__name__ + "." + a)
                         documented += 1
                     except Exception as ex:
-                        m = "Error: " + type(self.csch).__name__ + "." + a + " (" + str(ex) + ") from " + inspect.stack()[1][1]
+                        m = "Error: " + type(self.csch).__name__ + "." + a + " (" + str(ex) + ") from " + \
+                            inspect.stack()[1][1]
                         failed += 1
                         self.log(m)
                         print(m, file=sys.stderr)
                         traceback.print_exc()
         la.LoggingAccess().log(
             "finished documenting suite: " + type(self).__name__ +
-            " - documented/ignored/failed: " + str(documented) + "/" + str(ignored)+"/" + str(failed))
+            " - documented/ignored/failed: " + str(documented) + "/" + str(ignored) + "/" + str(failed))
         return documented, ignored, failed
+
 
     def log(self, arg):
         la.LoggingAccess().log(self.indent + arg)

@@ -147,6 +147,9 @@ class NameTest(testcases.utils.base_xtest.BaseTest):
         self.log("Set OthersRegexCheck")
         self.csch = OthersRegexCheck()
 
+    def getTestedArchs(self):
+        return None
+
 
 
 def testAll():
