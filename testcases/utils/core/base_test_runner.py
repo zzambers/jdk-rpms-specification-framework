@@ -4,7 +4,7 @@ import traceback
 from collections import OrderedDict
 
 import config.global_config
-import testcases.utils.configuration_specific as cs
+import testcases.utils.core.configuration_specific as cs
 import testcases.utils.test_utils as tu
 from outputControl import logging_access as la
 

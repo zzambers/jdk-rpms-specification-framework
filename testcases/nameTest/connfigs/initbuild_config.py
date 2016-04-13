@@ -1,7 +1,8 @@
 import re
-from testcases.utils.configuration_specific import JdkConfiguration
-from outputControl import logging_access as la
+
 import config.global_config as gc
+from outputControl import logging_access as la
+from testcases.utils.core.configuration_specific import JdkConfiguration
 
 
 class ItwVersionCheck(JdkConfiguration):
