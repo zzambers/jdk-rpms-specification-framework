@@ -26,7 +26,7 @@ def getBuild(nvr):
         raise Exception("No pkgs to download. Verify build or archs")
     la.LoggingAccess().log("going to download " + str(len(packages)) + " rpms")
     _downloadBrewKojiBuilds(packages, target)
-    return False
+    return True
 
 
 def _downloadBrewKojiBuilds(pkgs, targetDir):
