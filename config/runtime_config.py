@@ -1,5 +1,6 @@
 import outputControl.logging_access
 import testcases.utils.rpm_list
+import testcases.utils.build_downloader
 
 VERSION_STRING = "jdks_specification_framework, version 0.1"
 
@@ -21,6 +22,7 @@ class RuntimeConfig(metaclass=Singleton):
         self.logsFile = "jsf.log"
         self.rpmList = None
         self.docs = False
+        self.archs = None
 
     def getRpmList(self):
         if self.rpmList == None:
@@ -45,17 +47,35 @@ class RuntimeConfig(metaclass=Singleton):
     def getPkgsDir(self):
         return self.pkgsDir;
 
+    def setArchs(self, archString):
+        words = archString.split(",")
+        self.archs= words
+        outputControl.logging_access.LoggingAccess().log("archs limited/forced to " + str(words))
+
+
+    def getArchs(self):
+        return self.archs
+
     def setFromParser(self, args):
+        #Order metter a lot!
         # logfile must go first
         if args.logfile:
             self.setLogsFile(args.logfile)
         if args.version:
             outputControl.logging_access.LoggingAccess().stdout(VERSION_STRING)
             return False;
-        # later it does not meter
+        # later it does not meter as logging is already going to log file
         outputControl.logging_access.LoggingAccess().log(VERSION_STRING)
+        # switchhes should go befor commands, so commands can use them
         if args.dir:
             self.setPkgsDir(args.dir)
+        if args.archs:
+            self.setArchs(args.archs)
+        if args.build:
+            r = testcases.utils.build_downloader.getBuild(args.build)
+            # failed? exit...
+            if not r:
+                return False
         if args.docs:
             # no setter - should not be set from outside
             self.docs = True

@@ -6,7 +6,7 @@ TODO (what the framework should do):
 	- priority check
 	 	- debugpackage have lowered, contains version/release, length is known, prefix s known
 	- all subpackages are present
-	- download single-arch (+noarch) parts of build from brew/koji
+	* download single-arch (+noarch) parts of build from brew/koji
 	- none subpackage is empty unless expected
 	- provides are as expected
 	- plugin, javaws, jcontrol sanity
@@ -22,7 +22,7 @@ TODO (what the framework should do):
 		- correct set of architectures is present
 		- test each architecture separately
 
-- write in human-readable form, what it itself test
+* generate in human-readable form, what it itself test
 
 - todo
 * done

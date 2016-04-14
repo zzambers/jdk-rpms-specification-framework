@@ -135,19 +135,14 @@ class RpmList:
         bb.append(srpm)
         return bb
 
-
     def isFedora(self):
-        return self.getDist().startswith("fc")
+        return isFedora(self.getDist())
 
     def isRhel(self):
-        return self.getDist().startswith("el")
+        return isRhel(self.getDist())
 
     def getOs(self):
-        if self.isFedora():
-            return gc.FEDORA
-        if self.isRhel():
-            return gc.RHEL
-        return None
+        return getOs(self.getDist())
 
     def getOsVersion(self):
         if self.isFedora():
@@ -159,3 +154,18 @@ class RpmList:
     def getOsVersionMajor(self):
         return re.sub("\..*","",self.getOsVersion())
 
+
+def isFedora(dist):
+    return dist.startswith("fc")
+
+
+def isRhel(dist):
+    return dist.startswith("el")
+
+
+def getOs(dist):
+    if isFedora(dist):
+        return gc.FEDORA
+    if isRhel(dist):
+        return gc.RHEL
+    return None

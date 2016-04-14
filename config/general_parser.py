@@ -25,6 +25,10 @@ def _createParser():
                               "or subdirs - architectures, which each have its builds. Default: " + config.runtime_config.RuntimeConfig().getPkgsDir())
     lparser.add_argument("-l", "--logfile",
                          help="target file for verbose output. Default: " + config.runtime_config.RuntimeConfig().getLogsFile())
+    lparser.add_argument("-b", "--build",
+                         help="Will download the build specified by NVR from koji/brew to (empty) --dir")
+    lparser.add_argument("-a", "--archs",
+                         help="coma separated list t limit/extend download/spepcification to given arches. Use with caution, and dont foget srpm/noarch.")
     return lparser
 
 
