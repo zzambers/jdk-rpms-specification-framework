@@ -22,6 +22,7 @@ class RuntimeConfig(metaclass=Singleton):
         self.logsFile = "jsf.log"
         self.rpmList = None
         self.docs = False
+        self.header= True
         self.archs = None
 
     def getRpmList(self):
@@ -39,6 +40,9 @@ class RuntimeConfig(metaclass=Singleton):
 
     def getDocs(self):
         return self.docs;
+
+    def isHeader(self):
+        return self.header;
 
     def setPkgsDir(self, nwDir):
         outputControl.logging_access.LoggingAccess().log("Rpms looked for in " + nwDir + " instead of " + self.pkgsDir)
@@ -79,4 +83,7 @@ class RuntimeConfig(metaclass=Singleton):
         if args.docs:
             # no setter - should not be set from outside
             self.docs = True
+        if args.noheader:
+            # no setter - should not be set from outside
+            self.header = False
         return True

@@ -2,16 +2,14 @@
 
 """Main entry point to jdks_specification_framework."""
 
-import sys
-import os
 import importlib
+import os
+import sys
 
 import config.general_parser
 import config.runtime_config
-from outputControl import logging_access
-from testcases.nameTest import name_test
-from testcases.nameTest import initibuild_test
 import testcases.utils.test_utils as tu
+from outputControl import logging_access
 
 
 def getTestFiles():
@@ -24,9 +22,25 @@ def getTestFiles():
             return sorted(flist)
     return flist
 
+def header():
+    if  not config.runtime_config.RuntimeConfig().isHeader():
+        return
+    rpm = config.runtime_config.RuntimeConfig().getRpmList()
+    logging_access.LoggingAccess().stdout("os                 : " +rpm.getOs())
+    logging_access.LoggingAccess().stdout("os version major   : " +str(rpm.getOsVersionMajor()))
+    logging_access.LoggingAccess().stdout("os version         : " +rpm.getOsVersion())
+    logging_access.LoggingAccess().stdout("dist               : " +rpm.getDist())
+    logging_access.LoggingAccess().stdout("product            : " +rpm.getJava())
+    logging_access.LoggingAccess().stdout("version major      : " +rpm.getMajorVersion())
+    logging_access.LoggingAccess().stdout("version simplified : " +rpm.getMajorVersionSimplified())
+    logging_access.LoggingAccess().stdout("vendor             : " +rpm.getVendor())
+    logging_access.LoggingAccess().stdout("package version    : " +rpm.getVersion())
+    logging_access.LoggingAccess().stdout("package release    : " +rpm.getRelease())
+    logging_access.LoggingAccess().stdout("contained arches   : " +str(rpm.getAllArches()))
+
 
 def runDocks():
-    #loop
+    header();
     logging_access.LoggingAccess().log("Running documentation")
     dlist = []
     ilist = []
@@ -43,7 +57,7 @@ def runDocks():
 
 
 def runTasks():
-    #loop
+    header();
     logging_access.LoggingAccess().log("Running all testsuites")
     plist=[]
     flist=[]
