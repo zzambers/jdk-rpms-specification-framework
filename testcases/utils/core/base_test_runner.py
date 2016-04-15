@@ -97,12 +97,13 @@ class BaseTestRunner:
                     self.indent = "    "
                     self.log("Setting configuration-specific-checks")
                     self.setCSCH()
+                    self.log("using: " + str(type(self.csch).__name__))
                     self.log("running: " + a + "[" + self.current_arch + "] " + str(i + 1) + "/" + str(len(archs)))
                     self.indent = "      "
-                    calllable = self.__class__.__dict__[a]
+                    calllable = getattr(self, a)
                     try:
                         self.indent = "        "
-                        calllable(self)
+                        calllable()
                         passed += 1
                         la.LoggingAccess().stdout(
                             tu.result(True) + ": " + type(self).__name__ + "." + a + "[" + arch + "]")
@@ -142,11 +143,12 @@ class BaseTestRunner:
                 for a, b in methods:
                     self.current_arch = arch;
                     if not str(a).startswith("_"):
-                        self.csch.documenting = True
                         self.indent = "      "
+                        self.log("using: " + str(type(self.csch).__name__))
+                        self.csch.documenting = True
                         self.log(
                             "documenting: " + a + "[" + self.current_arch + "] " + str(i + 1) + "/" + str(len(archs)))
-                        calllable = self.csch.__class__.__dict__[a]
+                        calllable = getattr(self.csch, a)
                         try:
                             self.indent = "        "
                             calllable(self.csch)
