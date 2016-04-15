@@ -1,5 +1,5 @@
 from collections import namedtuple
-import config.global_config as gc
+import config.global_config
 
 RpmNameParts = namedtuple('RpmNameParts',
                           ['java', 'java_ver', 'vendor', 'pkg',
@@ -17,6 +17,7 @@ def _rpmname_splithelper(name):
 def _hyphen_split(name):
     """Split the rpm name according to hyphens, the subpackage string
     can be also empty or contain hyphens - as in devel-debug etc."""
+    gc = config.global_config;
     name = name.strip()
     hyphen_parts = name.split('-')
     num_h = len(hyphen_parts)

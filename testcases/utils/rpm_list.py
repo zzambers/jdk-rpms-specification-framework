@@ -1,9 +1,9 @@
 import re
 import ntpath
 import testcases.utils.test_utils
-from outputControl import logging_access
+import outputControl.logging_access
 import testcases.utils.pkg_name_split as split
-import config.global_config as gc
+import config.global_config
 
 
 class RpmList:
@@ -16,9 +16,9 @@ class RpmList:
         for file in self.files:
             self.names.append(ntpath.basename(file))
         allFiles = testcases.utils.test_utils.get_files(ddir)
-        logging_access.LoggingAccess().log("Loaded list of " + str(len(self.files)) + " rpms from  directory " + ddir)
+        outputControl.logging_access.LoggingAccess().log("Loaded list of " + str(len(self.files)) + " rpms from  directory " + ddir)
         if len(self.files) != len(allFiles):
-            logging_access.LoggingAccess().log("Warning, some files in  " + ddir + " - " + str(
+            outputControl.logging_access.LoggingAccess().log("Warning, some files in  " + ddir + " - " + str(
                 len(allFiles) - len(self.files)) + " are NOT rpms. Ignored")
 
     def getAllNames(self):
@@ -99,7 +99,7 @@ class RpmList:
 
     def getNativeArches(self):
         pset = self.getAllArches()
-        return pset - set(gc.getNoarch()) - set(gc.getSrcrpmArch())
+        return pset - set(config.global_config.getNoarch()) - set(config.global_config.getSrcrpmArch())
 
     def getPackagesByArch(self, arch):
         filepaths = []
@@ -113,7 +113,7 @@ class RpmList:
         return filepaths
 
     def getSrpm(self):
-        paths = self.getPackagesByArch(gc.getSrcrpmArch()[0])
+        paths = self.getPackagesByArch(config.global_config.getSrcrpmArch()[0])
         if len(paths) == 0:
             return None
         if len(paths) == 1:
@@ -121,7 +121,7 @@ class RpmList:
         raise Exception("None or one srpm can be in. Found " + str(len(paths)) + ":" + ",".join(paths))
 
     def getNoArchesPackages(self):
-        paths = self.getPackagesByArch(gc.getNoarch()[0])
+        paths = self.getPackagesByArch(config.global_config.getNoarch()[0])
         return paths
 
     def getBuildWithoutSrpm(self, arch):
@@ -165,7 +165,7 @@ def isRhel(dist):
 
 def getOs(dist):
     if isFedora(dist):
-        return gc.FEDORA
+        return config.global_config.FEDORA
     if isRhel(dist):
-        return gc.RHEL
+        return config.global_config.RHEL
     return None

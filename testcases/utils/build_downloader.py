@@ -9,9 +9,9 @@ import shutil
 import urllib3
 
 import config.runtime_config
-import config.global_config as gc
+import config.global_config
 import testcases.utils.pkg_name_split as split
-from outputControl import logging_access as la
+import outputControl.logging_access
 from testcases.utils import rpm_list
 
 BREW = "brew"
@@ -21,11 +21,11 @@ KOJI = "koji"
 def getBuild(nvr):
     target = _checkDest(config.runtime_config.RuntimeConfig().getPkgsDir())
     command = _getCommand(nvr)
-    la.LoggingAccess().log("using " + command);
+    outputControl.logging_access.LoggingAccess().log("using " + command);
     packages = _getBuildInfo(command, nvr)
     if len(packages) == 0:
         raise Exception("No pkgs to download. Verify build or archs")
-    la.LoggingAccess().log("going to download " + str(len(packages)) + " rpms")
+    outputControl.logging_access.LoggingAccess().log("going to download " + str(len(packages)) + " rpms")
     _downloadBrewKojiBuilds(packages, target)
     return True
 
@@ -38,7 +38,7 @@ def _downloadBrewKojiBuilds(pkgs, targetDir):
             url = mainUrl + pkg.replace("/mnt/koji/", "/")
         if BREW in pkg:
             url = mainUrl + pkg.replace("/mnt/redhat/", "/")
-        la.LoggingAccess().log("downloading " + str(i + 1) + "/" + str(len(pkgs)) + " - " + url)
+        outputControl.logging_access.LoggingAccess().log("downloading " + str(i + 1) + "/" + str(len(pkgs)) + " - " + url)
         targetFile = targetDir + "/" + ntpath.basename(pkg)
         http = urllib3.PoolManager()
         with http.request('GET', url, preload_content=False) as r, open(targetFile, 'wb') as out_file:
@@ -58,27 +58,27 @@ def _getBuildInfo(cmd, nvr):
             if line == "RPMs:":
                 runningRpms = True
             else:
-                la.LoggingAccess().log(line)
+                outputControl.logging_access.LoggingAccess().log(line)
     return rpms
 
 
 def _checkDest(dir):
     absOne = os.path.abspath(dir)
     if not os.path.exists(absOne):
-        la.LoggingAccess().log("Creating: " + absOne)
+        outputControl.logging_access.LoggingAccess().log("Creating: " + absOne)
         os.mkdir(absOne)
     if not os.path.isdir(absOne):
         raise Exception(absOne + " Must bean drectory, is not")
     if not os.listdir(absOne) == []:
         raise Exception(absOne + " Is not empty, please fix")
-    la.LoggingAccess().log("Using as download target: " + absOne)
+    outputControl.logging_access.LoggingAccess().log("Using as download target: " + absOne)
     return absOne
 
 
 def _isArchValid(rpmLine):
     arches= config.runtime_config.RuntimeConfig().getArchs();
     if arches is None or len(arches) == 0:
-        arches = gc.getAllArchs()
+        arches = config.global_config.getAllArchs()
     for arch in arches:
         if "/" + arch + "/" in rpmLine or "." + arch + "." in rpmLine:
             return True
@@ -106,5 +106,5 @@ def _getMainUrl(path_rpm):
 
 def _getOs(rpm):
     os = split.get_dist(rpm)
-    la.LoggingAccess().log("in " + rpm + " recognized " + os)
+    outputControl.logging_access.LoggingAccess().log("in " + rpm + " recognized " + os)
     return os
