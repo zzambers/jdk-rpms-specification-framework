@@ -117,7 +117,7 @@ class InitTest(testcases.utils.core.base_xtest.BaseTest):
         l = config.runtime_config.RuntimeConfig().getRpmList()
         self.log("Os: " + l.getOs())
         self.log("Version: " + l.getOsVersion())
-        self.log("Version major: " + l.getOsVersionMajor())
+        self.log("Version major: " + str(l.getOsVersionMajor()))
         assert l.isFedora() | l.isRhel()
         assert l.isFedora() != l.isRhel()
         assert l.getOs() is not None

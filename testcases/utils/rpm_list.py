@@ -152,7 +152,7 @@ class RpmList:
         return None
 
     def getOsVersionMajor(self):
-        return re.sub("\..*","",self.getOsVersion())
+        return int(re.sub("\..*","",self.getOsVersion()))
 
 
 def isFedora(dist):
