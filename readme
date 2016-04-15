@@ -68,6 +68,10 @@ FAQ
 	- stdout is messy
 		- redirect error stream:)
 
+	- strange errors about missing files/modules
+		- try MODULEPATH=$MODULEPATH":." or similar and then launch pythonn
+
+
 [2] Example.
 	- When you set killTest to false, you will see:
 		- In testmode:
