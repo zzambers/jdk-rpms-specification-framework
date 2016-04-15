@@ -132,13 +132,14 @@ class BaseTestRunner:
         archs = self._cleanArchs()
         agregator = Agregator()
         for i, arch in enumerate(archs):
+            self.current_arch=arch
             self.indent = "    "
             self.log("Setting configuration-specific-checks")
             self.setCSCH()
             if self.csch is None:
                 self.log("configuration-specific-checks are not set. Nothing to do")
             else:
-                # on contrary with execute_tests, this walks methods on csh!!!
+                # on contrary with execute_tests, this walks methods on csch!!!
                 methods = lsort(inspect.getmembers(self.csch, predicate=inspect.ismethod))
                 for a, b in methods:
                     self.current_arch = arch;
