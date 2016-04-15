@@ -9,6 +9,7 @@ import shutil
 import urllib3
 
 import config.runtime_config
+import config.global_config as gc
 import testcases.utils.pkg_name_split as split
 from outputControl import logging_access as la
 from testcases.utils import rpm_list
@@ -75,7 +76,7 @@ def _checkDest(dir):
 
 
 def _isArchValid(rpmLine):
-    for arch in config.runtime_config.RuntimeConfig().getArchs():
+    for arch in gc.getAllArchs():
         if "/" + arch + "/" in rpmLine or "." + arch + "." in rpmLine:
             return True
     return False
