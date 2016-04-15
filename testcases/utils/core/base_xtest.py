@@ -21,6 +21,9 @@ def defaultMain(argv, runDocs, runTests):
 
 class BaseTest(BaseTestRunner):
 
+    def getBuild(self):
+        return config.runtime_config.RuntimeConfig().getRpmList().getBuildWithoutSrpm(self.current_arch)
+
     def getCurrentArch(self):
         return self.current_arch
 
