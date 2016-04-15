@@ -69,7 +69,8 @@ FAQ
 		- redirect error stream:)
 
 	- strange errors about missing files/modules
-		- try MODULEPATH=$MODULEPATH":." or similar and then launch pythonn
+		- try MODULEPATH=$MODULEPATH":." or similar and then launch python
+		- try PYTHONPATH=$PYTHONPATH":." or both and then launch python
 
 
 [2] Example.
