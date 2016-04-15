@@ -76,7 +76,10 @@ def _checkDest(dir):
 
 
 def _isArchValid(rpmLine):
-    for arch in gc.getAllArchs():
+    arches= config.runtime_config.RuntimeConfig().getArchs();
+    if arches is None or len(arches) == 0:
+        arches = gc.getAllArchs()
+    for arch in arches:
         if "/" + arch + "/" in rpmLine or "." + arch + "." in rpmLine:
             return True
     return False
