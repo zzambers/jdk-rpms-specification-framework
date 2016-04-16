@@ -7,7 +7,7 @@ TODO (what the framework should do):
 	 	- debugpackage have lowered, contains version/release, length is known, prefix s known
 	x all subpackages are present
 	* download single-arch (+noarch) parts of build from brew/koji
-	- none subpackage is empty unless expected
+	* none subpackage is empty unless expected
 	- provides are as expected
 	- plugin, javaws, jcontrol sanity
 		- if plugin pkg is present, then javaws and jcontrol files should be in that pkg
