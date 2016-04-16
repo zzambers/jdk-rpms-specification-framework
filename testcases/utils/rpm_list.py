@@ -4,7 +4,7 @@ import testcases.utils.test_utils
 import outputControl.logging_access
 import testcases.utils.pkg_name_split as split
 import config.global_config
-
+import config.runtime_config
 
 class RpmList:
     """Class to hold list of file, providing various operations abov themlike get bny arch, get by build (arch+noarch), get srpm and so on"""
@@ -91,10 +91,19 @@ class RpmList:
         return pset
 
     def getAllArches(self):
+        if (config.runtime_config.RuntimeConfig().getArchs() != None):
+            return config.runtime_config.RuntimeConfig().getArchs()
         pset, props = self.getSetProperty(split.get_arch)
         return pset
 
     def getNativeArches(self):
+        if (config.runtime_config.RuntimeConfig().getArchs() != None):
+            nwList = list(config.runtime_config.RuntimeConfig().getArchs())
+            if config.global_config.getSrcrpmArch()[0] in nwList:
+                nwList.remove(config.global_config.getSrcrpmArch()[0])
+            if config.global_config.getNoarch()[0] in nwList:
+                config.global_config.getNoarch()[0]
+            return nwList
         pset = self.getAllArches()
         return pset - set(config.global_config.getNoarch()) - set(config.global_config.getSrcrpmArch())
 
