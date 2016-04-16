@@ -1,9 +1,8 @@
-from subprocess import Popen, PIPE
-
 import outputControl.logging_access
-
+from testcases.utils import rpmbuild_utils
 
 # The get_methods nor find_on_disc are order-granting. However they seems tobe sorted... Sometimes. So this switch will ensure it.
+
 leSort = True
 
 
@@ -28,10 +27,7 @@ class DynamicArches(metaclass=Singleton):
 
     def getDynamicArches(self, arch):
         outputControl.logging_access.LoggingAccess().log("Getting dynamic arches for: " + arch)
-        proc = Popen(['rpmbuild', '--eval', '%{' + arch + '}'], stdout=PIPE)
-        out, err = proc.communicate()
-        output = out.decode('utf-8').strip()  # utf-8 works in your case
-        outputControl.logging_access.LoggingAccess().log("got: " + output)
+        output= rpmbuild_utils.rpmbuildEval(arch)
         li = output.split(" ")
         for i in range(len(li)):
             li[i] = li[i].strip();
