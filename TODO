@@ -5,7 +5,7 @@ TODO (what the framework should do):
 	* names of the pkgs are as expected
 	- priority check
 	 	- debugpackage have lowered, contains version/release, length is known, prefix s known
-	- all subpackages are present
+	x all subpackages are present
 	* download single-arch (+noarch) parts of build from brew/koji
 	- none subpackage is empty unless expected
 	- provides are as expected
@@ -25,6 +25,7 @@ TODO (what the framework should do):
 * generate in human-readable form, what it itself test
 
 - todo
+x work inprogress
 * done
 
 notes:
