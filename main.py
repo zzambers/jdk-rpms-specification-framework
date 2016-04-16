@@ -61,14 +61,16 @@ def runTasks():
     logging_access.LoggingAccess().log("Running all testsuites")
     plist=[]
     flist=[]
+    clist = []
     files = getTestFiles();
     for file in files:
         test_module = importlib.import_module(file)
         func = getattr(test_module, "testAll")
-        passed,  failed = func()
+        passed,  failed, methods = func()
         plist.append(passed)
         flist.append(failed)
-    tu.closeTestSuite(sum(plist), sum(flist))
+        clist.append(methods)
+    tu.closeTestSuite(sum(plist), sum(flist), sum(clist))
 
 
 def main(argv):

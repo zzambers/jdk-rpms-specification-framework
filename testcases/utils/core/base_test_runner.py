@@ -86,14 +86,19 @@ class BaseTestRunner:
         """Call all test_ prefixed methods in overwritting class"""
         passed = 0
         failed = 0
+        methodOnlyCounter = 0;
         self.indent = "  "
         self.log("started tests in suite: " + type(self).__name__ + ":")
         archs = self._cleanArchs()
         methods = lsort(inspect.getmembers(self, predicate=inspect.ismethod))
         for a, b in methods:
+            methodOnly = False
             for i, arch in enumerate(archs):
                 self.current_arch = arch;
                 if str(a).startswith("test_"):
+                    if not methodOnly:
+                        methodOnlyCounter += 1
+                        methodOnly = True
                     self.indent = "    "
                     self.log("Setting configuration-specific-checks")
                     self.setCSCH()
@@ -120,7 +125,7 @@ class BaseTestRunner:
         la.LoggingAccess().log(
             "finished testing suite: " + type(self).__name__ +
             " - failed/total: " + str(failed) + "/" + str(failed + passed))
-        return passed, failed
+        return passed, failed, methodOnlyCounter
 
     def execute_special_docs(self):
         """Call and document all public methods in csch"""

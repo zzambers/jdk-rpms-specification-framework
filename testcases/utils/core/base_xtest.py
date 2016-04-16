@@ -15,8 +15,8 @@ def defaultMain(argv, runDocs, runTests):
             passed, ignored, failed = runDocs()
             tu.closeDocSuite(passed, ignored, failed)
         else:
-            passed, failed = runTests()
-            tu.closeTestSuite(passed, failed)
+            passed, failed, perMethod = runTests()
+            tu.closeTestSuite(passed, failed, perMethod)
 
 
 class BaseTest(BaseTestRunner):

@@ -2,7 +2,8 @@ import os
 
 import outputControl.logging_access
 
-def closeTestSuite(passed, failed):
+def closeTestSuite(passed, failed, mtc):
+    outputControl.logging_access.LoggingAccess().stdout("Arch-independet mehtods counted: " + str(mtc))
     outputControl.logging_access.LoggingAccess().stdout("done - Passed: " + str(passed) + " from total: " + str(passed + failed))
     if failed != 0:
         raise Exception(str(failed) + " tests failed")
