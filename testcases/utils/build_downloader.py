@@ -19,6 +19,7 @@ KOJI = "koji"
 
 
 def getBuild(nvr):
+    "This method download build from brw. The filtering of arches depends on RuntimeConfig().getArchs();"
     target = _checkDest(config.runtime_config.RuntimeConfig().getPkgsDir())
     command = _getCommand(nvr)
     outputControl.logging_access.LoggingAccess().log("using " + command);
@@ -68,7 +69,7 @@ def _checkDest(dir):
         outputControl.logging_access.LoggingAccess().log("Creating: " + absOne)
         os.mkdir(absOne)
     if not os.path.isdir(absOne):
-        raise Exception(absOne + " Must bean drectory, is not")
+        raise Exception(absOne + " Must bean directory, is not")
     if not os.listdir(absOne) == []:
         raise Exception(absOne + " Is not empty, please fix")
     outputControl.logging_access.LoggingAccess().log("Using as download target: " + absOne)
