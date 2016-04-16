@@ -92,19 +92,14 @@ class RpmList:
 
     def getAllArches(self):
         if (config.runtime_config.RuntimeConfig().getArchs() != None):
-            return config.runtime_config.RuntimeConfig().getArchs()
+            return set(config.runtime_config.RuntimeConfig().getArchs())
         pset, props = self.getSetProperty(split.get_arch)
         return pset
 
     def getNativeArches(self):
         if (config.runtime_config.RuntimeConfig().getArchs() != None):
-            nwList = list(config.runtime_config.RuntimeConfig().getArchs())
-            if config.global_config.getSrcrpmArch()[0] in nwList:
-                nwList.remove(config.global_config.getSrcrpmArch()[0])
-            if config.global_config.getNoarch()[0] in nwList:
-                config.global_config.getNoarch()[0]
-            return nwList
-        pset = self.getAllArches()
+            return set(testcases.utils.test_utils.removeNoarchSrpmArch(config.runtime_config.RuntimeConfig().getArchs()))
+        pset, props = self.getSetProperty(split.get_arch)
         return pset - set(config.global_config.getNoarch()) - set(config.global_config.getSrcrpmArch())
 
     def getPackagesByArch(self, arch):

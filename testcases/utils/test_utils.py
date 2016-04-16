@@ -1,6 +1,7 @@
 import os
 
 import outputControl.logging_access
+import config.global_config
 
 def closeTestSuite(passed, failed, mtc):
     outputControl.logging_access.LoggingAccess().stdout("Arch-independet mehtods counted: " + str(mtc))
@@ -48,3 +49,12 @@ def get_top_dirs(directory):
             if os.path.isdir(directory + "/" + d):
                 resList.append(d)
     return resList
+
+
+def removeNoarchSrpmArch(arches):
+    nwList = list(arches)
+    if config.global_config.getSrcrpmArch()[0] in nwList:
+        nwList.remove(config.global_config.getSrcrpmArch()[0])
+    if config.global_config.getNoarch()[0] in nwList:
+        nwList.remove(config.global_config.getNoarch()[0])
+    return nwList

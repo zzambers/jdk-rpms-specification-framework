@@ -4,6 +4,7 @@ import traceback
 from collections import OrderedDict
 
 import config.global_config
+import config.runtime_config
 import testcases.utils.core.configuration_specific as cs
 import testcases.utils.test_utils as tu
 from outputControl import logging_access as la
@@ -52,7 +53,8 @@ class Agregator():
                 if len(value) == 1 and value[0] == NON_ARCH_TEST:
                     nwKey = ("On all architectures:")
                 else:
-                    nwKey = ("On - " + ",".join(value) + ":")
+                    verboseKey = ",".join(value)
+                    nwKey = ("On - " + verboseKey + ":")
             if nwKey not in mapResults:
                 mapResults[nwKey] = [key]
             else:

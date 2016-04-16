@@ -1,6 +1,7 @@
 import outputControl.logging_access
 import testcases.utils.rpm_list
 import testcases.utils.build_downloader
+import config.global_config
 
 VERSION_STRING = "jdks_specification_framework, version 0.1"
 
@@ -52,9 +53,12 @@ class RuntimeConfig(metaclass=Singleton):
         return self.pkgsDir;
 
     def setArchs(self, archString):
-        words = archString.split(",")
-        self.archs= words
-        outputControl.logging_access.LoggingAccess().log("archs limited/forced to " + str(words))
+        if archString == "all":
+            self.archs = config.global_config.getAllArchs()
+        else:
+            words = archString.split(",")
+            self.archs= words
+        outputControl.logging_access.LoggingAccess().log("archs limited/forced to " + str(self.archs))
 
 
     def getArchs(self):

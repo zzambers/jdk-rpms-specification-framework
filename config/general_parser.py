@@ -28,7 +28,7 @@ def _createParser():
     lparser.add_argument("-b", "--build",
                          help="Will download the build specified by NVR from koji/brew to (empty) --dir")
     lparser.add_argument("-a", "--archs",
-                         help="coma separated list t limit/extend download/spepcification to given arches. Use with caution, and dont foget srpm/noarch.")
+                         help="coma separated list t limit/extend download/spepcification to given arches. Use with caution, and dont foget srpm/noarch. You can use all for all architectures.")
     lparser.add_argument("--noheader",
                          help="don't print header",
                          action="store_true")
