@@ -15,8 +15,8 @@ class MainPackagePresent(JdkConfiguration):
 
     def _mainCheck(self, subpkgs):
         expectedList = self._getSubPackages()
-        subpkgSetExpected= set(expectedList)
-        ssGiven = set(subpkgs)
+        subpkgSetExpected= sorted(set(expectedList))
+        ssGiven = sorted(set(subpkgs))
         SubpackagesTest.hack.log("Checking number of subpackages " + str(len(ssGiven)) + " of " + SubpackagesTest.hack.current_arch + " against " + str(len(subpkgSetExpected)))
         SubpackagesTest.hack.log("Presented: " + str(ssGiven))
         SubpackagesTest.hack.log("Expected:  " + str(subpkgSetExpected))
