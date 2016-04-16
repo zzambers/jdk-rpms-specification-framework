@@ -2,7 +2,10 @@ import sys
 import testcases.utils.core.base_xtest
 from outputControl import logging_access as la
 import config.runtime_config
+import config.global_config
 import testcases.utils.rpmbuild_utils
+import testcases.utils.pkg_name_split as split
+import  ntpath
 
 class EpmtyPackageTest(testcases.utils.core.base_xtest.BaseTest):
 
@@ -13,7 +16,10 @@ class EpmtyPackageTest(testcases.utils.core.base_xtest.BaseTest):
             self.log("checking: " + pkg)
             files = testcases.utils.rpmbuild_utils.listFilesInPackage(pkg)
             self.log("got: " + str(len(files)) + " files")
-            assert len(files) > 2
+            if split.get_arch(ntpath.basename(pkg)) in config.global_config.getSrcrpmArch():
+                assert len(files) > 1
+            else:
+                assert len(files) > 2
 
 
 
@@ -27,7 +33,7 @@ def testAll():
 
 
 def documentAll():
-    la.LoggingAccess().stdout("Currently all java packages must have at least three files")
+    la.LoggingAccess().stdout("Currently all java packages must have at least three files (except srpm which is enough with 2 and more)")
     return EpmtyPackageTest().execute_special_docs()
 
 
