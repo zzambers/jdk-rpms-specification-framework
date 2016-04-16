@@ -31,14 +31,11 @@ class RpmList:
             raise BaseException("No packages loaded")
         return self.files
 
-    # thsoe two methods are wierd, but most simpel way to recognize if one build is there, or if bre/koji task was downlaoded
-    # single uild form mock have all rpms in singe directory
-    # task is stored by archs - each arch is directory and have oe build (with exception of src.rpm and noarch whcih are in "theirs archs"
     def shouldBeBrewDownload(self):
-        return len(self.topDirs) != 0
+        return len(self.getNativeArches()) != 1
 
     def shouldBeSingleBuild(self):
-        return len(self.topDirs) == 0
+        return len(self.getNativeArches()) == 1
 
     def getSetProperty(self, function):
         props = []
