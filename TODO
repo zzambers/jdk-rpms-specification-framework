@@ -31,3 +31,6 @@ x work inprogress
 
 notes:
 	for sake of this testsuite, ITW is considered as special jdk, with plugin package only
+	decide whether to use static analys of scripelts, or apply in chroot
+		static analys is easy and faset, but error prone
+		installing to chroot is very errorproof, but very time consuming
