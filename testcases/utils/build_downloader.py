@@ -13,6 +13,7 @@ import config.global_config
 import testcases.utils.pkg_name_split as split
 import outputControl.logging_access
 from testcases.utils import rpm_list
+from testcases.utils import process_utils
 
 BREW = "brew"
 KOJI = "koji"
@@ -46,20 +47,15 @@ def _downloadBrewKojiBuilds(pkgs, targetDir):
             shutil.copyfileobj(r, out_file)
 
 
+def _isRpm(line):
+    return line == "RPMs:"
+
 def _getBuildInfo(cmd, nvr):
+    allPkgs = process_utils.processAsStrings([cmd, 'buildinfo', nvr], _isRpm, None, False)
     rpms = []
-    runningRpms = False
-    proc = subprocess.Popen([cmd, 'buildinfo', nvr], stdout=subprocess.PIPE)
-    for line in io.TextIOWrapper(proc.stdout, encoding="utf-8"):
-        line = line.strip()
-        if runningRpms:
-            if _isArchValid(line):
-                rpms.append(line)
-        else:
-            if line == "RPMs:":
-                runningRpms = True
-            else:
-                outputControl.logging_access.LoggingAccess().log(line)
+    for pkg in allPkgs :
+        if _isArchValid(pkg):
+            rpms.append(pkg)
     return rpms
 
 
