@@ -12,8 +12,8 @@ import config.runtime_config
 import config.global_config
 import testcases.utils.pkg_name_split as split
 import outputControl.logging_access
-from testcases.utils import rpm_list
-from testcases.utils import process_utils
+import testcases.utils.rpm_list
+import testcases.utils.process_utils
 
 BREW = "brew"
 KOJI = "koji"
@@ -51,7 +51,7 @@ def _isRpm(line):
     return line == "RPMs:"
 
 def _getBuildInfo(cmd, nvr):
-    allPkgs = process_utils.processAsStrings([cmd, 'buildinfo', nvr], _isRpm, None, False)
+    allPkgs = testcases.utils.process_utils.processAsStrings([cmd, 'buildinfo', nvr], _isRpm, None, False)
     rpms = []
     for pkg in allPkgs :
         if _isArchValid(pkg):
@@ -84,9 +84,9 @@ def _isArchValid(rpmLine):
 
 def _getCommand(nvr):
     os = _getOs(nvr + ".fakeArch")
-    if rpm_list.isRhel(os):
+    if testcases.utils.rpm_list.isRhel(os):
         return BREW
-    if rpm_list.isFedora(os):
+    if testcases.utils.rpm_list.isFedora(os):
         return KOJI
     raise Exception("Unknown os - " + os)
 
@@ -94,9 +94,9 @@ def _getCommand(nvr):
 def _getMainUrl(path_rpm):
     rpm = ntpath.basename(path_rpm)
     os = _getOs(rpm)
-    if rpm_list.isRhel(os):
+    if testcases.utils.rpm_list.isRhel(os):
         return "http://download.devel.redhat.com/"
-    if rpm_list.isFedora(os):
+    if testcases.utils.rpm_list.isFedora(os):
         return "http://koji.fedoraproject.org"
     raise Exception("Unknown os - " + os)
 
