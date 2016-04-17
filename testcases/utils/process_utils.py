@@ -22,13 +22,13 @@ def processAsStrings(args, starter=None, finisher=None, initialCanRead=True):
         if (canRead and finisher is not None):
             canRead = finisher(line)
             if (not canRead):
-                outputControl.logging_access.LoggingAccess().log(str(finisher)+" stopped reading")
+                outputControl.logging_access.LoggingAccess().log(str(finisher)+" stopped recording")
         if canRead:
             res.append(line)
         if (not canRead and starter is not None):
             canRead=starter(line)
             if canRead:
-                outputControl.logging_access.LoggingAccess().log(str(starter) + " started reading")
+                outputControl.logging_access.LoggingAccess().log(str(starter) + " started recording")
     return res
 
 def _exec(args):
