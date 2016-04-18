@@ -8,7 +8,36 @@ def rpmbuildEval(macro):
 def listFilesInPackage(rpmFile):
     return testcases.utils.process_utils.processAsStrings(['rpm', '-qlp', rpmFile])
 
+def listDocsInPackage(rpmFile):
+    return testcases.utils.process_utils.processAsStrings(['rpm', '-qldp', rpmFile])
 
+def listConfigFilesInPackage(rpmFile):
+    return testcases.utils.process_utils.processAsStrings(['rpm', '-qlcp', rpmFile])
+
+def listOfRequires(rpmFile):
+    return testcases.utils.process_utils.processAsStrings(['rpm', '--requires',  '-qp', rpmFile])
+
+def listOfProvides(rpmFile):
+    return testcases.utils.process_utils.processAsStrings(['rpm', '--provides',  '-qp', rpmFile])
+
+def listOfObsoletes(rpmFile):
+    return testcases.utils.process_utils.processAsStrings(['rpm', '--obsoletes',  '-qp', rpmFile])
+
+def listOfVersionlessRequires(rpmFile):
+    return _filterVersions(listOfRequires(rpmFile))
+
+def listOfVersionlessProvides(rpmFile):
+    return _filterVersions(listOfProvides(rpmFile))
+
+def listOfVersionlessObsoletes(rpmFile):
+    return _filterVersions(listOfObsoletes(rpmFile))
+
+
+def _filterVersions(listOfStrings):
+    filtered = []
+    for orig in listOfStrings:
+        filtered.append(orig.split()[0])
+    return filtered
 
 def _isScripletLine(scriplet, line):
     return line.startswith(scriplet + " " + ScripletStarterFinisher.scriptlet)
