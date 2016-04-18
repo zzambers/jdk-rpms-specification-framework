@@ -102,6 +102,10 @@ class RpmList:
         pset, props = self.getSetProperty(split.get_arch)
         return pset - set(config.global_config.getNoarch()) - set(config.global_config.getSrcrpmArch())
 
+    def getRealNativeArches(self):
+        pset, props = self.getSetProperty(split.get_arch)
+        return pset - set(config.global_config.getNoarch()) - set(config.global_config.getSrcrpmArch())
+
     def getPackagesByArch(self, arch):
         filepaths = []
         names = []
@@ -139,6 +143,9 @@ class RpmList:
     def isFedora(self):
         return isFedora(self.getDist())
 
+    def isItw(self):
+        return isItw(self.getJava())
+
     def isRhel(self):
         return isRhel(self.getDist())
 
@@ -162,6 +169,9 @@ def isFedora(dist):
 
 def isRhel(dist):
     return dist.startswith("el")
+
+def isItw(dist):
+    return dist == config.global_config.ITW
 
 
 def getOs(dist):

@@ -55,6 +55,10 @@ class Agregator():
                     nwKey = ("On all architectures:")
                 else:
                     verboseKey = ",".join(value)
+                    if ( len(value)>1 and
+                        ((compareListLaniently(value,config.runtime_config.RuntimeConfig().getRpmList().getNativeArches())) or  #?
+                        (compareListLaniently(value, config.runtime_config.RuntimeConfig().getRpmList().getRealNativeArches())))): #?
+                        verboseKey = "On all tested architectures"
                     nwKey = ("On - " + verboseKey + ":")
             if nwKey not in mapResults:
                 mapResults[nwKey] = [key]
@@ -191,3 +195,15 @@ class BaseTestRunner:
 
     def log(self, arg):
         la.LoggingAccess().log(self.indent + arg)
+
+
+def compareListLaniently(list1, list2):
+    if len(set(list1)) != len(set(list2)):
+        return False
+    for val in list1:
+        if not val in list2:
+            return False;
+    for val in list2:
+        if not val in list1:
+            return False;
+    return True
