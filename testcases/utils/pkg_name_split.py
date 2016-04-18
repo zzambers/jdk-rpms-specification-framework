@@ -1,5 +1,6 @@
 from collections import namedtuple
 import config.global_config
+import ntpath
 
 RpmNameParts = namedtuple('RpmNameParts',
                           ['java', 'java_ver', 'vendor', 'pkg',
@@ -32,11 +33,13 @@ def _hyphen_split(name):
 
 
 def _get_ith_part(i, name):
+    name = ntpath.basename(name)
     parts = _hyphen_split(name)
     return parts[i]
 
 
 def _get_ith_dotpart(i, name):
+    name = ntpath.basename(name)
     parts = _dot_split(name)
     return parts[i]
 

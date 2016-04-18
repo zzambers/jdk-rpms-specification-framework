@@ -5,7 +5,6 @@ import config.runtime_config
 import config.global_config
 import testcases.utils.rpmbuild_utils
 import testcases.utils.pkg_name_split as split
-import  ntpath
 
 class EpmtyPackageTest(testcases.utils.core.base_xtest.BaseTest):
 
@@ -16,7 +15,7 @@ class EpmtyPackageTest(testcases.utils.core.base_xtest.BaseTest):
             self.log("checking: " + pkg)
             files = testcases.utils.rpmbuild_utils.listFilesInPackage(pkg)
             self.log("got: " + str(len(files)) + " files")
-            if split.get_arch(ntpath.basename(pkg)) in config.global_config.getSrcrpmArch():
+            if split.get_arch(pkg) in config.global_config.getSrcrpmArch():
                 assert len(files) > 1
             else:
                 assert len(files) > 2
