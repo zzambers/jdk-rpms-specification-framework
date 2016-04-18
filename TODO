@@ -9,7 +9,7 @@ TODO (what the framework should do):
 	* download single-arch (+noarch) parts of build from brew/koji
 	* none subpackage is empty unless expected
 	- check config files are as expected
-	- provides are as expected
+	- provides and obsolaetes (and requires?) are as expected
 	- plugin, javaws, jcontrol sanity
 		- if plugin pkg is present, then javaws and jcontrol files should be in that pkg
 		- if plugin pkg is present, then it should provide javaws and jcontrol

@@ -1,5 +1,6 @@
 import inspect
 import sys
+import time
 import traceback
 from collections import OrderedDict
 
@@ -90,6 +91,7 @@ class BaseTestRunner:
         failed = 0
         methodOnlyCounter = 0;
         self.indent = "  "
+        suiteStart = time.clock()
         self.log("started tests in suite: " + type(self).__name__ + ":")
         archs = self._cleanArchs()
         methods = lsort(inspect.getmembers(self, predicate=inspect.ismethod))
@@ -98,6 +100,7 @@ class BaseTestRunner:
             for i, arch in enumerate(archs):
                 self.current_arch = arch;
                 if str(a).startswith("test_"):
+                    methodStart = time.clock()
                     if not methodOnly:
                         methodOnlyCounter += 1
                         methodOnly = True
@@ -122,11 +125,15 @@ class BaseTestRunner:
                         failed += 1
                         print(m, file=sys.stderr)
                         traceback.print_exc()
+                    methodEnd= time.clock()
+                    ms = (methodEnd)*1000-(methodStart*1000)
                     self.indent = "    "
-                    self.log("finished: " + a + "[" + self.current_arch + "] " + str(i + 1) + "/" + str(len(archs)))
+                    self.log("finished: " + a + "[" + self.current_arch + "] " + str(i + 1) + "/" + str(len(archs)) + " in "+str(round(ms,3))+"ms")
+        suiteEnd = time.clock()
+        ms = (suiteEnd) * 1000 - (suiteStart * 1000)
         la.LoggingAccess().log(
             "finished testing suite: " + type(self).__name__ +
-            " - failed/total: " + str(failed) + "/" + str(failed + passed))
+            " - failed/total: " + str(failed) + "/" + str(failed + passed) + " in "+str(round(ms,3))+"ms")
         return passed, failed, methodOnlyCounter
 
     def execute_special_docs(self):
