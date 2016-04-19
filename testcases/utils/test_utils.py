@@ -1,7 +1,9 @@
 import os
+import tempfile
 
-import outputControl.logging_access
 import config.global_config
+import outputControl.logging_access
+
 
 def closeTestSuite(passed, failed, mtc):
     outputControl.logging_access.LoggingAccess().stdout("Arch-independet mehtods counted: " + str(mtc))
@@ -58,3 +60,12 @@ def removeNoarchSrpmArch(arches):
     if config.global_config.getNoarch()[0] in nwList:
         nwList.remove(config.global_config.getNoarch()[0])
     return nwList
+
+
+def saveStringsAsTmpFile(strings, suffix):
+    tf = tempfile.NamedTemporaryFile(mode="wt", suffix=suffix, delete=False)
+    for item in strings:
+        tf.file.write(str(item + "\n"))
+    tf.flush()
+    tf.close()
+    return tf.name
