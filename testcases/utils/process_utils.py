@@ -3,13 +3,19 @@ import io
 import outputControl.logging_access
 
 
-
 def processToString(args):
-    proc = _exec(args)
+    o, e = processToStrings(args, False)
+    return o
+
+def processToStrings(args, err = True):
+    proc = _exec(args, err)
     out, err = proc.communicate()
-    output = out.decode('utf-8').strip()  # utf-8 works in your case
+    output = out.decode('utf-8').strip()
+    outpute = "";
+    if err is not None:
+        outpute = err.decode('utf-8').strip()
     outputControl.logging_access.LoggingAccess().log("got: " + output)
-    return output
+    return output, outpute
 
 def processAsStrings(args, starter=None, finisher=None, initialCanRead=True):
     """ read process line by line. starter and finisher are methods, which returns true/false to set read. Theirs immput is line"""
@@ -31,7 +37,10 @@ def processAsStrings(args, starter=None, finisher=None, initialCanRead=True):
                 outputControl.logging_access.LoggingAccess().log(str(starter) + " started recording")
     return res
 
-def _exec(args):
+def _exec(args, err=False):
     outputControl.logging_access.LoggingAccess().log("executing: " + str(args))
-    proc = Popen(args, stdout=PIPE)
+    if (err):
+        proc = Popen(args, stdout=PIPE, stderr=PIPE)
+    else:
+        proc = Popen(args, stdout=PIPE)
     return proc;
