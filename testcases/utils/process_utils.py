@@ -17,14 +17,15 @@ def processToStrings(args, err = True):
     outputControl.logging_access.LoggingAccess().log("got: " + output)
     return output, outpute
 
-def processAsStrings(args, starter=None, finisher=None, initialCanRead=True):
+def processAsStrings(args, starter=None, finisher=None, initialCanRead=True, log = True):
     """ read process line by line. starter and finisher are methods, which returns true/false to set read. Theirs immput is line"""
     res = []
     proc = _exec(args)
     canRead=initialCanRead
     for line in io.TextIOWrapper(proc.stdout, encoding="utf-8"):
         line = line.strip()
-        outputControl.logging_access.LoggingAccess().log("reading: "+line)
+        if log:
+            outputControl.logging_access.LoggingAccess().log("reading: "+line)
         if (canRead and finisher is not None):
             canRead = finisher(line)
             if (not canRead):
