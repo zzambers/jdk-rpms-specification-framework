@@ -1,13 +1,13 @@
 import ntpath
-import sys
 import shutil
+import sys
 
 import config.runtime_config
 import outputControl.logging_access
-import testcases.utils.process_utils as exxec
-import testcases.utils.rpmbuild_utils as rpmuts
-import testcases.utils.test_utils as tu
-from testcases.utils.mock import FsZipCache
+import utils.process_utils as exxec
+import utils.rpmbuild_utils as rpmuts
+import utils.test_utils as tu
+from utils import FsZipCache
 
 
 class Mock:

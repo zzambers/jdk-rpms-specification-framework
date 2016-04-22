@@ -1,12 +1,13 @@
 import ntpath
 import sys
 
+import utils.pkg_name_split as split
+from utils.core.configuration_specific import JdkConfiguration
+
 import config.global_config as gc
 import config.runtime_config
-import testcases.utils.core.base_xtest
-import testcases.utils.pkg_name_split as split
 import outputControl.logging_access
-from testcases.utils.core.configuration_specific import JdkConfiguration
+import utils.core.base_xtest
 
 
 class MainPackagePresent(JdkConfiguration):
@@ -95,7 +96,7 @@ class GenericJdk(BaseJdkSubpackages):
         return super(GenericJdk, self)._getSubPackages() + ["devel"]
 
 
-class SubpackagesTest(testcases.utils.core.base_xtest.BaseTest):
+class SubpackagesTest(utils.core.base_xtest.BaseTest):
     hack = None
 
     def test_checkAllSubpackages(self):
@@ -144,7 +145,7 @@ def documentAll():
 
 
 def main(argv):
-    testcases.utils.core.base_xtest.defaultMain(argv, documentAll, testAll)
+    utils.core.base_xtest.defaultMain(argv, documentAll, testAll)
 
 
 if __name__ == "__main__":

@@ -2,12 +2,13 @@
 
 import sys
 
+import utils.pkg_name_split as split
+
 import config.general_parser
 import config.global_config as gc
 import config.runtime_config
 import testcases.nameTest.connfigs.nametest_config
-import testcases.utils.core.base_xtest
-import testcases.utils.pkg_name_split as split
+import utils.core.base_xtest
 from outputControl import logging_access as la
 
 def aInB(a, b):
@@ -21,7 +22,7 @@ def justCopy(a):
     return a
 
 
-class NameTest(testcases.utils.core.base_xtest.BaseTest):
+class NameTest(utils.core.base_xtest.BaseTest):
 
     def aMatchesB(self, a, b):
             return self.csch.checkRegex(a)
@@ -124,7 +125,7 @@ def documentAll():
 
 
 def main(argv):
-    testcases.utils.core.base_xtest.defaultMain(argv, documentAll, testAll)
+    utils.core.base_xtest.defaultMain(argv, documentAll, testAll)
 
 
 if __name__ == "__main__":

@@ -1,10 +1,11 @@
 import abc
 
+import utils.test_utils as tu
+
 import config.general_parser
 import config.global_config
 import config.runtime_config
-import testcases.utils.test_utils as tu
-from testcases.utils.core.base_test_runner import BaseTestRunner
+from utils.core.base_test_runner import BaseTestRunner
 
 
 def defaultMain(argv, runDocs, runTests):

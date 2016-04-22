@@ -5,9 +5,9 @@
 import zipfile
 from io import BytesIO
 from io import FileIO
-import outputControl.logging_access
 
-import testcases.utils.test_utils
+import outputControl.logging_access
+import utils.test_utils
 
 
 class InMemoryZip(object):
@@ -56,7 +56,7 @@ class InMemoryZip(object):
 def createInMemoryArchive(dirs):
     xall = []
     for ldir in dirs:
-        xall = xall + testcases.utils.test_utils.get_files(ldir, "", False)
+        xall = xall + utils.test_utils.get_files(ldir, "", False)
     archive = InMemoryZip()
     archive.appendFiles(xall)
     return archive

@@ -1,19 +1,16 @@
 """In time of writing this library, the koji python library was not  compatible with python3, so legacy approach was chosen"""
 
-import io
 import ntpath
 import os
-import subprocess
-
 import shutil
+
+import utils.pkg_name_split as split
 import urllib3
 
-import config.runtime_config
 import config.global_config
-import testcases.utils.pkg_name_split as split
+import config.runtime_config
 import outputControl.logging_access
-import testcases.utils.rpm_list
-import testcases.utils.process_utils
+import utils.rpm_list
 
 BREW = "brew"
 KOJI = "koji"
@@ -51,7 +48,7 @@ def _isRpm(line):
     return line == "RPMs:"
 
 def _getBuildInfo(cmd, nvr):
-    allPkgs = testcases.utils.process_utils.processAsStrings([cmd, 'buildinfo', nvr], _isRpm, None, False)
+    allPkgs = utils.process_utils.processAsStrings([cmd, 'buildinfo', nvr], _isRpm, None, False)
     rpms = []
     for pkg in allPkgs :
         if _isArchValid(pkg):
@@ -84,9 +81,9 @@ def _isArchValid(rpmLine):
 
 def _getCommand(nvr):
     os = _getOs(nvr + ".fakeArch")
-    if testcases.utils.rpm_list.isRhel(os):
+    if utils.rpm_list.isRhel(os):
         return BREW
-    if testcases.utils.rpm_list.isFedora(os):
+    if utils.rpm_list.isFedora(os):
         return KOJI
     raise Exception("Unknown os - " + os)
 
@@ -94,9 +91,9 @@ def _getCommand(nvr):
 def _getMainUrl(path_rpm):
     rpm = ntpath.basename(path_rpm)
     os = _getOs(rpm)
-    if testcases.utils.rpm_list.isRhel(os):
+    if utils.rpm_list.isRhel(os):
         return "http://download.devel.redhat.com/"
-    if testcases.utils.rpm_list.isFedora(os):
+    if utils.rpm_list.isFedora(os):
         return "http://koji.fedoraproject.org"
     raise Exception("Unknown os - " + os)
 

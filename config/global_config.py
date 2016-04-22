@@ -1,5 +1,5 @@
 import outputControl.logging_access
-from testcases.utils import rpmbuild_utils
+from utils import rpmbuild_utils
 
 # The get_methods nor find_on_disc are order-granting. However they seems tobe sorted... Sometimes. So this switch will ensure it.
 

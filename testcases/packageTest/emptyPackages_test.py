@@ -1,19 +1,21 @@
 import sys
-import testcases.utils.core.base_xtest
-from outputControl import logging_access as la
-import config.runtime_config
-import config.global_config
-import testcases.utils.rpmbuild_utils
-import testcases.utils.pkg_name_split as split
 
-class EpmtyPackageTest(testcases.utils.core.base_xtest.BaseTest):
+import utils.pkg_name_split as split
+
+import config.global_config
+import config.runtime_config
+import utils.core.base_xtest
+from outputControl import logging_access as la
+
+
+class EpmtyPackageTest(utils.core.base_xtest.BaseTest):
 
 
     def test_checkNoPacakgeEmpty(self):
         pkgs= config.runtime_config.RuntimeConfig().getRpmList().getAllFiles()
         for pkg in pkgs:
             self.log("checking: " + pkg)
-            files = testcases.utils.rpmbuild_utils.listFilesInPackage(pkg)
+            files = utils.rpmbuild_utils.listFilesInPackage(pkg)
             self.log("got: " + str(len(files)) + " files")
             if split.get_arch(pkg) in config.global_config.getSrcrpmArch():
                 assert len(files) > 1
@@ -37,7 +39,7 @@ def documentAll():
 
 
 def main(argv):
-    testcases.utils.core.base_xtest.defaultMain(argv, documentAll, testAll)
+    utils.core.base_xtest.defaultMain(argv, documentAll, testAll)
 
 
 if __name__ == "__main__":

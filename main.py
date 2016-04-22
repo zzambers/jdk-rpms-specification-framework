@@ -8,7 +8,7 @@ import sys
 
 import config.general_parser
 import config.runtime_config
-import testcases.utils.test_utils as tu
+import utils.test_utils as tu
 from outputControl import logging_access
 
 

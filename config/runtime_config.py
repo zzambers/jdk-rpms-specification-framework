@@ -1,7 +1,6 @@
-import outputControl.logging_access
-import testcases.utils.rpm_list
-import testcases.utils.build_downloader
 import config.global_config
+import outputControl.logging_access
+import utils.build_downloader
 
 VERSION_STRING = "jdks_specification_framework, version 0.1"
 
@@ -28,7 +27,7 @@ class RuntimeConfig(metaclass=Singleton):
 
     def getRpmList(self):
         if self.rpmList == None:
-            self.rpmList = testcases.utils.rpm_list.RpmList(self.getPkgsDir())
+            self.rpmList = utils.rpm_list.RpmList(self.getPkgsDir())
         return self.rpmList
 
     def setLogsFile(self, nwFile):
@@ -80,7 +79,7 @@ class RuntimeConfig(metaclass=Singleton):
         if args.archs:
             self.setArchs(args.archs)
         if args.build:
-            r = testcases.utils.build_downloader.getBuild(args.build)
+            r = utils.build_downloader.getBuild(args.build)
             # failed? exit...
             if not r:
                 return False

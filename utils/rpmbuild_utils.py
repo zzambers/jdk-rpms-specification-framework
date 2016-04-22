@@ -1,33 +1,33 @@
 import outputControl.logging_access
-import testcases.utils.process_utils
+import utils.process_utils
 
 
 def rpmbuildEval(macro):
-    return testcases.utils.process_utils.processToString(['rpmbuild', '--eval', '%{' + macro + '}'])
+    return utils.process_utils.processToString(['rpmbuild', '--eval', '%{' + macro + '}'])
 
 
 def listFilesInPackage(rpmFile):
-    return testcases.utils.process_utils.processAsStrings(['rpm', '-qlp', rpmFile])
+    return utils.process_utils.processAsStrings(['rpm', '-qlp', rpmFile])
 
 
 def listDocsInPackage(rpmFile):
-    return testcases.utils.process_utils.processAsStrings(['rpm', '-qldp', rpmFile])
+    return utils.process_utils.processAsStrings(['rpm', '-qldp', rpmFile])
 
 
 def listConfigFilesInPackage(rpmFile):
-    return testcases.utils.process_utils.processAsStrings(['rpm', '-qlcp', rpmFile])
+    return utils.process_utils.processAsStrings(['rpm', '-qlcp', rpmFile])
 
 
 def listOfRequires(rpmFile):
-    return testcases.utils.process_utils.processAsStrings(['rpm', '--requires', '-qp', rpmFile])
+    return utils.process_utils.processAsStrings(['rpm', '--requires', '-qp', rpmFile])
 
 
 def listOfProvides(rpmFile):
-    return testcases.utils.process_utils.processAsStrings(['rpm', '--provides', '-qp', rpmFile])
+    return utils.process_utils.processAsStrings(['rpm', '--provides', '-qp', rpmFile])
 
 
 def listOfObsoletes(rpmFile):
-    return testcases.utils.process_utils.processAsStrings(['rpm', '--obsoletes', '-qp', rpmFile])
+    return utils.process_utils.processAsStrings(['rpm', '--obsoletes', '-qp', rpmFile])
 
 
 def listOfVersionlessRequires(rpmFile):
@@ -103,5 +103,5 @@ def getSrciplet(rpmFile, scripletId):
         outputControl.logging_access.LoggingAccess().log("warning! Scriplet name " + scripletId
                                                          + " is not known. It should be one of: "
                                                          + ",".join(ScripletStarterFinisher.allScriplets))
-    return testcases.utils.process_utils.processAsStrings(['rpm', '-qp', '--scripts', rpmFile], sf.start, sf.stop,
-                                                          False)
+    return utils.process_utils.processAsStrings(['rpm', '-qp', '--scripts', rpmFile], sf.start, sf.stop,
+                                                False)

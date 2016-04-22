@@ -5,11 +5,11 @@ import config.general_parser
 import config.global_config as gc
 import config.runtime_config
 import testcases.nameTest.connfigs.initbuild_config
-import testcases.utils.core.base_xtest
+import utils.core.base_xtest
 from outputControl import logging_access as la
 
 
-class InitTest(testcases.utils.core.base_xtest.BaseTest):
+class InitTest(utils.core.base_xtest.BaseTest):
     def test_java(self):
         java = config.runtime_config.RuntimeConfig().getRpmList().getJava()
         self.log("prefix is: " + java)
@@ -145,7 +145,7 @@ def documentAll():
 
 
 def main(argv):
-    testcases.utils.core.base_xtest.defaultMain(argv, documentAll, testAll)
+    utils.core.base_xtest.defaultMain(argv, documentAll, testAll)
 
 
 if __name__ == "__main__":

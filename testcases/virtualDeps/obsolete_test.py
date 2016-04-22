@@ -1,10 +1,13 @@
 import sys
-import testcases.utils.core.base_xtest
+
+import utils.pkg_name_split as split
+import utils.rpmbuild_utils as rpmuts
+from utils.core.configuration_specific import JdkConfiguration
+
 import config.runtime_config
+import utils.core.base_xtest
 from outputControl import logging_access as la
-from testcases.utils.core.configuration_specific import JdkConfiguration
-import testcases.utils.pkg_name_split as split
-import testcases.utils.rpmbuild_utils as rpmuts
+
 
 class ITW(JdkConfiguration):
     def checkJreObsolete(self, obsoletes=None):
@@ -38,7 +41,7 @@ class JdkRhel(JdkConfiguration):
         assert len(set(obsoletes)-set(JdkRhel.jreExceptionsObsolete)) == 0
 
 
-class ObsolateTest(testcases.utils.core.base_xtest.BaseTest):
+class ObsolateTest(utils.core.base_xtest.BaseTest):
 
 
     def test_jreobsolete(self):
@@ -67,7 +70,7 @@ def documentAll():
 
 
 def main(argv):
-    testcases.utils.core.base_xtest.defaultMain(argv, documentAll, testAll)
+    utils.core.base_xtest.defaultMain(argv, documentAll, testAll)
 
 
 if __name__ == "__main__":

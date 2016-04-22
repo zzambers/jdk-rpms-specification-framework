@@ -1,21 +1,23 @@
-import re
 import ntpath
-import testcases.utils.test_utils
-import outputControl.logging_access
-import testcases.utils.pkg_name_split as split
+import re
+
 import config.global_config
 import config.runtime_config
+import outputControl.logging_access
+import utils.pkg_name_split as split
+import utils.test_utils
+
 
 class RpmList:
     """Class to hold list of file, providing various operations abov themlike get bny arch, get by build (arch+noarch), get srpm and so on"""
 
     def __init__(self, ddir):
-        self.files = testcases.utils.test_utils.get_rpms(ddir)
-        self.topDirs = testcases.utils.test_utils.get_top_dirs(ddir)
+        self.files = utils.test_utils.get_rpms(ddir)
+        self.topDirs = utils.test_utils.get_top_dirs(ddir)
         self.names = []
         for file in self.files:
             self.names.append(ntpath.basename(file))
-        allFiles = testcases.utils.test_utils.get_files(ddir)
+        allFiles = utils.test_utils.get_files(ddir)
         outputControl.logging_access.LoggingAccess().log("Loaded list of " + str(len(self.files)) + " rpms from  directory " + ddir)
         if len(self.files) != len(allFiles):
             outputControl.logging_access.LoggingAccess().log("Warning, some files in  " + ddir + " - " + str(
@@ -98,7 +100,7 @@ class RpmList:
 
     def getNativeArches(self):
         if (config.runtime_config.RuntimeConfig().getArchs() != None):
-            return set(testcases.utils.test_utils.removeNoarchSrpmArch(config.runtime_config.RuntimeConfig().getArchs()))
+            return set(utils.test_utils.removeNoarchSrpmArch(config.runtime_config.RuntimeConfig().getArchs()))
         pset, props = self.getSetProperty(split.get_arch)
         return pset - set(config.global_config.getNoarch()) - set(config.global_config.getSrcrpmArch())
 

@@ -4,10 +4,11 @@ import time
 import traceback
 from collections import OrderedDict
 
+import utils.test_utils as tu
+
 import config.global_config
 import config.runtime_config
-import testcases.utils.core.configuration_specific as cs
-import testcases.utils.test_utils as tu
+import utils.core.configuration_specific as cs
 from outputControl import logging_access as la
 
 
