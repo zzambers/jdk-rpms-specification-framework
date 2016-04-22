@@ -8,6 +8,10 @@ def processToString(args):
     return o
 
 def processToStrings(args, err = True):
+    o, e, r = processToStringsWithResult(args, err)
+    return o, e
+
+def processToStringsWithResult(args, err=True):
     proc = _exec(args, err)
     out, err = proc.communicate()
     output = out.decode('utf-8').strip()
@@ -15,9 +19,14 @@ def processToStrings(args, err = True):
     if err is not None:
         outpute = err.decode('utf-8').strip()
     outputControl.logging_access.LoggingAccess().log("got: " + output)
-    return output, outpute
+    ret = proc.wait()
+    return output, outpute, ret
 
 def processAsStrings(args, starter=None, finisher=None, initialCanRead=True, log = True):
+    o, r = processAsStringsWithResult(args, starter, finisher, initialCanRead, log)
+    return o;
+
+def processAsStringsWithResult(args, starter=None, finisher=None, initialCanRead=True, log = True):
     """ read process line by line. starter and finisher are methods, which returns true/false to set read. Theirs immput is line"""
     res = []
     proc = _exec(args)
@@ -36,7 +45,8 @@ def processAsStrings(args, starter=None, finisher=None, initialCanRead=True, log
             canRead=starter(line)
             if canRead:
                 outputControl.logging_access.LoggingAccess().log(str(starter) + " started recording")
-    return res
+    ret = proc.wait()
+    return res, ret
 
 def _exec(args, err=False):
     outputControl.logging_access.LoggingAccess().log("executing: " + str(args))

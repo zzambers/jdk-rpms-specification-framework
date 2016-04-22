@@ -7,7 +7,7 @@ import outputControl.logging_access
 import utils.process_utils as exxec
 import utils.rpmbuild_utils as rpmuts
 import utils.test_utils as tu
-from utils import FsZipCache
+from utils.mock import FsZipCache
 
 
 class Mock:
@@ -77,9 +77,9 @@ class Mock:
         return dest
 
     def executeShell(self, scriptFilePath):
-        o, e = exxec.processToStrings(self.mainCommand() + ["--chroot", "sh", scriptFilePath])
+        o, e, r= exxec.processToStringsWithResult(self.mainCommand() + ["--chroot", "sh", scriptFilePath])
         outputControl.logging_access.LoggingAccess().log(e)
-        return o
+        return o, r
 
     def listFiles(self):
         o = exxec.processAsStrings(self.mainCommand() + ["--chroot", "find"] + Mock.caredTopDirs, log=False)
@@ -87,8 +87,8 @@ class Mock:
 
     def createAndExecuteShell(self, scriptSuffix, lines):
         script = self.importFileContnet(scriptSuffix, lines)
-        o = self.executeShell(script)
-        return o
+        o, r = self.executeShell(script)
+        return o, r
 
     def provideCleanUsefullRoot(self):
         self.init()
@@ -138,30 +138,3 @@ class Singleton(type):
 # if possible, try to work with the DefaultMock and its snapshots
 class DefaultMock(Mock, metaclass=Singleton):
     pass
-
-
-def main(argv):
-    pkgs = config.runtime_config.RuntimeConfig().getRpmList().getPackagesByArch("x86_64")
-    DefaultMock().provideCleanUsefullRoot()
-    DefaultMock().createSnapshot("t1")
-    bfiles = DefaultMock().listFiles()
-    o = DefaultMock().executeScriptlet(pkgs[0], rpmuts.POSTINSTALL)
-    print(o)
-    nfiles = DefaultMock().listFiles()
-    print(set(nfiles) - set(bfiles))
-    o = DefaultMock().executeScriptlet(pkgs[0], rpmuts.POSTINSTALL)
-    print(o)
-    nfiles = DefaultMock().listFiles()
-    print(set(nfiles) - set(bfiles))
-    DefaultMock().rewertToSnapshot("t1")
-    nfiles = DefaultMock().listFiles()
-    print(set(nfiles) - set(bfiles))
-    print(set(bfiles) - set(nfiles))
-    o = DefaultMock().executeScriptlet(pkgs[0], rpmuts.POSTINSTALL)
-    print(o)
-    nfiles = DefaultMock().listFiles()
-    print(set(nfiles) - set(bfiles))
-
-
-if __name__ == "__main__":
-    main(sys.argv[1:])
