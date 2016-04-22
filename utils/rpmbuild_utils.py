@@ -69,7 +69,7 @@ def isScripletNameValid(name):
 
 
 class ScripletStarterFinisher:
-    # hard to say when rpm uses uninstall or jsut un or install or just "nothing"
+    # hard to say when rpm uses uninstall or just un or install or just "nothing"
     allScriplets = [
         PRETRANS,
         PREINSTALL,
