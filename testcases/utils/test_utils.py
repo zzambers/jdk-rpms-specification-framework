@@ -29,9 +29,10 @@ def get_rpms(directory):
     return get_files(directory, "rpm")
 
 
-def get_files(directory, file_suffix=""):
-    """Walk `directory' and get a list of all rpms names in it."""
-    outputControl.logging_access.LoggingAccess().log("Searching in " + directory + " for: *" + file_suffix)
+def get_files(directory, file_suffix="", logging = True):
+    """Walk `directory' and get a list of all filenames in it."""
+    if logging:
+        outputControl.logging_access.LoggingAccess().log("Searching in " + directory + " for: *" + file_suffix)
     resList = []
     for root, dirs, files in os.walk(directory):
         for f in files:

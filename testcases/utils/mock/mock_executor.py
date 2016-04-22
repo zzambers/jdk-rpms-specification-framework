@@ -1,19 +1,41 @@
 import ntpath
 import sys
+import shutil
 
 import config.runtime_config
 import outputControl.logging_access
-import testcases.utils.process_utils as exec
+import testcases.utils.process_utils as exxec
 import testcases.utils.rpmbuild_utils as rpmuts
 import testcases.utils.test_utils as tu
+from testcases.utils.mock import FsZipCache
 
 
-class Mock():
+class Mock:
+    caredTopDirs = [
+        "/bin",
+        "/boot",
+        "/builddir",
+        "/dev",
+        "/etc",
+        "/home",
+        "/lib",
+        "/lib64",
+        "/media",
+        "/opt",
+        "/root",
+        "/run",
+        "/sbin",
+        "/tmp",
+        "/usr"
+        #            ,"/var"
+    ]
+
     def __init__(self, os="fedora", version="rawhide", arch="x86_64", command="mock"):
         self.os = os
         self.version = version
         self.arch = arch
         self.command = command
+        self.snapshots = dict()
         outputControl.logging_access.LoggingAccess().log("Providing new instance of " + self.getMockName())
 
     def getMockName(self):
@@ -35,56 +57,37 @@ class Mock():
         return [self.command, "-r", self.getMockName()]
 
     def init(self):
-        o, e = exec.processToStrings(self.mainCommand() + ["--init"])
+        o, e = exxec.processToStrings(self.mainCommand() + ["--init"])
         outputControl.logging_access.LoggingAccess().log(e)
 
     def installAlternatives(self):
-        o, e = exec.processToStrings(self.mainCommand() + ["--install", "chkconfig"])
+        o, e = exxec.processToStrings(self.mainCommand() + ["--install", "chkconfig"])
         outputControl.logging_access.LoggingAccess().log(e)
 
     def mktemp(self, suffix="me"):
-        o, e = exec.processToStrings(self.mainCommand() + ["--chroot", "mktemp --suffix " + suffix])
+        o, e = exxec.processToStrings(self.mainCommand() + ["--chroot", "mktemp --suffix " + suffix])
         outputControl.logging_access.LoggingAccess().log(e)
         return o
 
     def importFileContnet(self, suffix, content):
         src = tu.saveStringsAsTmpFile(content, suffix)
         dest = self.mktemp(suffix)
-        o, e = exec.processToStrings(self.mainCommand() + ["--copyin", src, dest])
+        o, e = exxec.processToStrings(self.mainCommand() + ["--copyin", src, dest])
         outputControl.logging_access.LoggingAccess().log(e)
         return dest
 
     def executeShell(self, scriptFilePath):
-        o, e = exec.processToStrings(self.mainCommand() + ["--chroot", "sh", scriptFilePath])
+        o, e = exxec.processToStrings(self.mainCommand() + ["--chroot", "sh", scriptFilePath])
         outputControl.logging_access.LoggingAccess().log(e)
         return o
 
     def listFiles(self):
-        caredTopDirs = [
-            "/bin",
-            "/boot",
-            "/builddir",
-            "/dev",
-            "/etc",
-            "/home",
-            "/lib",
-            "/lib64",
-            "/media",
-            "/opt",
-            "/root",
-            "/run",
-            "/sbin",
-            "/tmp",
-            "/usr"
-#            ,"/var"
-        ]
-
-        o = exec.processAsStrings(self.mainCommand() + ["--chroot", "find"] + caredTopDirs, log=False)
+        o = exxec.processAsStrings(self.mainCommand() + ["--chroot", "find"] + Mock.caredTopDirs, log=False)
         return o
 
     def createAndExecuteShell(self, scriptSuffix, lines):
-        script = DefaultMock().importFileContnet(scriptSuffix, lines)
-        o = DefaultMock().executeShell(script)
+        script = self.importFileContnet(scriptSuffix, lines)
+        o = self.executeShell(script)
         return o
 
     def provideCleanUsefullRoot(self):
@@ -93,16 +96,33 @@ class Mock():
 
     def executeScriptlet(self, rpmFile, scripletName):
         scriplet = rpmuts.getSrciplet(rpmFile, scripletName)
-        if (scriplet is None or len(scriplet) == 0):
+        if scriplet is None or len(scriplet) == 0:
             raise Exception("Scriptlet " + scripletName + " is not in " + rpmFile)
         return self.createAndExecuteShell("_" + scripletName + "_" + ntpath.basename(rpmFile), scriplet)
 
-    def createSnapshot(self):
-        """ To work with snapshots, you need mock-lvm installed and
-        have it enabled in  /etc/mock/site-defaults.cfg
-        see  cfg's nits and https://fedoraproject.org/wiki/Mock/Plugin/LvmRoot?rd=Subprojects/Mock/Plugin/LvmRoot"""
-        pass  # not yet implemented
-        # but once done, it will be speedup
+    def _getAbsFiles(self, files):
+        absDirs = []
+        for f in files:
+            absDirs.append(self.getRootDir() + "/" + f)
+        return absDirs
+
+    def createSnapshot(self, name):
+        raise Exception("Dont use, still nto implemented correctly")
+        snapData = FsZipCache.createInMemoryArchive(self._getAbsFiles(self.caredTopDirs))
+        self.snapshots[name] = snapData
+        return snapData
+
+    def getSnapshot(self, name):
+        snapData = self.snapshots[name]
+        return snapData
+
+    def rewertToSnapshot(self, name):
+        raise Exception("Dont use, still nto implemented correctly")
+        snapData = self.getSnapshot(name)
+        if snapData is None:
+            return
+        shutil.rmtree(self.getRootDir())
+        snapData.unpack()
 
 
 class Singleton(type):
@@ -123,11 +143,24 @@ class DefaultMock(Mock, metaclass=Singleton):
 def main(argv):
     pkgs = config.runtime_config.RuntimeConfig().getRpmList().getPackagesByArch("x86_64")
     DefaultMock().provideCleanUsefullRoot()
+    DefaultMock().createSnapshot("t1")
     bfiles = DefaultMock().listFiles()
     o = DefaultMock().executeScriptlet(pkgs[0], rpmuts.POSTINSTALL)
     print(o)
     nfiles = DefaultMock().listFiles()
-    print(set(nfiles)-set(bfiles))
+    print(set(nfiles) - set(bfiles))
+    o = DefaultMock().executeScriptlet(pkgs[0], rpmuts.POSTINSTALL)
+    print(o)
+    nfiles = DefaultMock().listFiles()
+    print(set(nfiles) - set(bfiles))
+    DefaultMock().rewertToSnapshot("t1")
+    nfiles = DefaultMock().listFiles()
+    print(set(nfiles) - set(bfiles))
+    print(set(bfiles) - set(nfiles))
+    o = DefaultMock().executeScriptlet(pkgs[0], rpmuts.POSTINSTALL)
+    print(o)
+    nfiles = DefaultMock().listFiles()
+    print(set(nfiles) - set(bfiles))
 
 
 if __name__ == "__main__":

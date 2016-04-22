@@ -13,7 +13,7 @@ class Singleton(type):
 
 
 def _createParser():
-    lparser = argparse.ArgumentParser()
+    lparser = argparse.ArgumentParser(description="To use the tests correctly you need to have correctly working mock in non-root mode.")
     lparser.add_argument("-v", "--version",
                          help="display the version of the framework",
                          action="store_true")
