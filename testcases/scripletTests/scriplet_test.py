@@ -33,9 +33,9 @@ class TestTest(utils.core.base_xtest.BaseTest):
                     self.log("is " + str(len(content)) + " lines long")
                     self.log("executing " + scriplet + " in " + ntpath.basename(pkg))
                     DefaultMock().provideCleanUsefullRoot()
-                    # todo, realy needs uncipioed pkg, otherwise ln -s is failing, and so no good results are found
+                    DefaultMock().importUnpackedRpm(pkg)
                     o, r = DefaultMock().executeScriptlet(pkg, scriplet)
-                    assert  r ==0
+                    assert r ==0
 
 
 

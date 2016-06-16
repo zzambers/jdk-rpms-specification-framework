@@ -55,3 +55,18 @@ def _exec(args, err=False):
     else:
         proc = Popen(args, stdout=PIPE)
     return proc;
+
+def executeShell(command):
+    outputControl.logging_access.LoggingAccess().log("executing shell : " + command)
+    shell = Popen(command, stdin=PIPE, stderr=PIPE, shell=True)
+    o, e  = shell.communicate()
+    if (o is not None):
+        o = o.decode('utf-8').strip()
+    else:
+        o=""
+    if (3 is not None):
+        e = e.decode('utf-8').strip()
+    else:
+        e = ""
+    r = shell.wait()
+    return o, e, r

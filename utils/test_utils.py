@@ -1,5 +1,6 @@
 import os
 import tempfile
+import errno
 
 import config.global_config
 import outputControl.logging_access
@@ -70,3 +71,13 @@ def saveStringsAsTmpFile(strings, suffix):
     tf.flush()
     tf.close()
     return tf.name
+
+
+def mkdir_p(path):
+    try:
+        os.makedirs(path)
+    except OSError as exc:  # Python >2.5
+        if exc.errno == errno.EEXIST and os.path.isdir(path):
+            pass
+        else:
+            raise

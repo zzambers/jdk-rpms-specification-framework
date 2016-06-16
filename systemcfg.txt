@@ -1,0 +1,67 @@
+System config
+
+To verify the filesystem, mock tool is used.
+As really many "install - do something - check" wehre install is always the same, sometimes even "do something" is same then snapshot schema in mock is used.
+
+You need mock-lvm to have installed and set up
+https://fedoraproject.org/wiki/Mock/Plugin/LvmRoot?rd=Subprojects/Mock/Plugin/LvmRoot
+http://www.anthonyldechiaro.com/blog/2010/12/19/lvm-loopback-how-to/
+https://access.redhat.com/documentation/en-US/Red_Hat_Enterprise_Linux/7/html/Logical_Volume_Manager_Administration/LVM_examples.html#vol_create_ex
+
+as you can see:
+mock -r fedora-24-x86_64 --list-snapshots
+ERROR: Feature list_snapshots is not provided by any of enabled plugins
+it do nto work out of box
+
+mkdir MOCK_SNAPSHOT_LVM
+cd MOCK_SNAPSHOT_LVM
+dd if=/dev/zero of=lvm.img bs=100 count=100M
+# 10GB "partition should be enough"
+sudo losetup -f
+# /dev/loop0
+sudo losetup /dev/loop0 lvm.img
+# be sure to use unused
+sudo vgcreate MOCK_SNAPSHOT_LVM  /dev/loop0
+# Physical volume "/dev/loop0" successfully created
+# Volume group "MOCK_SNAPSHOT_LVM" successfully created
+
+now use this new VG in /etc/mock/site-defaults.cfg:
+
+config_opts['plugin_conf']['root_cache_enable'] = False
+config_opts['plugin_conf']['lvm_root_enable'] = True
+config_opts['plugin_conf']['lvm_root_opts'] = {
+     'volume_group': 'MOCK_SNAPSHOT_LVM',
+     'size': '9G',
+     'pool_name': 'mock',
+     'check_size': True,
+ }
+ # this example is vasing 1gb for overhead, few kilos should be enough
+
+
+Simple check:
+ mock -r fedora-24-x86_64 --list-snapshots
+ Snapshots for fedora-24-x86_64:
+says it works
+
+
+If you have any mocks *before* the mock-lvm isntalaltion and setup, they will not provide the functionality:
+mock -r fedora-24-x86_64 --snapshot mvn
+INFO: mock.py version 1.2.18 starting (python version = 3.4.3)...
+Start: init plugins
+INFO: selinux disabled
+Finish: init plugins
+Start: run
+ERROR: Command failed:
+ # lvcreate -s MOCK_SNAPSHOT_LVM/+mock.fedora-24-x86_64.head -n mock.fedora-24-x86_64.mvn
+  Snapshot origin LV +mock.fedora-24-x86_64.head not found in Volume group MOCK_SNAPSHOT_LVM.
+
+You need to
+ mock -r fedora-24-x86_64 --scrub=all
+ them all, and recreate
+
+Now
+ mock -r fedora-24-x86_64 --list-snapshots
+Snapshots for fedora-24-x86_64:
+* postinit
+
+it works.

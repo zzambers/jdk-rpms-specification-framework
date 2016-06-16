@@ -1,5 +1,7 @@
 import outputControl.logging_access
 import utils.process_utils
+import utils.test_utils
+import os
 
 
 def rpmbuildEval(macro):
@@ -105,3 +107,9 @@ def getSrciplet(rpmFile, scripletId):
                                                          + ",".join(ScripletStarterFinisher.allScriplets))
     return utils.process_utils.processAsStrings(['rpm', '-qp', '--scripts', rpmFile], sf.start, sf.stop,
                                                 False)
+
+def unpackFilesFromRpm(rpmFile, destination):
+    absFile = os.path.abspath(rpmFile)
+    utils.test_utils.mkdir_p(destination)
+    sout, serr, res = utils.process_utils.executeShell("cd "+destination+" && rpm2cpio "+absFile+" | cpio -idmv")
+    return sout, serr, res
