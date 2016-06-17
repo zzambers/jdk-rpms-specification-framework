@@ -4,6 +4,9 @@ To verify the filesystem, mock tool is used.
 As really many "install - do something - check" wehre install is always the same, sometimes even "do something" is same then snapshot schema in mock is used.
 
 You need mock-lvm to have installed and set up
+Generally you need to provide LVM group to mock.
+As you proabbly don't have spare partitions for new group, there is some reading followed by simple exmaple how to provide *file* as new partititon and how to make it lvm group:
+
 https://fedoraproject.org/wiki/Mock/Plugin/LvmRoot?rd=Subprojects/Mock/Plugin/LvmRoot
 http://www.anthonyldechiaro.com/blog/2010/12/19/lvm-loopback-how-to/
 https://access.redhat.com/documentation/en-US/Red_Hat_Enterprise_Linux/7/html/Logical_Volume_Manager_Administration/LVM_examples.html#vol_create_ex
