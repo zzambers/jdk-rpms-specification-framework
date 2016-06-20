@@ -31,24 +31,49 @@ def get_rpms(directory):
 
 
 def get_files(directory, file_suffix="", logging = True):
-    """Walk `directory' and get a list of all filenames in it."""
+    files, dirs = get_files_and_dirs(directory, file_suffix, logging)
+    return files
+
+def get_dirs(directory, file_suffix="", logging = True):
+    files, dirs = get_files_and_dirs(directory, file_suffix, logging)
+    return dirs
+
+def get_files_and_dirs(directory, file_suffix="", logging = True):
+    """Walk `directory' and get a list of all filenames/dirs in it."""
     if logging:
         outputControl.logging_access.LoggingAccess().log("Searching in " + directory + " for: *" + file_suffix)
     resList = []
+    dirList = []
     for root, dirs, files in os.walk(directory):
         for f in files:
             if f.endswith(file_suffix) & os.path.isfile(directory + "/" + f):
                 resList.append(directory + "/" + f)
         for d in dirs:
             if os.path.isdir(directory + "/" + d):
-                resList = resList + (get_files(directory + "/" + d, file_suffix))
-    return resList
+                dirList.append(directory + "/" + d)
+                nwFiles, nwDirs = (get_files_and_dirs(directory + "/" + d, file_suffix))
+                resList = resList + nwFiles
+                dirList = dirList + nwDirs
+    return resList, dirList
 
 def get_top_dirs(directory):
     """Walk `directory' and get a list of all top directory names in it."""
     outputControl.logging_access.LoggingAccess().log("Searching in " + directory + " for: top dirs")
     resList = []
     for root, dirs, files in os.walk(directory):
+        for d in dirs:
+            if os.path.isdir(directory + "/" + d):
+                resList.append(d)
+    return resList
+
+def get_top_dirs_and_files(directory):
+    """Walk `directory' and get a list of all top directory names in it."""
+    outputControl.logging_access.LoggingAccess().log("Searching in " + directory + " for: top dirs and files")
+    resList = []
+    for root, dirs, files in os.walk(directory):
+        for f in files:
+            if os.path.isfile(directory + "/" + f):
+                resList.append(directory + "/" + f)
         for d in dirs:
             if os.path.isdir(directory + "/" + d):
                 resList.append(d)

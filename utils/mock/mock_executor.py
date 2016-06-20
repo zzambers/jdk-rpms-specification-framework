@@ -7,6 +7,7 @@ import utils.mock.rpm_uncpio_cache
 import utils.process_utils as exxec
 import utils.rpmbuild_utils as rpmuts
 import utils.test_utils as tu
+from utils.rpmbuild_utils import unpackFilesFromRpm
 
 
 class Mock:
@@ -125,29 +126,55 @@ class Mock:
         self.copyIn([src], dest)
         return dest
 
-    def copyIn(self, srcs, dest):
-        o, e, r = exxec.processToStringsWithResult(self.mainCommand() + ["--copyin"] + srcs + [dest])
+    def copyIn(self, src, dest):
+        o, e, r = exxec.processToStringsWithResult(self.mainCommand() + ["--copyin"] + src + [dest])
+        outputControl.logging_access.LoggingAccess().log(e)
+        return o, e, r
+
+    def copyIns(self, cwd, srcs, dest):
+        #unlike copyIn, this copppy list of files TO destination. Because of necessary relativitu of srcs, CWD is included
+        o, e, r = exxec.processToStringsWithResult(self.mainCommand() + ["--copyin"] + srcs + [dest], True, cwd)
         outputControl.logging_access.LoggingAccess().log(e)
         return o, e, r
 
     def importUnpackedRpm(self, rpmPath):
         uncipioed = utils.mock.rpm_uncpio_cache.UcipioCached().uncipio(rpmPath)
-        content = tu.get_files(uncipioed, "", False)
+        dirs = tu.get_dirs(uncipioed, "", False)
+        nwDirs = [];
+        for dir in dirs:
+            nwDir = dir[len(uncipioed):]
+            nwDirs.append(nwDir);
+        # mock is to dummy to to live, copy like this do not preserve directories tree
+        #files = tu.get_files(uncipioed, "", False)
+        #nwFiles = [];
+        #for file in files:
+        #    nwFile = file[len(uncipioed)+1:]
+        #    nwFiles.append(nwFile)
+
+        files = tu.get_top_dirs_and_files(uncipioed)
         o = ""
         e = ""
         r = 0
-        for c in content:
-            dest = c[len(uncipioed):]
-            destDir = os.path.dirname(dest)
-            do, dr = self.mkdirP(destDir)
-            oo, ee, rr = self.copyIn([c], dest)
-            o += oo
-            e += ee
-            r += rr
+
+        dod, drd = self.mkdirsP(nwDirs)
+        o += dod
+        r += drd
+
+        oo, ee, rr = self.copyIns(uncipioed, files, "/")
+        o += oo
+        e += ee
+        r += rr
+
         return o, e, r
 
     def mkdirP(self, dirName):
         return self.executeCommand(["mkdir -p " + dirName])
+
+    def mkdirsP(self, dirNames):
+        all="";
+        for  dir in dirNames:
+            all=all+" "+dir;
+        return self.executeCommand(["mkdir -p " + all])
 
     def executeCommand(self, cmds):
         o, e, r = exxec.processToStringsWithResult(self.mainCommand() + ["--chroot"] + cmds)

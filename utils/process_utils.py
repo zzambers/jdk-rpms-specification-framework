@@ -11,8 +11,8 @@ def processToStrings(args, err = True):
     o, e, r = processToStringsWithResult(args, err)
     return o, e
 
-def processToStringsWithResult(args, err=True):
-    proc = _exec(args, err)
+def processToStringsWithResult(args, err=True, cwd=None):
+    proc = _exec(args, err, cwd)
     out, err = proc.communicate()
     output = out.decode('utf-8').strip()
     outpute = "";
@@ -48,10 +48,11 @@ def processAsStringsWithResult(args, starter=None, finisher=None, initialCanRead
     ret = proc.wait()
     return res, ret
 
-def _exec(args, err=False):
+def _exec(args, err=False, cwd=None):
     outputControl.logging_access.LoggingAccess().log("executing: " + str(args))
     if (err):
-        proc = Popen(args, stdout=PIPE, stderr=PIPE)
+        # args, bufsize=-1, executable=None, stdin=None, stdout=None, stderr=None, preexec_fn=None, close_fds=_PLATFORM_DEFAULT_CLOSE_FDS, shell=False, cwd=None, env=None ...
+        proc = Popen(args, stdout=PIPE, stderr=PIPE, cwd=cwd)
     else:
         proc = Popen(args, stdout=PIPE)
     return proc;
