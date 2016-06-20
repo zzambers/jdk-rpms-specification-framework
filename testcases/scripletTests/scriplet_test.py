@@ -37,7 +37,7 @@ class TestTest(utils.core.base_xtest.BaseTest):
                     self.log("is " + str(len(content)) + " lines long")
                     self.log("executing " + scriplet + " in " + ntpath.basename(pkg))
                     DefaultMock().provideCleanUsefullRoot()
-                    DefaultMock().importUnpackedRpm(pkg)
+                    DefaultMock().importRpm(pkg)
                     o, r = DefaultMock().executeScriptlet(pkg, scriplet)
                     self.log(scriplet + "returned " + str(r) + " of " + ntpath.basename(pkg))
                     if r == 0:

@@ -59,6 +59,12 @@ class Mock:
     def mainCommand(self):
         return [self.command, "-r", self.getMockName()]
 
+    def mainCommandAsString(self):
+        s = ""
+        for x in self.mainCommand():
+            s=s+" " + x
+        return s
+
     def init(self):
         if self.inited:
             self.reinit()
@@ -137,35 +143,10 @@ class Mock:
         outputControl.logging_access.LoggingAccess().log(e)
         return o, e, r
 
-    def importUnpackedRpm(self, rpmPath):
-        uncipioed = utils.mock.rpm_uncpio_cache.UcipioCached().uncipio(rpmPath)
-        dirs = tu.get_dirs(uncipioed, "", False)
-        nwDirs = [];
-        for dir in dirs:
-            nwDir = dir[len(uncipioed):]
-            nwDirs.append(nwDir);
-        # mock is to dummy to to live, copy like this do not preserve directories tree
-        #files = tu.get_files(uncipioed, "", False)
-        #nwFiles = [];
-        #for file in files:
-        #    nwFile = file[len(uncipioed)+1:]
-        #    nwFiles.append(nwFile)
-
-        files = tu.get_top_dirs_and_files(uncipioed)
-        o = ""
-        e = ""
-        r = 0
-
-        dod, drd = self.mkdirsP(nwDirs)
-        o += dod
-        r += drd
-
-        oo, ee, rr = self.copyIns(uncipioed, files, "/")
-        o += oo
-        e += ee
-        r += rr
-
-        return o, e, r
+    def importRpm(self, rpmPath):
+        """Using various copy-in  variants ahve perofroamnce or existingissues at all"""
+        out, serr, res = utils.process_utils.executeShell("rpm2cpio " + rpmPath+ " | " +self.mainCommandAsString()+ " --shell \"cpio -idmv\"")
+        return out, serr, res
 
     def mkdirP(self, dirName):
         return self.executeCommand(["mkdir -p " + dirName])
