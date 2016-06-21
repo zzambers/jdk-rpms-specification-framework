@@ -16,7 +16,9 @@ class TestTest(utils.core.base_xtest.BaseTest):
                 self.log("searching for " + scriplet + " in " + ntpath.basename(pkg))
                 content = utils.rpmbuild_utils.getSrciplet(pkg, scriplet)
                 if len(content) == 0:
-                    self.log("not found")
+                    self.log("is " + str(len(content)) + " lines long")
+                    self.log("not found?")
+                    # todo add asserts
                 else:
                     self.log("is " + str(len(content)) + " lines long")
                     # todo add asserts
@@ -27,17 +29,17 @@ class TestTest(utils.core.base_xtest.BaseTest):
         passes=[]
         skippes=[]
         for pkg in pkgs:
+            DefaultMock().importRpm(pkg)
+            # now applying scriplets in order
             for scriplet in ScripletStarterFinisher.allScriplets:
                 self.log("searching for " + scriplet + " in " + ntpath.basename(pkg))
                 content = utils.rpmbuild_utils.getSrciplet(pkg, scriplet)
                 if len(content) == 0:
-                    self.log(scriplet + " not found in" + ntpath.basename(pkg))
+                    self.log(scriplet + " not found in " + ntpath.basename(pkg))
                     skippes.append(scriplet + " - " + ntpath.basename(pkg))
                 else:
                     self.log("is " + str(len(content)) + " lines long")
                     self.log("executing " + scriplet + " in " + ntpath.basename(pkg))
-                    DefaultMock().provideCleanUsefullRoot()
-                    DefaultMock().importRpm(pkg)
                     o, r = DefaultMock().executeScriptlet(pkg, scriplet)
                     self.log(scriplet + "returned " + str(r) + " of " + ntpath.basename(pkg))
                     if r == 0:

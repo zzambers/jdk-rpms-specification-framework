@@ -35,9 +35,11 @@ class Mock:
         self.version = version
         self.arch = arch
         self.command = command
-        self.inited = False;
-        self.alternatives = False;
+        self.inited = False
+        self.alternatives = False
+        self.snapshots = dict()
         outputControl.logging_access.LoggingAccess().log("Providing new instance of " + self.getMockName())
+        # comment this, set inited and alternatives to true if debug of some test needs to be done in hurry
         self._scrubLvmCommand()
 
 
@@ -97,10 +99,11 @@ class Mock:
         outputControl.logging_access.LoggingAccess().log(str(self.listSnapshots()));
 
     def _rollbackCommand(self, name):
-        o, e = exxec.processToStrings(self.mainCommand() + ["--rollback-to", name])
+        o, e, r = exxec.processToStringsWithResult(self.mainCommand() + ["--rollback-to", name])
         outputControl.logging_access.LoggingAccess().log(e)
         outputControl.logging_access.LoggingAccess().log(o)
         outputControl.logging_access.LoggingAccess().log(str(self.listSnapshots()));
+        return e, o, r
 
     def _scrubLvmCommand(self):
         o, e = exxec.processToStrings(self.mainCommand() + ["--scrub", "lvm"])
@@ -116,6 +119,12 @@ class Mock:
 
 
     def _installAlternatives(self):
+        o, e = exxec.processToStrings(self.mainCommand() + ["--install", "lua"])
+        outputControl.logging_access.LoggingAccess().log(e)
+        o, e = exxec.processToStrings(self.mainCommand() + ["--install", "lua-posix"])
+        outputControl.logging_access.LoggingAccess().log(e)
+        o, e = exxec.processToStrings(self.mainCommand() + ["--install", "copy-jdk-configs"])
+        outputControl.logging_access.LoggingAccess().log(e)
         o, e = exxec.processToStrings(self.mainCommand() + ["--install", "chkconfig"])
         outputControl.logging_access.LoggingAccess().log(e)
         self.createSnapshot("alternatives")
@@ -143,9 +152,24 @@ class Mock:
         outputControl.logging_access.LoggingAccess().log(e)
         return o, e, r
 
-    def importRpm(self, rpmPath):
-        """Using various copy-in  variants ahve perofroamnce or existingissues at all"""
-        out, serr, res = utils.process_utils.executeShell("rpm2cpio " + rpmPath+ " | " +self.mainCommandAsString()+ " --shell \"cpio -idmv\"")
+    def importRpm(self, rpmPath, resetBuildRoot=True):
+        # there is restriciton to chars and length in/of vg name
+        key= re.sub('[^0-9a-zA-Z]+', '_', ntpath.basename(rpmPath))
+        if key in self.snapshots:
+            outputControl.logging_access.LoggingAccess().log(rpmPath + " already extracted in snapshot. Rolling to " + key)
+            return self.getSnapshot(key)
+        else:
+            outputControl.logging_access.LoggingAccess().log(rpmPath + " not extracted in snapshot. Creatign " + key)
+            out, serr, res = self.importRpmCommand(rpmPath, resetBuildRoot)
+            self.createSnapshot(key)
+            self.snapshots[key] = rpmPath
+            return out, serr, res
+
+    def importRpmCommand(self, rpmPath, resetBuildRoot=True):
+        """ Using various copy-in  variants have perofroamnce or existence issues at all """
+        if (resetBuildRoot):
+            DefaultMock().provideCleanUsefullRoot()
+        out, serr, res = utils.process_utils.executeShell("rpm2cpio " + rpmPath + " | " + self.mainCommandAsString() + " --shell \"cpio -idmv\"")
         return out, serr, res
 
     def mkdirP(self, dirName):
@@ -199,7 +223,7 @@ class Mock:
         self._snapsotCommand(name)
 
     def getSnapshot(self, name):
-        self._rollbackCommand(name)
+        return self._rollbackCommand(name)
 
 
 class Singleton(type):
