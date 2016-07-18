@@ -8,7 +8,7 @@ import utils.core.base_xtest
 from outputControl import logging_access as la
 
 
-class EpmtyPackageTest(utils.core.base_xtest.BaseTest):
+class EmptyPackageTest(utils.core.base_xtest.BaseTest):
 
 
     def test_checkNoPacakgeEmpty(self):
@@ -30,12 +30,12 @@ class EpmtyPackageTest(utils.core.base_xtest.BaseTest):
 
 
 def testAll():
-    return EpmtyPackageTest().execute_tests()
+    return EmptyPackageTest().execute_tests()
 
 
 def documentAll():
     la.LoggingAccess().stdout("Currently all java packages must have at least three files (except srpm which is enough with 2 and more)")
-    return EpmtyPackageTest().execute_special_docs()
+    return EmptyPackageTest().execute_special_docs()
 
 
 def main(argv):
