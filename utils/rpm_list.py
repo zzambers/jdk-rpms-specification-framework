@@ -9,7 +9,7 @@ import utils.test_utils
 
 
 class RpmList:
-    """Class to hold list of file, providing various operations abov themlike get bny arch, get by build (arch+noarch), get srpm and so on"""
+    """Class to hold list of file, providing various operations above them like get bny arch, get by build (arch+noarch), get srpm and so on"""
 
     def __init__(self, ddir):
         self.files = utils.test_utils.get_rpms(ddir)

@@ -32,7 +32,7 @@ class Agregator():
         la.LoggingAccess().log("  got: " + string)
 
     def agregate1(self):
-        """Join all same documentatins under set of architectures"""
+        """Join all same documentations under set of architectures"""
         mapOfMaps = OrderedDict()
         for l in self.lines:
             if l[2] not in mapOfMaps:

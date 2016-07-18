@@ -62,7 +62,7 @@ def _checkDest(dir):
         outputControl.logging_access.LoggingAccess().log("Creating: " + absOne)
         os.mkdir(absOne)
     if not os.path.isdir(absOne):
-        raise Exception(absOne + " Must bean directory, is not")
+        raise Exception(absOne + " Must be a directory, is not")
     if not os.listdir(absOne) == []:
         raise Exception(absOne + " Is not empty, please fix")
     outputControl.logging_access.LoggingAccess().log("Using as download target: " + absOne)

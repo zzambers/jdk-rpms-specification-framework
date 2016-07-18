@@ -66,7 +66,7 @@ def runTasks():
     for file in files:
         test_module = importlib.import_module(file)
         func = getattr(test_module, "testAll")
-        passed,  failed, methods = func()
+        passed, failed, methods = func()
         plist.append(passed)
         flist.append(failed)
         clist.append(methods)

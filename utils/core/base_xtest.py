@@ -30,7 +30,7 @@ class BaseTest(BaseTestRunner):
 
     @abc.abstractmethod
     def setCSCH(self):
-        """Set csch as overwriteing test wishes"""
+        """Set csch as overwriting test wishes"""
         self.log("Nothing to set.")
 
     @abc.abstractmethod

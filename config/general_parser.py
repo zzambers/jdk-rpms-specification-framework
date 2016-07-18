@@ -18,7 +18,7 @@ def _createParser():
                          help="display the version of the framework",
                          action="store_true")
     lparser.add_argument("-o", "--docs",
-                         help="instead fo testrun, generates documentation",
+                         help="instead of testrun, generates documentation",
                          action="store_true")
     lparser.add_argument("-d", "--dir",
                          help="set directory where to search for rpms. Dir with rpm files only, "

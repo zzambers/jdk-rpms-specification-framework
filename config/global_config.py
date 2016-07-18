@@ -1,7 +1,7 @@
 import outputControl.logging_access
 from utils import rpmbuild_utils
 
-# The get_methods nor find_on_disc are order-granting. However they seems tobe sorted... Sometimes. So this switch will ensure it.
+# The get_methods nor find_on_disc are order-granting. However they seems to be sorted... Sometimes. So this switch will ensure it.
 
 leSort = True
 
@@ -15,7 +15,7 @@ class Singleton(type):
         return cls._instances[cls]
 
 
-# Some arches have more then one varint. rpmbuild  is keeping en eye on this so currently known trouble makers are --eval there.
+# Some arches have more then one varint. rpmbuild  is keeping an eye on this so currently known trouble makers are --eval there.
 # power64 arm ix86
 class DynamicArches(metaclass=Singleton):
     pass;

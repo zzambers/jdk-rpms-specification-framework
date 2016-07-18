@@ -64,16 +64,16 @@ class RuntimeConfig(metaclass=Singleton):
         return self.archs
 
     def setFromParser(self, args):
-        #Order metter a lot!
+        # Order matters a lot!
         # logfile must go first
         if args.logfile:
             self.setLogsFile(args.logfile)
         if args.version:
             outputControl.logging_access.LoggingAccess().stdout(VERSION_STRING)
             return False;
-        # later it does not meter as logging is already going to log file
+        # later it does not matter as logging is already going to log file
         outputControl.logging_access.LoggingAccess().log(VERSION_STRING)
-        # switchhes should go befor commands, so commands can use them
+        # switches should go before commands, so commands can use them
         if args.dir:
             self.setPkgsDir(args.dir)
         if args.archs:
