@@ -1,20 +1,20 @@
 System config
 
 To verify the filesystem, mock tool is used.
-As really many "install - do something - check" wehre install is always the same, sometimes even "do something" is same then snapshot schema in mock is used.
+As really many "install - do something - check" where install is always the same, sometimes even "do something" is same then snapshot schema in mock is used.
 
 You need mock-lvm to have installed and set up
 Generally you need to provide LVM group to mock.
-As you proabbly don't have spare partitions for new group, there is some reading followed by simple exmaple how to provide *file* as new partititon and how to make it lvm group:
+As you probably don't have spare partitions for new group, there is some reading followed by simple example how to provide *file* as new partition and how to make it lvm group:
 
 https://fedoraproject.org/wiki/Mock/Plugin/LvmRoot?rd=Subprojects/Mock/Plugin/LvmRoot
 http://www.anthonyldechiaro.com/blog/2010/12/19/lvm-loopback-how-to/
 https://access.redhat.com/documentation/en-US/Red_Hat_Enterprise_Linux/7/html/Logical_Volume_Manager_Administration/LVM_examples.html#vol_create_ex
 
 as you can see:
-mock -r fedora-24-x86_64 --list-snapshots
+mock -r fedora-rawhide-x86_64 --list-snapshots
 ERROR: Feature list_snapshots is not provided by any of enabled plugins
-it do nto work out of box
+it do not work out of box
 
 mkdir MOCK_SNAPSHOT_LVM
 cd MOCK_SNAPSHOT_LVM
@@ -42,29 +42,29 @@ config_opts['plugin_conf']['lvm_root_opts'] = {
 
 
 Simple check:
- mock -r fedora-24-x86_64 --list-snapshots
- Snapshots for fedora-24-x86_64:
+ mock -r fedora-rawhide-x86_64 --list-snapshots
+ Snapshots for fedora-rawhide-x86_64:
 says it works
 
 
-If you have any mocks *before* the mock-lvm isntalaltion and setup, they will not provide the functionality:
-mock -r fedora-24-x86_64 --snapshot mvn
+If you have any mocks *before* the mock-lvm instalation and setup, they will not provide the functionality:
+mock -r fedora-rawhide-x86_64 --snapshot mvn
 INFO: mock.py version 1.2.18 starting (python version = 3.4.3)...
 Start: init plugins
 INFO: selinux disabled
 Finish: init plugins
 Start: run
 ERROR: Command failed:
- # lvcreate -s MOCK_SNAPSHOT_LVM/+mock.fedora-24-x86_64.head -n mock.fedora-24-x86_64.mvn
-  Snapshot origin LV +mock.fedora-24-x86_64.head not found in Volume group MOCK_SNAPSHOT_LVM.
+ # lvcreate -s MOCK_SNAPSHOT_LVM/+mock.fedora-rawhide-x86_64.head -n mock.fedora-rawhide-x86_64.mvn
+  Snapshot origin LV +mock.fedora-rawhide-x86_64.head not found in Volume group MOCK_SNAPSHOT_LVM.
 
 You need to
- mock -r fedora-24-x86_64 --scrub=all
+ mock -r fedora-rawhide-x86_64 --scrub=all
  them all, and recreate
 
 Now
- mock -r fedora-24-x86_64 --list-snapshots
-Snapshots for fedora-24-x86_64:
+ mock -r fedora-rawhide-x86_64 --list-snapshots
+Snapshots for fedora-rawhide-x86_64:
 * postinit
 
 it works.
