@@ -87,6 +87,8 @@ def getNoarch():
 def getSrcrpmArch():
     return ["src"]
 
+def getX86_64Arch():
+    return ["x86_64"]
 
 JAVA_STRING = "java"
 

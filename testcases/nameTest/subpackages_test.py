@@ -44,7 +44,7 @@ class ItwSubpackages(DebugInfo):
 
 
 class BaseJdkSubpackages(DebugInfo):
-    #providing just utility methods common for jdk packages
+    # providing just utility methods common for jdk packages
     def _subpkgsToString(self):
         return "`" + "`,`".join(set(self._getSubPackages())) + "`. Where `` is main package " + config.runtime_config.RuntimeConfig().getRpmList().getMajorPackage()
 
@@ -54,21 +54,36 @@ class BaseJdkSubpackages(DebugInfo):
         self._mainCheck(subpackages)
 
 
-class Openjdk8NoJit(BaseJdkSubpackages):
-    def _getBasePackages(self):
-        return [
-            "accessibility",
-            "demo",
-            "devel",
-            "headless",
-            "javadoc",
-            "src"]
+class Openjdk6(BaseJdkSubpackages):
+    def _getSubPackages(self):
+        return super(Openjdk6, self)._getSubPackages() + self._getBasePackages()
 
+    def _getBasePackages(self):
+        return ['demo', 'devel', 'javadoc', 'src']
+
+
+class Openjdk7(Openjdk6):
+    def _getSubPackages(self):
+        return super(Openjdk7, self)._getSubPackages() + self._getAdditionalPackages()
+
+    def _getBasePackages(self):
+        return super(Openjdk7, self)._getBasePackages() + self._getAdditionalPackages()
+
+    def _getAdditionalPackages(self):
+        return ['accessibility', 'headless']
+
+
+class Openjdk8NoJit(Openjdk7):
+    def _getBasePackages(self):
+        return super(Openjdk8NoJit, self)._getBasePackages() + self._getJavadocZipPackage()
     def _getDebugPairs(self):
-        return ["javadoc-debug"] #this looks like error in engine
+        return ["javadoc-debug", "javadoc-zip-debug"]  # this looks like error in engine
 
     def _getSubPackages(self):
-        return super(Openjdk8NoJit, self)._getSubPackages() + self._getBasePackages() + self._getDebugPairs()
+        return super(Openjdk8NoJit, self)._getSubPackages() + self._getDebugPairs() + self._getJavadocZipPackage()
+
+    def _getJavadocZipPackage(self):
+        return ["javadoc-zip"]
 
 
 class Openjdk8BaseJit(Openjdk8NoJit):
@@ -78,17 +93,15 @@ class Openjdk8BaseJit(Openjdk8NoJit):
             r.append(base + "-debug")
         return r
 
+
 class Openjdk8NoJit25(Openjdk8NoJit):
     def _getBasePackages(self):
-        return super(Openjdk8NoJit25, self)._getBasePackages() + ["javadoc-zip"]
-
-    def _getDebugPairs(self):
-        return ["javadoc-debug", "javadoc-zip-debug"]  # this looks like error in engine
+        return super(Openjdk8NoJit25, self)._getBasePackages() + self._getJavadocZipPackage()
 
 
 class Openjdk8BaseJit25(Openjdk8BaseJit):
     def _getBasePackages(self):
-        return super(Openjdk8BaseJit25, self)._getBasePackages() + ["javadoc-zip"]
+        return super(Openjdk8BaseJit25, self)._getBasePackages() + self._getJavadocZipPackage()
 
 
 class GenericJdk(BaseJdkSubpackages):
@@ -130,9 +143,19 @@ class SubpackagesTest(utils.core.base_xtest.BaseTest):
                     self.csch = Openjdk8BaseJit()
                     return
         if rpms.getVendor() == gc.OPENJDK and rpms.isRhel():
-            self.csch = Openjdk8BaseJit()
-            return
-        self.csch = GenericJdk()
+            if rpms.getMajorVersionSimplified() == '6':
+                self.csch = Openjdk6()
+                return
+            elif rpms.getMajorVersionSimplified() == '7':
+                self.csch = Openjdk7()
+                return
+            else:
+                if self.getCurrentArch() in (gc.getIx86archs() + gc.getX86_64Arch()):
+                    self.csch = Openjdk8BaseJit()
+                    return
+                else:
+                    self.csch = Openjdk8NoJit()
+                    return
 
 
 def testAll():
