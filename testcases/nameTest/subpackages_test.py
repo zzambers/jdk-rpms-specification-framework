@@ -8,6 +8,7 @@ import config.global_config as gc
 import config.runtime_config
 import outputControl.logging_access
 import utils.core.base_xtest
+import utils.core.unknown_java_exception as ex
 
 
 class MainPackagePresent(JdkConfiguration):
@@ -27,8 +28,21 @@ class MainPackagePresent(JdkConfiguration):
                 "Checking `" + subpkg + "` of " + SubpackagesTest.hack.current_arch)
             assert subpkg in subpkgSetExpected
 
+class BaseSubpackages(MainPackagePresent):
+    # providing just utility methods common for jdk packages
+    def _subpkgsToString(self):
+        return "`" + "`,`".join(set(
+            self._getSubPackages())) + "`. Where `` is main package " + config.runtime_config.RuntimeConfig().getRpmList().getMajorPackage()
 
-class DebugInfo(MainPackagePresent):
+    def checkSubpackages(self, subpackages=None):
+        rpms = config.runtime_config.RuntimeConfig().getRpmList()
+        self._document(
+            rpms.getVendor() + " should have exactly " + str(
+                len(set(self._getSubPackages()))) + " subpackages: " + self._subpkgsToString())
+        self._mainCheck(subpackages)
+
+
+class DebugInfo(BaseSubpackages):
     def _getSubPackages(self):
         return super(DebugInfo, self)._getSubPackages() + ["debuginfo"]
 
@@ -43,18 +57,7 @@ class ItwSubpackages(DebugInfo):
         self._mainCheck(subpackages)
 
 
-class BaseJdkSubpackages(DebugInfo):
-    # providing just utility methods common for jdk packages
-    def _subpkgsToString(self):
-        return "`" + "`,`".join(set(self._getSubPackages())) + "`. Where `` is main package " + config.runtime_config.RuntimeConfig().getRpmList().getMajorPackage()
-
-    def checkSubpackages(self, subpackages=None):
-        self._document(
-            "Jdk should have exactly " + str(len(set(self._getSubPackages()))) + " subpackages: " + self._subpkgsToString())
-        self._mainCheck(subpackages)
-
-
-class Openjdk6(BaseJdkSubpackages):
+class Openjdk6(DebugInfo):
     def _getSubPackages(self):
         return super(Openjdk6, self)._getSubPackages() + self._getBasePackages()
 
@@ -76,6 +79,7 @@ class Openjdk7(Openjdk6):
 class Openjdk8NoJit(Openjdk7):
     def _getBasePackages(self):
         return super(Openjdk8NoJit, self)._getBasePackages() + self._getJavadocZipPackage()
+
     def _getDebugPairs(self):
         return ["javadoc-debug", "javadoc-zip-debug"]  # this looks like error in engine
 
@@ -104,9 +108,42 @@ class Openjdk8BaseJit25(Openjdk8BaseJit):
         return super(Openjdk8BaseJit25, self)._getBasePackages() + self._getJavadocZipPackage()
 
 
-class GenericJdk(BaseJdkSubpackages):
+class IbmBase(BaseSubpackages):
     def _getSubPackages(self):
-        return super(GenericJdk, self)._getSubPackages() + ["devel"]
+        return super(IbmBase, self)._getSubPackages() + ["demo", "devel", "jdbc", "src"]
+
+    def _getJavacommPkg(self):
+        return ["javacomm"]
+
+
+class IbmAddPlugin(IbmBase):
+    def _getSubPackages(self):
+        return super(IbmAddPlugin, self)._getSubPackages() + ["plugin"]
+
+
+class IbmAddJavacommWithPlugin(IbmAddPlugin):
+    def _getSubPackages(self):
+        return super(IbmAddJavacommWithPlugin, self)._getSubPackages() + self._getJavacommPkg()
+
+
+class IbmAddJavacommNoPlugin(IbmBase):
+    def _getSubPackages(self):
+        return super(IbmAddJavacommNoPlugin, self)._getSubPackages() + self._getJavacommPkg()
+
+
+class OracleBase(BaseSubpackages):
+    def _getSubPackages(self):
+        return super(OracleBase, self)._getSubPackages() + ['devel', 'jdbc', 'plugin', 'src']
+
+
+class Oracle7and8(OracleBase):
+    def _getSubPackages(self):
+        return super(Oracle7and8, self)._getSubPackages() + ['javafx']
+
+
+class Oracle6(OracleBase):
+    def _getSubPackages(self):
+        return super(Oracle6, self)._getSubPackages() + ['demo']
 
 
 class SubpackagesTest(utils.core.base_xtest.BaseTest):
@@ -127,6 +164,7 @@ class SubpackagesTest(utils.core.base_xtest.BaseTest):
         if rpms.getJava() == gc.ITW:
             self.csch = ItwSubpackages()
             return
+
         if rpms.getVendor() == gc.OPENJDK and rpms.isFedora():
             if self.getCurrentArch() in gc.getArm32Achs():
                 if rpms.getOsVersionMajor() > 24:
@@ -142,6 +180,7 @@ class SubpackagesTest(utils.core.base_xtest.BaseTest):
                 else:
                     self.csch = Openjdk8BaseJit()
                     return
+
         if rpms.getVendor() == gc.OPENJDK and rpms.isRhel():
             if rpms.getMajorVersionSimplified() == '6':
                 self.csch = Openjdk6()
@@ -156,6 +195,48 @@ class SubpackagesTest(utils.core.base_xtest.BaseTest):
                 else:
                     self.csch = Openjdk8NoJit()
                     return
+
+        if rpms.getVendor() == gc.IBM and rpms.isRhel():
+            if rpms.getMajorVersionSimplified() == '6':
+                if self.getCurrentArch() in (gc.getX86_64Arch() + gc.getIx86archs() + gc.getPpc32Arch()):
+                    self.csch = IbmAddJavacommWithPlugin()
+                    return
+                elif self.getCurrentArch() in gc.getPower64Achs():
+                    self.csch = IbmAddJavacommNoPlugin()
+                    return
+                else:
+                    self.csch = IbmBase()
+                    return
+
+            elif rpms.getMajorVersionSimplified() =='7':
+                if self.getCurrentArch() in (gc.getX86_64Arch() + gc.getIx86archs()) + gc.getPpc32Arch():
+                    self.csch = IbmAddPlugin()
+                    return
+                else:
+                    self.csch = IbmBase()
+                    return
+
+            else:
+                if self.getCurrentArch() in (gc.getX86_64Arch() + gc.getIx86archs()) \
+                        + gc.getPpc32Arch() + gc.getPower64BeAchs():
+                    self.csch = IbmAddPlugin()
+                    return
+                else:
+                    self.csch = IbmBase()
+                    return
+
+        if rpms.getVendor() == gc.ORACLE and rpms.isRhel():
+            self.csch = Oracle7and8()
+            return
+
+        if rpms.getVendor() == "sun" and rpms.isRhel():
+            self.csch = Oracle6()
+            return
+
+
+        self.csch = None
+        raise ex.UnknownJavaVersionException("Java version or OS was not recognized by this framework.")
+
 
 
 def testAll():

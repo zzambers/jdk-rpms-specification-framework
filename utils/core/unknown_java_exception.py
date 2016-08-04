@@ -1,0 +1,2 @@
+class UnknownJavaVersionException(BaseException):
+    pass

@@ -48,14 +48,37 @@ class DynamicArches(metaclass=Singleton):
             self.power64 = self.getDynamicArches("power64")
         return self.power64
 
+    def getPower64BeAchs(self):
+        achs = []
+        for arch in self.getPower64Achs():
+            if not 'le' in arch:
+                achs.append(arch)
+        return achs
+
+    def getPower64LeAchs(self):
+        achs = []
+        for arch in self.getPower64Achs():
+            if 'le' in arch:
+                achs.append(arch)
+                return achs
 
 def getArm32Achs():
     # return ["armv7hl"]
     return DynamicArches().getArm32Achs()
 
 
+def getPower64LeAchs():
+    # return ["ppc64le"]
+    return DynamicArches().getPower64LeAchs()
+
+
+def getPower64BeAchs():
+    # return ["ppc64","ppc64p7"]
+    return DynamicArches().getPower64BeAchs()
+
+
 def getPower64Achs():
-    # return ["ppc64"]
+    # return ["ppc64","ppc64p7","ppc64le"]
     return DynamicArches().getPower64Achs()
 
 
@@ -65,11 +88,11 @@ def getIx86archs():
 
 
 def getHardcodedArchs():
-    return ["x86_64", "ppc", "ppc64le", "s390", "s390x", "aarch64"]
+    return getX86_64Arch() + getPpc32Arch() + getS390Arch() + getS390xArch() + getAarch64Arch()
 
 
 def getGeneratedArchs():
-    return getIx86archs() + getPower64Achs() + getArm32Achs()
+    return getIx86archs() + getPower64Achs() + getArm32Achs() + getPower64LeAchs()
 
 
 def getArchs():
@@ -87,8 +110,26 @@ def getNoarch():
 def getSrcrpmArch():
     return ["src"]
 
+
 def getX86_64Arch():
     return ["x86_64"]
+
+
+def getPpc32Arch():
+    return ["ppc"]
+
+
+def getS390Arch():
+    return ["s390"]
+
+
+def getS390xArch():
+    return ["s390x"]
+
+
+def getAarch64Arch():
+    return ["aarch64"]
+
 
 JAVA_STRING = "java"
 
