@@ -8,6 +8,14 @@ import utils.process_utils as exxec
 import utils.rpmbuild_utils as rpmuts
 import utils.test_utils as tu
 from utils.rpmbuild_utils import unpackFilesFromRpm
+import utils.mock.mock_execution_exception
+
+PRIORITY = "priority"
+STATUS = "status"
+FAMILY = "family"
+TARGET = "target_link"
+SLAVES = "slaves"
+ALTERNATIVES_DIR = "/var/lib/alternatives"
 
 
 class Mock:
@@ -225,6 +233,74 @@ class Mock:
     def getSnapshot(self, name):
         return self._rollbackCommand(name)
 
+    def install_postscript(self, pkg):
+        return self._install_scriptlet(pkg, utils.rpmbuild_utils.POSTINSTALL)
+
+    def _install_scriptlet(self, pkg, scriptlet):
+        DefaultMock().importRpm(pkg)
+        content = utils.rpmbuild_utils.getSrciplet(pkg, scriptlet)
+        if len(content) == 0:
+            raise utils.mock.mock_execution_exception.MockExecutionException(scriptlet + " scriptlet not found in given package.")
+
+        else:
+            o, r = DefaultMock().executeScriptlet(pkg, scriptlet)
+            outputControl.logging_access.LoggingAccess().log(scriptlet + "returned " +
+                                                             str(r) + " of " + os.path.basename(pkg))
+            return content
+
+    def execute_ls(self, dir):
+        return DefaultMock().executeCommand(["ls " + dir])
+
+    def execute_ls_for_alternatives(self):
+        return self.execute_ls(ALTERNATIVES_DIR)
+
+    def get_masters(self):
+        otp, r = self.execute_ls_for_alternatives()
+        masters = otp.split("\n")
+        return masters
+
+    def display_alternatives(self, master):
+        output, r = DefaultMock().executeCommand(["alternatives --display " + master])
+        return output
+
+    def parse_alternatives_display(self, master):
+        output = DefaultMock().display_alternatives(master)
+        if len(output.strip()) == 0:
+            outputControl.logging_access.LoggingAccess().log("alternatives --display master output is empty")
+            raise utils.mock.mock_execution_exception.MockExecutionException("alternatives --display master "
+                                                                             "output is empty ")
+        data = {}
+        otp = output.splitlines()
+        data[PRIORITY]= otp[2].split(" ")[-1]
+        if not data[PRIORITY].isdigit():
+            raise ValueError("Priority must be digit-only.")
+        data[STATUS] = otp[0].split(" ")[-1].strip(".")
+        if FAMILY in otp[2]:
+            data[FAMILY]= otp[2].split(" ")[3]
+        else:
+            data[FAMILY] = None
+        data[TARGET] = otp[2].split(" ")[0]
+        slaves = []
+        for o in otp:
+            if "slave" in o:
+                slaves.append(o.split(" ")[2].strip(":"))
+        data[SLAVES] = slaves
+        return data
+
+    def get_priority(self, master):
+        return self.parse_alternatives_display(master)[PRIORITY]
+
+    def get_status(self, master):
+        return self.parse_alternatives_display(master)[STATUS]
+
+    def get_family(self, master):
+        return self.parse_alternatives_display(master)[FAMILY]
+
+    def get_target(self, master):
+        return self.parse_alternatives_display(master)[TARGET]
+
+    def get_slaves(self, master):
+        return self.parse_alternatives_display(master)[SLAVES]
 
 class Singleton(type):
     _instances = {}
