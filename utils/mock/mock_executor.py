@@ -9,6 +9,7 @@ import utils.rpmbuild_utils as rpmuts
 import utils.test_utils as tu
 from utils.rpmbuild_utils import unpackFilesFromRpm
 import utils.mock.mock_execution_exception
+import utils.pkg_name_split
 
 PRIORITY = "priority"
 STATUS = "status"
@@ -214,6 +215,14 @@ class Mock:
         else:
             self.init()
             self.installAlternatives()
+        # ibm plugin packages expect mozilla installed in the filesystem, this gives us directories neccessary
+        self.mkdirP("/usr/lib64/mozilla")
+        self.mkdirP("/usr/lib64/mozilla/plugins")
+        self.mkdirP("/usr/lib/mozilla")
+        self.mkdirP("/usr/lib/mozilla/plugins")
+        # oracle plugin package expect these directories
+        self.mkdirP("/usr/lib/jvm/jce-1.7.0-oracle")
+        self.mkdirP("/usr/lib/jvm/jce-1.8.0-oracle")
 
     def executeScriptlet(self, rpmFile, scripletName):
         scriplet = rpmuts.getSrciplet(rpmFile, scripletName)
@@ -237,19 +246,28 @@ class Mock:
         return self._install_scriptlet(pkg, utils.rpmbuild_utils.POSTINSTALL)
 
     def _install_scriptlet(self, pkg, scriptlet):
-        DefaultMock().importRpm(pkg)
+        scriptlet_pkg = str(scriptlet + "_"
+                            + utils.pkg_name_split.get_subpackage_only(os.path.basename(pkg))
+                            + "_"
+                            + utils.pkg_name_split.get_arch(os.path.basename(pkg)))
+        current, items = self.listSnapshots()
+        if scriptlet_pkg in items:
+            self.getSnapshot(scriptlet_pkg)
+            return
+
+        self.importRpm(pkg)
         content = utils.rpmbuild_utils.getSrciplet(pkg, scriptlet)
         if len(content) == 0:
             raise utils.mock.mock_execution_exception.MockExecutionException(scriptlet + " scriptlet not found in given package.")
 
         else:
-            o, r = DefaultMock().executeScriptlet(pkg, scriptlet)
+            o, r = self.executeScriptlet(pkg, scriptlet)
             outputControl.logging_access.LoggingAccess().log(scriptlet + "returned " +
                                                              str(r) + " of " + os.path.basename(pkg))
-            return content
+            self.createSnapshot(scriptlet_pkg)
 
     def execute_ls(self, dir):
-        return DefaultMock().executeCommand(["ls " + dir])
+        return self.executeCommand(["ls " + dir])
 
     def execute_ls_for_alternatives(self):
         return self.execute_ls(ALTERNATIVES_DIR)
@@ -260,11 +278,11 @@ class Mock:
         return masters
 
     def display_alternatives(self, master):
-        output, r = DefaultMock().executeCommand(["alternatives --display " + master])
+        output, r = self.executeCommand(["alternatives --display " + master])
         return output
 
     def parse_alternatives_display(self, master):
-        output = DefaultMock().display_alternatives(master)
+        output = self.display_alternatives(master)
         if len(output.strip()) == 0:
             outputControl.logging_access.LoggingAccess().log("alternatives --display master output is empty")
             raise utils.mock.mock_execution_exception.MockExecutionException("alternatives --display master "
@@ -301,6 +319,10 @@ class Mock:
 
     def get_slaves(self, master):
         return self.parse_alternatives_display(master)[SLAVES]
+
+    def get_default_masters(self):
+        self.provideCleanUsefullRoot()
+        return self.get_masters()
 
 class Singleton(type):
     _instances = {}
