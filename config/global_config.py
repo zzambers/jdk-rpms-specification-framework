@@ -30,7 +30,7 @@ class DynamicArches(metaclass=Singleton):
         output= rpmbuild_utils.rpmbuildEval(arch)
         li = output.split(" ")
         for i in range(len(li)):
-            li[i] = li[i].strip();
+            li[i] = li[i].strip()
         return li
 
     def getArm32Achs(self):
@@ -140,6 +140,7 @@ OPENJDK = "openjdk"
 ITW = "icedtea-web"
 IBM = "ibm"
 ORACLE = "oracle"
+SUN = "sun"
 
 LIST_OF_PROPRIETARY_VENDORS = [IBM, ORACLE]
 LIST_OF_OPEN_VENDORS_EXCEPT_ITW = [OPENJDK]
