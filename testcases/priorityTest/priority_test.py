@@ -20,9 +20,6 @@ class CommonMethods(JdkConfiguration):
     _success_list = []
     _debug_check_fail_list = []
 
-    # stores a dict of {pkg_name : {master : priority }}
-    _pkgPriorities = {}
-
     rpms = config.runtime_config.RuntimeConfig().getRpmList()
 
     def __init__(self, length, prefix):
@@ -80,16 +77,20 @@ class CommonMethods(JdkConfiguration):
                         self._debug_check_fail_list.append(name + " pkg for master " + master)
 
 
-class OpenJdkCheck(CommonMethods):
+class MajorCheck(CommonMethods):
     def _check_priorities(self, pkgs):
 
-        DefaultMock().provideCleanUsefullRoot()
-        _default_masters = DefaultMock().get_masters()
+        _default_masters = DefaultMock().get_default_masters()
+
+        # stores a dict of {pkg_name : {master : priority }}
+        _pkgPriorities = {}
 
         for pkg in pkgs:
             content = utils.rpmbuild_utils.getSrciplet(pkg, rbu.POSTINSTALL)
             ctn = " ".join(content)
-            if not ("alternatives" in ctn):
+            ctn = ctn.replace("\\ ", "")
+            ctn = ctn.replace("\s+", "")
+            if not ("alternatives --install" in ctn):
                 PriorityCheck.logs.log("Alternatives are not present in postinstall script.")
                 continue
 
@@ -100,7 +101,7 @@ class OpenJdkCheck(CommonMethods):
                 continue
 
             pkg_name = utils.pkg_name_split.get_subpackage_only(os.path.basename(pkg))
-            self._pkgPriorities[pkg_name] = {}
+            _pkgPriorities[pkg_name] = {}
 
             masters = DefaultMock().get_masters()
             for m in masters:
@@ -116,15 +117,14 @@ class OpenJdkCheck(CommonMethods):
                     self._success_list.append(os.path.basename(pkg))
                     PriorityCheck.logs.log("Priority " + priority + " valid for " + os.path.basename(pkg) + "package, master " + m)
 
-                    self._pkgPriorities[pkg_name].update({m : priority})
+                    _pkgPriorities[pkg_name].update({m : priority})
 
                 else:
                     PriorityCheck.logs.log("Priority " + priority + " invalid for " + os.path.basename(pkg) + " package, master " + m)
                     self._fail_list.append(os.path.basename(pkg) + m)
 
         PriorityCheck.logs.log("Checking debug packages priorities.")
-        self.check_debug_packages(self._pkgPriorities)
-
+        self.check_debug_packages(_pkgPriorities)
         PriorityCheck.logs.log("Successful for: " + str(self._success_list))
         PriorityCheck.logs.log("Failed for: " + str(self._fail_list))
         PriorityCheck.logs.log("Debug package priority check failed for: " + str(self._debug_check_fail_list))
@@ -133,7 +133,7 @@ class OpenJdkCheck(CommonMethods):
         assert len(self._debug_check_fail_list) == 0
 
 
-class OpenJdk6(OpenJdkCheck):
+class OpenJdk6(MajorCheck):
     def __init__(self):
         super(OpenJdk6, self).__init__(5, "160")
 
@@ -141,7 +141,7 @@ class OpenJdk6(OpenJdkCheck):
         return super(OpenJdk6, self)._check_priorities(pkgs)
 
 
-class OpenJdk7(OpenJdkCheck):
+class OpenJdk7(MajorCheck):
     def __init__(self):
         super(OpenJdk7, self).__init__(7, "170")
 
@@ -149,12 +149,36 @@ class OpenJdk7(OpenJdkCheck):
         return super(OpenJdk7, self)._check_priorities(pkgs)
 
 
-class OpenJdk8(OpenJdkCheck):
+class OpenJdk8(MajorCheck):
     def __init__(self):
         super(OpenJdk8, self).__init__(7, "180")
 
     def _check_priorities(self, pkgs):
         return super(OpenJdk8, self)._check_priorities(pkgs)
+
+
+class ProprietaryJava6(MajorCheck):
+    def __init__(self):
+        super(ProprietaryJava6, self).__init__(6, "160")
+
+    def _check_priorities(self, pkgs):
+        return super(ProprietaryJava6, self)._check_priorities(pkgs)
+
+
+class ProprietaryJava7(MajorCheck):
+    def __init__(self):
+        super(ProprietaryJava7, self).__init__(6, "170")
+
+    def _check_priorities(self, pkgs):
+        return super(ProprietaryJava7, self)._check_priorities(pkgs)
+
+
+class ProprietaryJava8(MajorCheck):
+    def __init__(self):
+        super(ProprietaryJava8, self).__init__(6, "180")
+
+    def _check_priorities(self, pkgs):
+        return super(ProprietaryJava8, self)._check_priorities(pkgs)
 
 
 class PriorityCheck(utils.core.base_xtest.BaseTest):
@@ -181,10 +205,19 @@ class PriorityCheck(utils.core.base_xtest.BaseTest):
                 return
             else:
                 raise ex.UnknownJavaVersionException("Unknown JDK version.")
-        elif rpms.getVendor() == gc.ORACLE:
-            return None
-        elif rpms.getVendor() == gc.IBM:
-            return None
+        elif rpms.getVendor() == gc.IBM or rpms.getVendor() == gc.ORACLE or rpms.getVendor() == gc.SUN:
+            if rpms.getMajorVersionSimplified() == "6":
+                self.csch = ProprietaryJava6()
+                return
+            elif rpms.getMajorVersionSimplified() == "7":
+                self.csch = ProprietaryJava7()
+                return
+            elif rpms.getMajorVersionSimplified() == "8":
+                self.csch = ProprietaryJava8()
+                return
+            else:
+                raise ex.UnknownJavaVersionException("Unknown " + rpms.getVendor() + " version.")
+
         else:
             raise ex.UnknownJavaVersionException("Unknown platform, java was not identified.")
 
