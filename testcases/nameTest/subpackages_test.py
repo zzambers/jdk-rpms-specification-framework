@@ -28,6 +28,7 @@ class MainPackagePresent(JdkConfiguration):
                 "Checking `" + subpkg + "` of " + SubpackagesTest.hack.current_arch)
             assert subpkg in subpkgSetExpected
 
+
 class BaseSubpackages(MainPackagePresent):
     # providing just utility methods common for jdk packages
     def _subpkgsToString(self):
@@ -229,7 +230,7 @@ class SubpackagesTest(utils.core.base_xtest.BaseTest):
             self.csch = Oracle7and8()
             return
 
-        if rpms.getVendor() == "sun" and rpms.isRhel():
+        if rpms.getVendor() == gc.SUN and rpms.isRhel():
             self.csch = Oracle6()
             return
 
@@ -244,7 +245,7 @@ def testAll():
 
 
 def documentAll():
-    outputControl.logging_access.LoggingAccess().stdout("Subpackages are as expected")
+    outputControl.logging_access.LoggingAccess().stdout("Subpackage conventions:")
     return SubpackagesTest().execute_special_docs()
 
 
