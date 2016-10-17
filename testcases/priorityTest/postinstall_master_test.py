@@ -14,11 +14,16 @@ from utils.mock.mock_execution_exception import MockExecutionException
 
 
 class BasePackages(JdkConfiguration):
-
-    # skipped should contain only packages that does not have postscript
-    skipped = []
-
     rpms = rc.RuntimeConfig().getRpmList()
+
+    def _get_arch(self):
+        _arch = PostinstallScriptTest.instance.getCurrentArch()
+        if _arch in gc.getArm32Achs():
+            return "arm"
+        elif _arch in gc.getIx86archs():
+            return "i386"
+        else:
+            return _arch
 
     def _generate_masters(self):
         return {}
@@ -37,7 +42,9 @@ class CheckPostinstallScript(BasePackages):
         keys = masters.keys()
         for k in keys:
             whitespace = "    - "
-            if "default" in k:
+            if self._get_vendor() == gc.ITW:
+                name = self._get_vendor() + " " + k
+            elif "default" in k:
                 name = self.rpms.getMajorPackage() + " " + k
             else:
                 name = k
@@ -46,6 +53,12 @@ class CheckPostinstallScript(BasePackages):
         self._document("\n".join(doc))
 
     def _check_post_in_script(self, pkgs):
+        passed = []
+        failed = []
+
+        # skipped should contain only subpackages that does not have postscript
+        skipped = []
+
         _default_masters = DefaultMock().get_default_masters()
 
         # correct set of masters
@@ -62,15 +75,15 @@ class CheckPostinstallScript(BasePackages):
             elif _subpackage == "debug":
                 _subpackage = "default-debug"
 
-            PostinstallScriptTest.logs.log("searching for " + rbu.POSTINSTALL + " in " + os.path.basename(pkg))
-            PostinstallScriptTest.logs.log("Checking master for " + os.path.basename(pkg))
+            PostinstallScriptTest.instance.log("Searching for " + rbu.POSTINSTALL + " in " + os.path.basename(pkg))
+            PostinstallScriptTest.instance.log("Checking master for " + os.path.basename(pkg))
 
             try:
-                DefaultMock()._install_scriptlet(pkg, rbu.POSTINSTALL)
+                DefaultMock().install_postscript(pkg)
             except utils.mock.mock_execution_exception.MockExecutionException:
-                PostinstallScriptTest.logs.log(rbu.POSTINSTALL + " not found in " + os.path.basename(pkg) +
+                PostinstallScriptTest.instance.log(rbu.POSTINSTALL + " not found in " + os.path.basename(pkg) +
                                                " . Test for master and postinstall script was skipped.")
-                self.skipped.append(_subpackage)
+                skipped.append(_subpackage)
                 continue
 
             pkg_masters = DefaultMock().get_masters()
@@ -80,21 +93,36 @@ class CheckPostinstallScript(BasePackages):
 
             actual_masters[_subpackage] = pkg_masters
 
-        PostinstallScriptTest.logs.log("Postinstall not present in packages: " + str(self.skipped) + ".")
-        PostinstallScriptTest.logs.log("Postinstall expected in " + str(len(expected_masters)) + " : " + ", ".join(expected_masters))
-        PostinstallScriptTest.logs.log("Postinstall present in " + str(len(actual_masters)) + " : " + ", ".join(actual_masters))
+        PostinstallScriptTest.instance.log("Postinstall not present in packages: " + str(skipped) + ".")
+        PostinstallScriptTest.instance.log("Postinstall expected in " + str(len(expected_masters)) +
+                                           " : " + ", ".join(expected_masters))
+        PostinstallScriptTest.instance.log("Postinstall present in " + str(len(actual_masters)) + " : " +
+                                           ", ".join(actual_masters))
         
         assert set(expected_masters.keys()) == set(actual_masters.keys())
 
         for subpkg in expected_masters.keys():
-            PostinstallScriptTest.logs.log("Expected masters for " + subpkg + " : " +
-                                           ", ".join(sorted(expected_masters[subpkg])))
-            PostinstallScriptTest.logs.log("Presented masters for " + subpkg + " : " +
-                                           ", ".join(sorted(actual_masters[subpkg])))
+            PostinstallScriptTest.instance.log("Expected masters for " + subpkg + " : " +
+                                               ", ".join(sorted(expected_masters[subpkg])))
+            PostinstallScriptTest.instance.log("Presented masters for " + subpkg + " : " +
+                                               ", ".join(sorted(actual_masters[subpkg])))
 
-        assert set(expected_masters) == set(actual_masters)
+        for e in expected_masters.keys():
+            if sorted(expected_masters[e]) == sorted(actual_masters[e]):
+                passed.append(e)
+            else:
+                failed.append(e)
 
-        PostinstallScriptTest.logs.log("Master and postinstall script test was successful.")
+        PostinstallScriptTest.instance.log("Master test was successful for: " + ", ".join(passed))
+        PostinstallScriptTest.instance.log("Master test failed for: " + ", ".join(failed))
+
+        assert(len(failed) == 0)
+
+    def _get_masters_arch_copy(self, list_of_masters):
+        masters = []
+        for m in list_of_masters:
+            masters.append(m + "." + str(self._get_arch()))
+        return masters
 
 
 class OpenJdk6(CheckPostinstallScript):
@@ -134,15 +162,22 @@ class OpenJdk8Intel(OpenJdk8OtherArchs):
         return masters
 
 
+class IcedTeaWeb(CheckPostinstallScript):
+    def _generate_masters(self):
+        masters = super()._generate_masters()
+        masters["default"] = self._get_masters_arch_copy(["libjavaplugin.so"])
+        return masters
+
+
 class PostinstallScriptTest(bt.BaseTest):
-    logs = None
+    instance = None
 
     def test_contains_postscript(self):
         pkgs = self.getBuild()
         self.csch._check_post_in_script(pkgs)
 
     def setCSCH(self):
-        PostinstallScriptTest.logs = self
+        PostinstallScriptTest.instance = self
         rpms = rc.RuntimeConfig().getRpmList()
         self.log("Checking post_script and master for " + rpms.getVendor())
 
@@ -162,6 +197,11 @@ class PostinstallScriptTest(bt.BaseTest):
                     return
             else:
                 raise ex.UnknownJavaVersionException("Unknown JDK version.")
+
+        elif rpms.getVendor() == gc.ITW:
+            self.csch = IcedTeaWeb()
+            return
+
         else:
             raise ex.UnknownJavaVersionException("Unknown platform, java was not identified.")
 
