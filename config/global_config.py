@@ -131,6 +131,18 @@ def getAarch64Arch():
     return ["aarch64"]
 
 
+def get_32b_arch_identifiers_in_scriptlets(arch):
+    if arch in getArm32Achs():
+        return ARM_32_IDENTIFIER
+    elif arch in getIx86archs():
+        return INTEL_IDENTIFIER
+    else:
+        return arch
+
+
+ARM_32_IDENTIFIER = "arm"
+INTEL_IDENTIFIER= "i386"
+
 JAVA_STRING = "java"
 
 FEDORA = "Fedora"
