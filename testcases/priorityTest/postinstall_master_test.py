@@ -11,19 +11,14 @@ import utils.pkg_name_split as pkgsplit
 import utils
 from utils.mock.mock_executor import DefaultMock
 from utils.mock.mock_execution_exception import MockExecutionException
+from config.global_config import get_32b_arch_identifiers_in_scriptlets as get_id
 
 
 class BasePackages(JdkConfiguration):
     rpms = rc.RuntimeConfig().getRpmList()
 
     def _get_arch(self):
-        _arch = PostinstallScriptTest.instance.getCurrentArch()
-        if _arch in gc.getArm32Achs():
-            return "arm"
-        elif _arch in gc.getIx86archs():
-            return "i386"
-        else:
-            return _arch
+        return PostinstallScriptTest.instance.getCurrentArch()
 
     def _generate_masters(self):
         return {}
@@ -32,7 +27,45 @@ class BasePackages(JdkConfiguration):
         return self.rpms.getVendor()
 
     def _get_version(self):
-        return self.rpms.getMajorVersion()
+        v = self.rpms.getMajorVersion()
+        if self._get_vendor() == gc.IBM and self.rpms.getMajorVersionSimplified() == "7":
+            v = "1.7.0"
+        return v
+
+    def _get_masters_arch_copy(self, master):
+        master = master + "." + str(get_id(self._get_arch()))
+        return master
+
+    def _add_plugin(self, masters):
+        # plugin package should be present on intel, ppc and x86_64 arches, or on ppc64 arch when java version is 8
+        if (get_id(self._get_arch()) in (gc.getIx86archs() + gc.getPpc32Arch() + gc.getX86_64Arch())) or \
+                (get_id(self._get_arch()) in gc.getPower64BeAchs() and self.rpms.getMajorVersionSimplified() == "8"):
+            plugin = "libjavaplugin.so"
+
+             # oracle packages do have plugin subpackage with postinstall script, but it does not have any masters
+            if self.rpms.getVendor == gc.SUN:
+                p = []
+
+            # master name contains arch only on x86_64 arch or when java version is 8 (except Oracle 8 intel arch)
+            elif get_id(self._get_arch()) in gc.getX86_64Arch() or\
+                    (self.rpms.getMajorVersionSimplified() == "8" and self.rpms.getVendor() != gc.ORACLE) :
+                p = [self._get_masters_arch_copy(plugin)]
+
+            else:
+                p = [plugin]
+            masters["plugin"] = p
+        return masters
+
+    def _add_local_policy(self):
+        policy = "jce_" + self._get_version() + "_" + self._get_vendor() + "_local_policy"
+
+        # local policy master name does not contain arch only on java version 6 on some specific architectures
+        if self.rpms.getMajorVersionSimplified() == "6" and\
+           get_id(self._get_arch()) not in (gc.getPower64BeAchs() + gc.getS390xArch() + gc.getX86_64Arch()):
+
+            return policy
+        else:
+            return self._get_masters_arch_copy(policy)
 
 
 class CheckPostinstallScript(BasePackages):
@@ -82,7 +115,7 @@ class CheckPostinstallScript(BasePackages):
                 DefaultMock().install_postscript(pkg)
             except utils.mock.mock_execution_exception.MockExecutionException:
                 PostinstallScriptTest.instance.log(rbu.POSTINSTALL + " not found in " + os.path.basename(pkg) +
-                                               " . Test for master and postinstall script was skipped.")
+                                                   " . Test for master and postinstall script was skipped.")
                 skipped.append(_subpackage)
                 continue
 
@@ -98,7 +131,7 @@ class CheckPostinstallScript(BasePackages):
                                            " : " + ", ".join(expected_masters))
         PostinstallScriptTest.instance.log("Postinstall present in " + str(len(actual_masters)) + " : " +
                                            ", ".join(actual_masters))
-        
+
         assert set(expected_masters.keys()) == set(actual_masters.keys())
 
         for subpkg in expected_masters.keys():
@@ -117,12 +150,6 @@ class CheckPostinstallScript(BasePackages):
         PostinstallScriptTest.instance.log("Master test failed for: " + ", ".join(failed))
 
         assert(len(failed) == 0)
-
-    def _get_masters_arch_copy(self, list_of_masters):
-        masters = []
-        for m in list_of_masters:
-            masters.append(m + "." + str(self._get_arch()))
-        return masters
 
 
 class OpenJdk6(CheckPostinstallScript):
@@ -165,7 +192,30 @@ class OpenJdk8Intel(OpenJdk8OtherArchs):
 class IcedTeaWeb(CheckPostinstallScript):
     def _generate_masters(self):
         masters = super()._generate_masters()
-        masters["default"] = self._get_masters_arch_copy(["libjavaplugin.so"])
+        masters["default"] = self._get_masters_arch_copy("libjavaplugin.so")
+        return masters
+
+
+class ProprietaryJava6(OpenJdk6):
+    def _generate_masters(self):
+        masters = super(ProprietaryJava6, self)._generate_masters()
+        masters["default"].append(self._add_local_policy())
+        masters = self._add_plugin(masters)
+        masters.pop("javadoc")
+        return masters
+
+class ProprietaryJava7and8Base(ProprietaryJava6):
+    def _generate_masters(self):
+        masters = super(ProprietaryJava7and8Base, self)._generate_masters()
+        masters["devel"].append("java_sdk_" + self._get_version() + "_" + self._get_vendor())
+        masters["default"].append("jre_" + self._get_version() + "_" + self._get_vendor())
+        return masters
+
+
+class Oracle7Plugin(ProprietaryJava7and8Base):
+    def _generate_masters(self):
+        masters = super(Oracle7Plugin, self)._generate_masters()
+        masters["javafx"] = ["javafxpackager"]
         return masters
 
 
@@ -201,6 +251,35 @@ class PostinstallScriptTest(bt.BaseTest):
         elif rpms.getVendor() == gc.ITW:
             self.csch = IcedTeaWeb()
             return
+
+        elif rpms.getVendor() == gc.IBM:
+            if rpms.getMajorVersionSimplified() == "6":
+                self.csch = ProprietaryJava6()
+                return
+
+            elif rpms.getMajorVersionSimplified() == "7":
+                self.csch = ProprietaryJava7and8Base()
+                return
+
+            elif rpms.getMajorVersionSimplified() == "8":
+                self.csch = ProprietaryJava7and8Base()
+                return
+
+            else:
+                raise ex.UnknownJavaVersionException("Unknown IBM java version.")
+
+        elif rpms.getVendor() == gc.ORACLE or rpms.getVendor() == gc.SUN:
+            if rpms.getMajorVersionSimplified() == "6":
+                self.csch = ProprietaryJava6()
+                return
+            elif rpms.getMajorVersionSimplified() == "7":
+                self.csch = Oracle7Plugin()
+                return
+            elif rpms.getMajorVersionSimplified() == "8":
+                self.csch = Oracle7Plugin()
+                return
+            else:
+                raise ex.UnknownJavaVersionException("Unknown Oracle java version.")
 
         else:
             raise ex.UnknownJavaVersionException("Unknown platform, java was not identified.")
