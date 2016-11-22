@@ -10,6 +10,8 @@ import utils.test_utils as tu
 from utils.rpmbuild_utils import unpackFilesFromRpm
 import utils.mock.mock_execution_exception
 import utils.pkg_name_split
+import config.runtime_config as rc
+import config.global_config as gc
 
 PRIORITY = "priority"
 STATUS = "status"
@@ -215,14 +217,16 @@ class Mock:
         else:
             self.init()
             self.installAlternatives()
-        # ibm plugin packages expect mozilla installed in the filesystem, this gives us directories neccessary
-        self.mkdirP("/usr/lib64/mozilla")
-        self.mkdirP("/usr/lib64/mozilla/plugins")
-        self.mkdirP("/usr/lib/mozilla")
-        self.mkdirP("/usr/lib/mozilla/plugins")
-        # oracle plugin package expect these directories
-        self.mkdirP("/usr/lib/jvm/jce-1.7.0-oracle")
-        self.mkdirP("/usr/lib/jvm/jce-1.8.0-oracle")
+        if rc.RuntimeConfig().getRpmList().getVendor() in (gc.ORACLE + gc.SUN + gc.IBM + gc.ITW):
+            # ibm/itw/oracle plugin packages expect mozilla installed in the filesystem, this gives us directories neccessary
+            self.mkdirP("/usr/lib64/mozilla")
+            self.mkdirP("/usr/lib64/mozilla/plugins")
+            self.mkdirP("/usr/lib/mozilla")
+            self.mkdirP("/usr/lib/mozilla/plugins")
+            if rc.RuntimeConfig().getRpmList().getVendor() == gc.ORACLE:
+                # oracle plugin packages in addition expect also these directories
+                self.mkdirP("/usr/lib/jvm/jce-1.7.0-oracle")
+                self.mkdirP("/usr/lib/jvm/jce-1.8.0-oracle")
 
     def executeScriptlet(self, rpmFile, scripletName):
         scriplet = rpmuts.getSrciplet(rpmFile, scripletName)
@@ -241,6 +245,15 @@ class Mock:
 
     def getSnapshot(self, name):
         return self._rollbackCommand(name)
+
+    def postinstall_exception_checked(self, pkg):
+        try:
+            DefaultMock().install_postscript(pkg)
+        except utils.mock.mock_execution_exception.MockExecutionException:
+            outputControl.logging_access.LoggingAccess().log("Postinstall script not found in " + os.path.basename(pkg))
+            return False
+
+        return True
 
     def install_postscript(self, pkg):
         return self._install_scriptlet(pkg, utils.rpmbuild_utils.POSTINSTALL)
