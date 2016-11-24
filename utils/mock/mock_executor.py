@@ -311,10 +311,10 @@ class Mock:
         else:
             data[FAMILY] = None
         data[TARGET] = otp[2].split(" ")[0]
-        slaves = []
+        slaves = {}
         for o in otp:
             if "slave" in o:
-                slaves.append(o.split(" ")[2].strip(":"))
+                slaves[o.split(" ")[2].strip(":")] = o.split(" ")[3]
         data[SLAVES] = slaves
         return data
 
@@ -331,6 +331,9 @@ class Mock:
         return self.parse_alternatives_display(master)[TARGET]
 
     def get_slaves(self, master):
+        return self.parse_alternatives_display(master)[SLAVES].keys()
+
+    def get_slaves_with_links(self, master):
         return self.parse_alternatives_display(master)[SLAVES]
 
     def get_default_masters(self):
