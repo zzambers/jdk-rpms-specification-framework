@@ -111,11 +111,7 @@ class CheckPostinstallScript(BasePackages):
             PostinstallScriptTest.instance.log("Searching for " + rbu.POSTINSTALL + " in " + os.path.basename(pkg))
             PostinstallScriptTest.instance.log("Checking master for " + os.path.basename(pkg))
 
-            try:
-                DefaultMock().install_postscript(pkg)
-            except utils.mock.mock_execution_exception.MockExecutionException:
-                PostinstallScriptTest.instance.log(rbu.POSTINSTALL + " not found in " + os.path.basename(pkg) +
-                                                   " . Test for master and postinstall script was skipped.")
+            if not DefaultMock().postinstall_exception_checked(pkg):
                 skipped.append(_subpackage)
                 continue
 
