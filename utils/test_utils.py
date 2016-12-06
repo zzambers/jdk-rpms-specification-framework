@@ -106,3 +106,10 @@ def mkdir_p(path):
             pass
         else:
             raise
+
+def rename_default_subpkg(subpkg):
+    if subpkg == "":
+        subpkg = "default"
+    elif subpkg == "debug":
+        subpkg = "default-debug"
+    return subpkg
