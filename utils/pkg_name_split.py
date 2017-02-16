@@ -12,13 +12,12 @@ def _rpmname_splithelper(name):
     parts2 = _dot_split(name)
 
     return RpmNameParts(parts1[0], parts1[1], parts1[2], parts1[3], parts1[4], parts2[0], parts2[1], parts2[2])
-    return result
 
 
 def _hyphen_split(name):
     """Split the rpm name according to hyphens, the subpackage string
     can be also empty or contain hyphens - as in devel-debug etc."""
-    gc = config.global_config;
+    gc = config.global_config
     name = name.strip()
     hyphen_parts = name.split('-')
     num_h = len(hyphen_parts)
@@ -124,3 +123,14 @@ def get_arch(name):
         return _get_ith_dotpart(2, name)
     else:
         return _get_ith_dotpart(2, name + ".rpm")
+
+
+def get_nvra(name):
+    """ eg java-1.8.0-openjdk-1.8.0.101-4.b13.el7.i686"""
+    if name.endswith(".rpm"):
+        sub = get_subpackage_only(name)
+        if sub != "":
+            name = name.replace("-" + sub, "")
+        name = name.replace(".rpm", "")
+
+    return name
