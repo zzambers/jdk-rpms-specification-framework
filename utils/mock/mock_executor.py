@@ -138,6 +138,8 @@ class Mock:
         outputControl.logging_access.LoggingAccess().log(e)
         o, e = exxec.processToStrings(self.mainCommand() + ["--install", "chkconfig"])
         outputControl.logging_access.LoggingAccess().log(e)
+        o, e = exxec.processToStrings(self.mainCommand() + ["--install", "man"])
+        outputControl.logging_access.LoggingAccess().log(e)
         self.createSnapshot("alternatives")
         self.alternatives=True
 
@@ -263,8 +265,9 @@ class Mock:
                             + utils.pkg_name_split.get_subpackage_only(os.path.basename(pkg))
                             + "_"
                             + utils.pkg_name_split.get_arch(os.path.basename(pkg)))
-        current, items = self.listSnapshots()
-        if scriptlet_pkg in items:
+        key = scriptlet_pkg
+        if key in self.snapshots:
+            outputControl.logging_access.LoggingAccess().log(pkg + " already extracted in snapshot. Rolling to " + key)
             self.getSnapshot(scriptlet_pkg)
             return
 
