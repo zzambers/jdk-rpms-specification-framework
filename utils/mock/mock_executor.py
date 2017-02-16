@@ -87,7 +87,7 @@ class Mock:
     def _init(self):
         o, e = exxec.processToStrings(self.mainCommand() + ["--init"])
         outputControl.logging_access.LoggingAccess().log(e)
-        self.inited = True;
+        self.inited = True
 
     def reinit(self):
         self._rollbackCommand("postinit")
@@ -107,26 +107,26 @@ class Mock:
         o, e = exxec.processToStrings(self.mainCommand() + ["--snapshot", name])
         outputControl.logging_access.LoggingAccess().log(e)
         outputControl.logging_access.LoggingAccess().log(o)
-        outputControl.logging_access.LoggingAccess().log(str(self.listSnapshots()));
+        outputControl.logging_access.LoggingAccess().log(str(self.listSnapshots()))
 
     def _rollbackCommand(self, name):
         o, e, r = exxec.processToStringsWithResult(self.mainCommand() + ["--rollback-to", name])
         outputControl.logging_access.LoggingAccess().log(e)
         outputControl.logging_access.LoggingAccess().log(o)
-        outputControl.logging_access.LoggingAccess().log(str(self.listSnapshots()));
+        outputControl.logging_access.LoggingAccess().log(str(self.listSnapshots()))
         return e, o, r
 
     def _scrubLvmCommand(self):
         o, e = exxec.processToStrings(self.mainCommand() + ["--scrub", "lvm"])
         outputControl.logging_access.LoggingAccess().log(e)
         outputControl.logging_access.LoggingAccess().log(o)
-        outputControl.logging_access.LoggingAccess().log(str(self.listSnapshots()));
+        outputControl.logging_access.LoggingAccess().log(str(self.listSnapshots()))
 
     def installAlternatives(self):
         if self.alternatives:
             self.getSnapshot("alternatives")
         else:
-            self._installAlternatives();
+            self._installAlternatives()
 
 
     def _installAlternatives(self):
@@ -189,9 +189,9 @@ class Mock:
         return self.executeCommand(["mkdir -p " + dirName])
 
     def mkdirsP(self, dirNames):
-        all="";
+        all=""
         for  dir in dirNames:
-            all=all+" "+dir;
+            all=all+" "+dir
         return self.executeCommand(["mkdir -p " + all])
 
     def executeCommand(self, cmds):
