@@ -31,25 +31,25 @@ class RuntimeConfig(metaclass=Singleton):
         return self.rpmList
 
     def setLogsFile(self, nwFile):
-        oldValue = self.logsFile;
+        oldValue = self.logsFile
         self.logsFile = nwFile
         outputControl.logging_access.LoggingAccess().log("Logfile set to " + nwFile + " instead of " + oldValue)
 
     def getLogsFile(self):
-        return self.logsFile;
+        return self.logsFile
 
     def getDocs(self):
-        return self.docs;
+        return self.docs
 
     def isHeader(self):
-        return self.header;
+        return self.header
 
     def setPkgsDir(self, nwDir):
         outputControl.logging_access.LoggingAccess().log("Rpms looked for in " + nwDir + " instead of " + self.pkgsDir)
         self.pkgsDir = nwDir
 
     def getPkgsDir(self):
-        return self.pkgsDir;
+        return self.pkgsDir
 
     def setArchs(self, archString):
         if archString == "all":
@@ -70,7 +70,7 @@ class RuntimeConfig(metaclass=Singleton):
             self.setLogsFile(args.logfile)
         if args.version:
             outputControl.logging_access.LoggingAccess().stdout(VERSION_STRING)
-            return False;
+            return False
         # later it does not matter as logging is already going to log file
         outputControl.logging_access.LoggingAccess().log(VERSION_STRING)
         # switches should go before commands, so commands can use them

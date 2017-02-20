@@ -15,7 +15,7 @@ def processToStringsWithResult(args, err=True, cwd=None):
     proc = _exec(args, err, cwd)
     out, err = proc.communicate()
     output = out.decode('utf-8').strip()
-    outpute = "";
+    outpute = ""
     if err is not None:
         outpute = err.decode('utf-8').strip()
     outputControl.logging_access.LoggingAccess().log("got: " + output)
@@ -24,7 +24,7 @@ def processToStringsWithResult(args, err=True, cwd=None):
 
 def processAsStrings(args, starter=None, finisher=None, initialCanRead=True, log = True):
     o, r = processAsStringsWithResult(args, starter, finisher, initialCanRead, log)
-    return o;
+    return o
 
 def processAsStringsWithResult(args, starter=None, finisher=None, initialCanRead=True, log = True):
     """ read process line by line. starter and finisher are methods, which returns true/false to set read. Theirs immput is line"""
@@ -55,7 +55,7 @@ def _exec(args, err=False, cwd=None):
         proc = Popen(args, stdout=PIPE, stderr=PIPE, cwd=cwd)
     else:
         proc = Popen(args, stdout=PIPE)
-    return proc;
+    return proc
 
 def executeShell(command):
     outputControl.logging_access.LoggingAccess().log("executing shell : " + command)

@@ -45,7 +45,7 @@ class Agregator():
         return mapOfMaps
 
     def agregate2(self, mapOfArches):
-        mapResults = OrderedDict();
+        mapResults = OrderedDict()
         for key, svalue in mapOfArches.items():
             value = list(svalue)
             nwKey = None
@@ -64,12 +64,12 @@ class Agregator():
             if nwKey not in mapResults:
                 mapResults[nwKey] = [key]
             else:
-                mapResults[nwKey].append(key);
+                mapResults[nwKey].append(key)
         return mapResults
 
     def out(self):
         mapOfArches = self.agregate1()
-        mapResults = self.agregate2(mapOfArches);
+        mapResults = self.agregate2(mapOfArches)
         for key, svalue in mapResults.items():
             la.LoggingAccess().stdout(key)
             for value in svalue:
@@ -94,7 +94,7 @@ class BaseTestRunner:
         """Call all test_ prefixed methods in overwritting class"""
         passed = 0
         failed = 0
-        methodOnlyCounter = 0;
+        methodOnlyCounter = 0
         self.indent = "  "
         suiteStart = time.clock()
         self.log("started tests in suite: " + type(self).__name__ + ":")
@@ -103,7 +103,7 @@ class BaseTestRunner:
         for a, b in methods:
             methodOnly = False
             for i, arch in enumerate(archs):
-                self.current_arch = arch;
+                self.current_arch = arch
                 if str(a).startswith("test_"):
                     methodStart = time.clock()
                     if not methodOnly:
@@ -161,7 +161,7 @@ class BaseTestRunner:
                 # on contrary with execute_tests, this walks methods on csch!!!
                 methods = lsort(inspect.getmembers(self.csch, predicate=inspect.ismethod))
                 for a, b in methods:
-                    self.current_arch = arch;
+                    self.current_arch = arch
                     if not str(a).startswith("_"):
                         self.indent = "      "
                         self.log("using: " + str(type(self.csch).__name__))
@@ -203,8 +203,8 @@ def compareListLaniently(list1, list2):
         return False
     for val in list1:
         if not val in list2:
-            return False;
+            return False
     for val in list2:
         if not val in list1:
-            return False;
+            return False
     return True

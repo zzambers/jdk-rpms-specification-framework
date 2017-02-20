@@ -20,7 +20,7 @@ def getBuild(nvr):
     "This method download build from brw. The filtering of arches depends on RuntimeConfig().getArchs();"
     target = _checkDest(config.runtime_config.RuntimeConfig().getPkgsDir())
     command = _getCommand(nvr)
-    outputControl.logging_access.LoggingAccess().log("using " + command);
+    outputControl.logging_access.LoggingAccess().log("using " + command)
     packages = _getBuildInfo(command, nvr)
     if len(packages) == 0:
         raise Exception("No pkgs to download. Verify build or archs")
@@ -70,7 +70,7 @@ def _checkDest(dir):
 
 
 def _isArchValid(rpmLine):
-    arches= config.runtime_config.RuntimeConfig().getArchs();
+    arches= config.runtime_config.RuntimeConfig().getArchs()
     if arches is None or len(arches) == 0:
         arches = config.global_config.getAllArchs()
     for arch in arches:

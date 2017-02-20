@@ -106,16 +106,16 @@ def getSrciplet(rpmFile, scripletId):
         outputControl.logging_access.LoggingAccess().log("warning! Scriplet name " + scripletId
                                                          + " is not known. It should be one of: "
                                                          + ",".join(ScripletStarterFinisher.allScriplets))
-    key = rpmFile+"-"+scripletId;
+    key = rpmFile+"-"+scripletId
     if key in scriptlets:
-        outputControl.logging_access.LoggingAccess().log(key + " already cached, returning");
+        outputControl.logging_access.LoggingAccess().log(key + " already cached, returning")
         return scriptlets[key]
-    outputControl.logging_access.LoggingAccess().log(key + " not yet cached, reading");
+    outputControl.logging_access.LoggingAccess().log(key + " not yet cached, reading")
     sf = ScripletStarterFinisher(scripletId)
     script =  utils.process_utils.processAsStrings(['rpm', '-qp', '--scripts', rpmFile], sf.start, sf.stop,
                                                 False)
-    scriptlets[key] = script;
-    return script;
+    scriptlets[key] = script
+    return script
 
 def unpackFilesFromRpm(rpmFile, destination):
     absFile = os.path.abspath(rpmFile)
