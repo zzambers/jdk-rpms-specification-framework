@@ -7,6 +7,7 @@ from utils.core.configuration_specific import JdkConfiguration
 import os
 import config.runtime_config as rc
 
+JAVA_CGI = "java-rmi.cgi"
 DEBUG_SUFFIX = "-debug"
 HEADLESS = "headless"
 DEVEL = "devel"
@@ -16,6 +17,27 @@ EXPORTS_DIR = "/usr/lib/jvm-exports/"
 POLICYTOOL = "policytool"
 SDK_LOCATION = 1
 JRE_LOCATION = 0
+PLUGIN = "plugin"
+JAVA = "java"
+JAVAC = "javac"
+SUBPACKAGE = "subpackage "
+SUBPACKAGES = "subpackages "
+PRESENTED = "presented "
+PRESENTED_SUBPACKAGES = PRESENTED + SUBPACKAGES + ": "
+EXPECTED_SUBPACKAGES = "expected " + SUBPACKAGES + ": "
+SLAVES = "slaves "
+BINARIES = "binaries "
+NOT_PRESENT_IN = " not present in "
+CAN_NOT_BE_IN = " can not be in "
+MUST_BE_IN = " must be in "
+BINARY = "binary "
+SLAVE = "slave "
+BECAUSE_THIS_ARCH_HAS_NO = ", because this architecture has no "
+JCONTROL = "jcontrol"
+CONTROL_PANEL = "ControlPanel"
+JAVAWS = "javaws"
+MISSING = "missing "
+LIBJAVAPLUGIN = "libjavaplugin.so"
 
 
 class BaseTest(JdkConfiguration):
@@ -25,6 +47,20 @@ class BaseTest(JdkConfiguration):
         self.skipped = []
         self.failed_tests = []
 
+    # ibm binaries contains some extra files and folders, this method is overridden in Ibm config classes and
+    # safely removes them, so there is no unexpected collision with JDK or Oracle binaries.
+    def _clean_bin_dir_for_ibm(self, binaries):
+        return binaries
+
+     # this handles everything connected to plugin - jcontrol, ControlPanel, javaws binaries,
+     # slaves, where they should be and plugin subpackage - if it is present on current arch
+    def document_plugin_and_related_binaries(self, pkg_binaries, installed_slaves = None):
+        return
+
+    def _get_checked_masters(self):
+        return [JAVA, JAVAC]
+
+    # returns architecture in 32bit identifier
     def _get_arch(self):
         return get_id(self.binaries_test.getCurrentArch())
 
@@ -37,8 +73,8 @@ class BaseTest(JdkConfiguration):
         return []
 
     # name of a directory with binaries
-    def _get_target(self):
-        return ""
+    def _get_target(self, name):
+        return self._get_32bit_id_in_nvra(pkgsplit.get_nvra(name))
 
     # name of a directory of jre/java-sdk
     def _get_exports_directory(self, target):
@@ -50,16 +86,65 @@ class BaseTest(JdkConfiguration):
 
     # name of a directory for jvm-exports for sdk in jdk 6
     def _get_alternative_exports_target(self, target):
-        return ""
+        return target
+
+    # documents and logs all no slave - binaries, does not include them in fail output, even though they got no slaves
+    def doc_and_clean_no_slave_binaries(self, pkg_binaries):
+        return pkg_binaries
+
+    # OpenJDK's policytool binary has a unique behaviour, it logs, documents it and check if it is behaving correctly.
+    def check_policytool_for_jdk(self, pkg_binaries):
+        return pkg_binaries
+
+    # This is a script that exectures the Java interpreter, it has no slave, so it must be documented and also does not
+    # appear in IBM7 64 bit power archs and in x86_64 arch
+    def check_java_cgi(self, pkg_binaries):
+        expected_slave_pkgs = self._get_slave_pkgs()
+        self._document("{} must be present in {} binaries. It has no slave in alternatives.".format(JAVA_CGI,
+                       " and ".join(expected_slave_pkgs[SDK_LOCATION])))
+        # java-rmi.cgi binary check
+        for sbpkg in expected_slave_pkgs[SDK_LOCATION]:
+            cgi_present = False
+            for s in pkg_binaries[sbpkg]:
+                if JAVA_CGI == s:
+                    pkg_binaries[sbpkg].remove(s)
+                    cgi_present = True
+            if not cgi_present:
+                self.failed_tests.append("Missing {} in {}.".format(JAVA_CGI, sbpkg))
+                self.binaries_test.log("Missing {} in {}.".format(JAVA_CGI, sbpkg))
+
+        return pkg_binaries
+
+    # checks existence of exports directory, where point export slaves
+    def exports_dir_check(self, dirs, exports_target=None, _subpkg = None):
+        self._document("Exports slaves point at {} directory. ".format(EXPORTS_DIR))
+        exports_check = DefaultMock().execute_ls(EXPORTS_DIR)
+        if exports_check[1] != 0:
+            dirs.append(("Exports directory does not exist: " + exports_target, 2))
+        elif exports_target not in exports_check[0]:
+            dirs.append((exports_target + " not present in " + EXPORTS_DIR, 2))
+        else:
+            dirs.append(exports_check)
+        return
+
+    def _has_plugin_subpkg(self):
+        return []
+
+    def _get_32bit_id_in_nvra(self, nvra):
+        parts = nvra.split(".")
+        parts[-1] = get_id(parts[-1])
+        nvra = ".".join(parts)
+        return nvra
 
 
 class GetAllBinariesAndSlaves(BaseTest):
     rpms = rc.RuntimeConfig().getRpmList()
 
-    def _get_slaves(self, _subpkg):
-        # all slaves for java and javac masters in all packages
+    def get_slaves(self, _subpkg):
+        checked_masters = self._get_checked_masters()
+        self._document("Checking slaves for masters: {}".format(" and ".join(checked_masters)))
+
         masters = DefaultMock().get_masters()
-        checked_masters = ["java", "javac"]
         clean_slaves = []
         for m in checked_masters:
             if m not in masters:
@@ -69,7 +154,9 @@ class GetAllBinariesAndSlaves(BaseTest):
             except MockExecutionException:
                 self.binaries_test.log("No relevant slaves were present for " + _subpkg + ".")
                 continue
-            clean_slaves.append(m)
+
+            if m in [JAVA, JAVAC]:
+                clean_slaves.append(m)
 
             # skipping manpage slaves
             for slave in slaves:
@@ -78,17 +165,20 @@ class GetAllBinariesAndSlaves(BaseTest):
 
         return clean_slaves
 
-    def _get_binaries_and_exports_directories(self, _subpkg, loc):
+    def _get_binaries_and_exports_directories(self, _subpkg, loc, name):
         directories = loc[0].split("\n")
 
         # gets location of binaries
-        target = self._get_target()
+        target = self._get_target(name)
 
         if DEBUG_SUFFIX in _subpkg:
             target += DEBUG_SUFFIX
 
         if target not in directories:
-            return []
+            self.failed_tests.append("Directory {} was not found".format(target))
+            self.binaries_test.log("Directory {}, where the {}are supposed to be located, was not found."
+                                   " Either it does not exist, or the the path is invalid.".format(target, BINARIES))
+            return [], []
 
         binariesJRE = DefaultMock().execute_ls(JVM_DIR + target + "/jre/bin")
         binariesSDK = DefaultMock().execute_ls(JVM_DIR + target + "/bin")
@@ -108,22 +198,17 @@ class GetAllBinariesAndSlaves(BaseTest):
             for bin in binariesSDK:
                 binaries.append(bin)
             dirs.append(DefaultMock().execute_ls(JVM_DIR + target))
-            exports_check = DefaultMock().execute_ls(EXPORTS_DIR)
-            if exports_check[1] != 0:
-                dirs.append(exports_target)
-            elif exports_target not in exports_check[0]:
-                dirs.append((exports_target + " not present in " + EXPORTS_DIR, 2))
-            else:
-                dirs.append(exports_check)
+            self.exports_dir_check(dirs, exports_target, _subpkg)
 
+        binaries = self._clean_bin_dir_for_ibm(binaries)
         return binaries, dirs
 
     def get_all_binaries_and_slaves(self, pkgs):
-
         docs = "JRE binaries must be present in {} subpackages.".format(" and ".join(
-                                    self._get_jre_sdk_locations()[JRE_LOCATION ]+ self._get_jre_sdk_locations()[SDK_LOCATION]))
+                                    self._get_jre_sdk_locations()[JRE_LOCATION] +
+                                    self._get_jre_sdk_locations()[SDK_LOCATION]))
 
-        docs += "\n - JRE slaves have java master and are in {} subpackages.".format(" and ".join(
+        docs += "\n - JRE slaves have {} master and are in {} subpackages.".format(JAVA," and ".join(
                                     self._get_slave_pkgs()[JRE_LOCATION]))
 
         docs += "\n - SDK binaries must be present in {} subpackages.".format(" and ".join(
@@ -132,15 +217,14 @@ class GetAllBinariesAndSlaves(BaseTest):
         for jre in self._get_slave_pkgs()[0]:
             for sdk in self._get_slave_pkgs()[1]:
 
-                if ("-debug" in jre and "-debug" in sdk ) or ("-debug" not in jre and "-debug" not in sdk):
+                if (DEBUG_SUFFIX in jre and DEBUG_SUFFIX in sdk ) or (DEBUG_SUFFIX not in jre and DEBUG_SUFFIX not in sdk):
                     if n > 0:
                         docs += "\n - SDK slaves are also in {} subpackage, except for slaves that are already " \
-                                "present in {}.".format(sdk, jre)
+                                "present in {} subpackage.".format(sdk, jre)
                     else:
-                        docs += "\n - SDK slaves have javac master and are in {} subpackage, except for slaves that " \
-                                "are already present in {}.".format(sdk, jre)
+                        docs += "\n - SDK slaves have {} master and are in {} subpackage, except for slaves that " \
+                                "are already present in {} subpackage.".format(JAVAC, sdk, jre)
                         n += 1
-
 
         self._document(docs)
         # map of binaries, where key = subpackage, value = binaries
@@ -163,14 +247,13 @@ class GetAllBinariesAndSlaves(BaseTest):
                 self.binaries_test.log("Location {} does not exist, binaries test skipped for ".format(JVM_DIR) + name)
                 self.skipped.append(_subpkg)
                 continue
-            slaves = self._get_slaves(_subpkg)
+            slaves = self.get_slaves(_subpkg)
 
             if len(slaves) != 0:
                 installed_slaves[_subpkg] = slaves
 
             pkg_binaries[_subpkg], export_directories[_subpkg] = self._get_binaries_and_exports_directories(_subpkg,
-                                                                                                            loc)
-
+                                                                                                            loc, name)
         return pkg_binaries, installed_slaves, export_directories
 
 
@@ -178,23 +261,30 @@ class BinarySlaveTestMethods(GetAllBinariesAndSlaves):
     # checks if slaves and binaries are present only in expected subpackages
     def _check_slave_and_binary_subpackages(self, installed_slaves, pkg_binaries):
         expected_binaries_pkgs = self._get_jre_sdk_locations()
+        plugin_pkg = self._has_plugin_subpkg()
 
-        if sorted(expected_binaries_pkgs[JRE_LOCATION] + expected_binaries_pkgs[SDK_LOCATION]) != sorted(pkg_binaries.keys()):
-            self.failed_tests.append("Subpackage binaries are not as expected.")
-            self.binaries_test.log("Binaries were found in unexpected subpackages or are missing in "
-                                   "certain packages.")
-            self.binaries_test.log("Expected subpackages: " + str(sorted(expected_binaries_pkgs[JRE_LOCATION] +
-                                                                         expected_binaries_pkgs[SDK_LOCATION])))
-            self.binaries_test.log("Presented subpackages:" + str(sorted(pkg_binaries.keys())))
+        if sorted(expected_binaries_pkgs[JRE_LOCATION] + expected_binaries_pkgs[SDK_LOCATION] + plugin_pkg)\
+                != sorted(pkg_binaries.keys()):
+            self.failed_tests.append(SUBPACKAGES + ", that contain " + BINARIES + ", are wrong.")
+            self.binaries_test.log(BINARIES + " were found in unexpected " + SUBPACKAGES + " or are missing in "
+                                   "some " + SUBPACKAGES)
+            self.binaries_test.log(EXPECTED_SUBPACKAGES + str(sorted(expected_binaries_pkgs[JRE_LOCATION] +
+                                                                         expected_binaries_pkgs[SDK_LOCATION] +
+                                                                         plugin_pkg)))
+            self.binaries_test.log(PRESENTED_SUBPACKAGES + str(sorted(pkg_binaries.keys())))
+
+
         expected_slave_pkgs = self._get_slave_pkgs()
 
-        if sorted(expected_slave_pkgs[JRE_LOCATION] + expected_slave_pkgs[SDK_LOCATION]) != sorted(installed_slaves.keys()):
-            self.failed_tests.append("Subpackage slaves are not as expected")
-            self.binaries_test.log("Slaves were found in unexpected subpackages or are missing in "
-                                   "certain packages.")
-            self.binaries_test.log("Expected subpackages: " + str(sorted(expected_slave_pkgs[JRE_LOCATION] +
-                                                                         expected_slave_pkgs[SDK_LOCATION])))
-            self.binaries_test.log("Presented subpackages:" + str(sorted(pkg_binaries.keys())))
+        if sorted(expected_slave_pkgs[JRE_LOCATION] + expected_slave_pkgs[SDK_LOCATION] + plugin_pkg) \
+                != sorted(installed_slaves.keys()):
+            self.failed_tests.append(SUBPACKAGES + ", that contain " + SLAVE + ", are wrong.")
+            self.binaries_test.log(BINARIES + " were found in unexpected " + SUBPACKAGES + " or are missing in "
+                                                                                           "some " + SUBPACKAGES)
+            self.binaries_test.log(EXPECTED_SUBPACKAGES + str(sorted(expected_slave_pkgs[JRE_LOCATION] +
+                                                                         expected_slave_pkgs[SDK_LOCATION] +
+                                                                         plugin_pkg)))
+            self.binaries_test.log(PRESENTED_SUBPACKAGES + str(sorted(pkg_binaries.keys())))
 
         return
 
@@ -213,70 +303,32 @@ class BinarySlaveTestMethods(GetAllBinariesAndSlaves):
     def jre_sdk_exports_check(self, installed_slaves):
         jre_exp = ["jre_exports", "jre"]
         sdk_exp = ["java_sdk_exports", "java_sdk"]
-        self._document(" and ".join(jre_exp) + " are java slaves. " + " and ".join(sdk_exp) + " are javac slaves. "
-                       "They have no binaries, their links point at jvm-exports and jre/sdk directories.")
+        self._document(" and ".join(jre_exp) + " are "+ JAVA + " " + SLAVES + ", " + " and ".join(sdk_exp) +
+                       " are " + JAVAC + " " + SLAVES +
+                       "- they are not binaries, their links point at jvm-exports and jre/sdk directories.")
         expected_slave_pkgs = self._get_slave_pkgs()
 
         for subpkg in expected_slave_pkgs[JRE_LOCATION]:
             for slave in jre_exp:
                 if slave not in installed_slaves[subpkg]:
-                    self.failed_tests.append(slave + " not present in java slaves")
-                    self.binaries_test.log(slave + " not present in java slaves")
+                    self.failed_tests.append(slave + NOT_PRESENT_IN + JAVA + " " + SLAVES)
+                    self.binaries_test.log(slave + NOT_PRESENT_IN + JAVA + " " + SLAVES)
                 else:
                     installed_slaves[subpkg].remove(slave)
 
         for subpkg in expected_slave_pkgs[SDK_LOCATION]:
             for slave in sdk_exp:
                 if slave not in installed_slaves[subpkg]:
-                    self.failed_tests.append(slave + " not present in javac slaves")
-                    self.binaries_test.log(slave + " not present in javac slaves")
+                    self.failed_tests.append(slave + NOT_PRESENT_IN + JAVAC + " " + SLAVES)
+                    self.binaries_test.log(slave + NOT_PRESENT_IN + JAVAC + " " + SLAVES)
                 else:
                     installed_slaves[subpkg].remove(slave)
 
         return installed_slaves
 
-    # checks policytool in default pkg and merge default pkg with headless in JDK 8 for further check
-    def check_policytool(self, pkg_binaries):
-        policytool_location = self._get_policytool_location()
-        self._document("Policytool is a special case of binary and slave." +
-                       "\n - Policytool binary must be present in {} "
-                       "subpackages.".format(" and ".join(self._get_policytool_location()[JRE_LOCATION])) +
-                       "\n - Policytool slave must be present in {} "
-                       "subpackages.".format(" and ".join(policytool_location[1])))
-        def_debug_pkg = None
-        def_pkg = None
-
-        for loc in policytool_location[JRE_LOCATION]:
-            if POLICYTOOL not in pkg_binaries[loc]:
-                self.failed_tests.append(POLICYTOOL + " not in {} subpackage binaries.".format(loc))
-                self.binaries_test.log(POLICYTOOL + " not in {} subpackage binaries.".format(loc))
-
-            if "default" in loc:
-                if HEADLESS in pkg_binaries.keys():
-                    if pkg_binaries[loc] != [POLICYTOOL]:
-                        self.failed_tests.append(loc + " subpackage should contain only policytool, "
-                                                       "but contains: " + ",".join(pkg_binaries[loc]))
-                        self.binaries_test.log(POLICYTOOL + "  subpackage should contain only policytool, "
-                                                            "but contains: " + ",".join(pkg_binaries[loc]))
-                    if DEBUG_SUFFIX in loc:
-                        def_debug_pkg = pkg_binaries.pop(loc)
-                    else:
-                        def_pkg = pkg_binaries.pop(loc)
-                else:
-                    pkg_binaries[loc].remove(POLICYTOOL)
-
-        if HEADLESS in policytool_location[SDK_LOCATION]:
-            if def_pkg is not None:
-                pkg_binaries[HEADLESS] += def_pkg
-            if def_debug_pkg is not None:
-                pkg_binaries[HEADLESS + DEBUG_SUFFIX] += def_debug_pkg
-
-        return pkg_binaries
-
     # checks if all jre binaries are in sdk and deletes them from there
-    def all_jre_in_sdk_check(self, pkg_binaries):
+    def _all_jre_in_sdk_check(self, pkg_binaries):
         expected_slave_pkgs = self._get_slave_pkgs()
-        self._document("java-rmi.cgi must be present in {} binaries. It has no slave.".format(" and ".join(expected_slave_pkgs[SDK_LOCATION])))
         for subpkg in expected_slave_pkgs[JRE_LOCATION]:
             for sbpkg in expected_slave_pkgs[1]:
                 if DEBUG_SUFFIX in subpkg and DEBUG_SUFFIX in sbpkg:
@@ -292,33 +344,28 @@ class BinarySlaveTestMethods(GetAllBinariesAndSlaves):
                     if j in sdk:
                         sdk.remove(j)
                     else:
-                        self.failed_tests.append(j + "not in sdk")
-                        self.binaries_test.log("Binary {} was present in JRE directory, "
-                                               "but is missing in SDK directory.".format(j))
+                        self.failed_tests.append(j + " not in sdk")
+                        self.binaries_test.log(BINARY + j + " was present in JRE directory, "
+                                               "but is missing in SDK directory.")
 
-                # java-rmi.cgi binary check
-                cgi_present = False
-                for s in sdk:
-                    if "java-rmi.cgi" == s:
-                        sdk.remove(s)
-                        cgi_present = True
-                if not cgi_present:
-                    self.failed_tests.append("Missing java-rmi.cgi in {}.".format(sbpkg))
-                    self.binaries_test.log("Missing java-rmi.cgi in {}.".format(sbpkg))
-
-        return expected_slave_pkgs, pkg_binaries
+        return pkg_binaries
 
     # main check, that includes all small checks and at the end compares the binaries with slaves
     def _check_binaries_with_slaves(self, pkgs):
-
         pkg_binaries, installed_slaves, export_directories = self.get_all_binaries_and_slaves(pkgs)
         self._check_slave_and_binary_subpackages(installed_slaves, pkg_binaries)
         self._export_directories_check(export_directories)
+        self.document_plugin_and_related_binaries(pkg_binaries, installed_slaves)
         installed_slaves = self.jre_sdk_exports_check(installed_slaves)
-        pkg_binaries = self.check_policytool(pkg_binaries)
-        expected_slave_pkgs, pkg_binaries = self.all_jre_in_sdk_check(pkg_binaries)
+        pkg_binaries = self.check_policytool_for_jdk(pkg_binaries)
+        pkg_binaries = self.doc_and_clean_no_slave_binaries(pkg_binaries)
+        pkg_binaries = self._all_jre_in_sdk_check(pkg_binaries)
+        pkg_binaries = self.check_java_cgi(pkg_binaries)
 
-        # compares binaries with slaves, creates decent output in case there are binaries/slaves extra/missing
+        # compares binaries with slaves, creates decent error output in case there are binaries/slaves extra/missing
+        missplaced = set([])
+        jre_loc = self._get_slave_pkgs()[JRE_LOCATION][0]
+        sdk_loc = self._get_slave_pkgs()[SDK_LOCATION][0]
         for subpkg in pkg_binaries.keys():
             if sorted(pkg_binaries[subpkg]) != sorted(installed_slaves[subpkg]):
                 not_in_slaves = []
@@ -329,16 +376,31 @@ class BinarySlaveTestMethods(GetAllBinariesAndSlaves):
                 for slave in installed_slaves[subpkg]:
                     if slave not in pkg_binaries[subpkg]:
                         not_in_binaries.append(slave)
+                for b in not_in_binaries + not_in_slaves:
+                    if b in pkg_binaries[jre_loc] and pkg_binaries[sdk_loc]:
+                        if b in installed_slaves[sdk_loc]:
+                            if b in not_in_binaries:
+                                not_in_binaries.remove(b)
+                            else:
+                                not_in_slaves.remove(b)
+                            missplaced.add(b)
 
-                self.failed_tests.append("Binaries do not match slaves in " + subpkg + ". Missing binaries: {}, "
-                                                                                       "Missing slaves: {}.".format(
-                    not_in_binaries, not_in_slaves))
-                self.binaries_test.log("Binaries do not match slaves in " + subpkg + ". Missing binaries: {}, "
-                                                                                     "Missing slaves: {}.".format(
-                    not_in_binaries, not_in_slaves))
-                self.binaries_test.log("Presented binaries for {}: ".format(subpkg) +
+                self.failed_tests.append(BINARIES + "do not match " + SLAVES + "in " + subpkg + ". " +
+                                         MISSING + BINARIES + ": {}, ".format(not_in_binaries) + MISSING + SLAVES +
+                                         ": {}.".format(not_in_slaves))
+                self.binaries_test.log(BINARIES + "do not match " + SLAVES + "in " + subpkg + ". " +
+                                       MISSING + BINARIES + ": {}, ".format(not_in_binaries) + MISSING + SLAVES +
+                                       ": {}.".format(not_in_slaves))
+
+                self.binaries_test.log(PRESENTED + BINARIES + "for {}: ".format(subpkg) +
                                        str(sorted(pkg_binaries[subpkg])))
-                self.binaries_test.log("Presented slaves for {}: ".format(subpkg) +
+                self.binaries_test.log(PRESENTED + SLAVES + "for {}: ".format(subpkg) +
                                        str(sorted(installed_slaves[subpkg])))
+        for mp in missplaced:
+            self.failed_tests.append("Missplaced " + SLAVE + mp + ", it" + MUST_BE_IN + jre_loc + " " + SLAVES +
+                                     ", but is in " + sdk_loc + " " + SLAVES)
+
+            self.binaries_test.log("Missplaced " + SLAVE + mp + ", it" + MUST_BE_IN + jre_loc + " " + SLAVES +
+                                   ", but is in " + sdk_loc + " " + SLAVES)
 
         assert len(self.failed_tests) == 0
