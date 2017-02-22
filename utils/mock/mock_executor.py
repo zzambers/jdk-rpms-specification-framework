@@ -12,6 +12,8 @@ import utils.mock.mock_execution_exception
 import utils.pkg_name_split
 import config.runtime_config as rc
 import config.global_config as gc
+from utils.test_utils import rename_default_subpkg
+import utils.pkg_name_split as pkgsplit
 
 PRIORITY = "priority"
 STATUS = "status"
@@ -262,9 +264,9 @@ class Mock:
 
     def _install_scriptlet(self, pkg, scriptlet):
         scriptlet_pkg = str(scriptlet + "_"
-                            + utils.pkg_name_split.get_subpackage_only(os.path.basename(pkg))
+                            + rename_default_subpkg(pkgsplit.get_subpackage_only(os.path.basename(pkg)))
                             + "_"
-                            + utils.pkg_name_split.get_arch(os.path.basename(pkg)))
+                            + gc.get_32b_arch_identifiers_in_scriptlets(utils.pkg_name_split.get_arch(os.path.basename(pkg))))
         key = scriptlet_pkg
         if key in self.snapshots:
             outputControl.logging_access.LoggingAccess().log(pkg + " already extracted in snapshot. Rolling to " + key)
