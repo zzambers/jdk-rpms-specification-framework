@@ -38,6 +38,9 @@ CONTROL_PANEL = "ControlPanel"
 JAVAWS = "javaws"
 MISSING = "missing "
 LIBJAVAPLUGIN = "libjavaplugin.so"
+LIBNSSCKBI_SO = "libnssckbi.so"
+JAVAFXPACKAGER = "javafxpackager"
+JMC_INI = "jmc.ini"
 
 
 class BaseTest(JdkConfiguration):
@@ -59,6 +62,14 @@ class BaseTest(JdkConfiguration):
 
     def _get_checked_masters(self):
         return [JAVA, JAVAC]
+
+    def _get_expected_subpkgs(self):
+        l = self._get_jre_sdk_locations()
+        subpackages = []
+        for a in l:
+            for b in a:
+                subpackages.append(b)
+        return subpackages
 
     # returns architecture in 32bit identifier
     def _get_arch(self):
@@ -249,9 +260,7 @@ class GetAllBinariesAndSlaves(BaseTest):
                 continue
             slaves = self.get_slaves(_subpkg)
 
-            if len(slaves) != 0:
-                installed_slaves[_subpkg] = slaves
-
+            installed_slaves[_subpkg] = slaves
             pkg_binaries[_subpkg], export_directories[_subpkg] = self._get_binaries_and_exports_directories(_subpkg,
                                                                                                             loc, name)
         return pkg_binaries, installed_slaves, export_directories
@@ -260,30 +269,19 @@ class GetAllBinariesAndSlaves(BaseTest):
 class BinarySlaveTestMethods(GetAllBinariesAndSlaves):
     # checks if slaves and binaries are present only in expected subpackages
     def _check_slave_and_binary_subpackages(self, installed_slaves, pkg_binaries):
-        expected_binaries_pkgs = self._get_jre_sdk_locations()
-        plugin_pkg = self._has_plugin_subpkg()
-
-        if sorted(expected_binaries_pkgs[JRE_LOCATION] + expected_binaries_pkgs[SDK_LOCATION] + plugin_pkg)\
-                != sorted(pkg_binaries.keys()):
+        expected_binaries_pkgs = self._get_expected_subpkgs()
+        if sorted(expected_binaries_pkgs) != sorted(list(pkg_binaries.keys())):
             self.failed_tests.append(SUBPACKAGES + ", that contain " + BINARIES + ", are wrong.")
             self.binaries_test.log(BINARIES + " were found in unexpected " + SUBPACKAGES + " or are missing in "
                                    "some " + SUBPACKAGES)
-            self.binaries_test.log(EXPECTED_SUBPACKAGES + str(sorted(expected_binaries_pkgs[JRE_LOCATION] +
-                                                                         expected_binaries_pkgs[SDK_LOCATION] +
-                                                                         plugin_pkg)))
+            self.binaries_test.log(EXPECTED_SUBPACKAGES + str(sorted(expected_binaries_pkgs)))
             self.binaries_test.log(PRESENTED_SUBPACKAGES + str(sorted(pkg_binaries.keys())))
 
-
-        expected_slave_pkgs = self._get_slave_pkgs()
-
-        if sorted(expected_slave_pkgs[JRE_LOCATION] + expected_slave_pkgs[SDK_LOCATION] + plugin_pkg) \
-                != sorted(installed_slaves.keys()):
+        if sorted(expected_binaries_pkgs) != sorted(list(installed_slaves.keys())):
             self.failed_tests.append(SUBPACKAGES + ", that contain " + SLAVE + ", are wrong.")
             self.binaries_test.log(BINARIES + " were found in unexpected " + SUBPACKAGES + " or are missing in "
                                                                                            "some " + SUBPACKAGES)
-            self.binaries_test.log(EXPECTED_SUBPACKAGES + str(sorted(expected_slave_pkgs[JRE_LOCATION] +
-                                                                         expected_slave_pkgs[SDK_LOCATION] +
-                                                                         plugin_pkg)))
+            self.binaries_test.log(EXPECTED_SUBPACKAGES + str(sorted(expected_binaries_pkgs)))
             self.binaries_test.log(PRESENTED_SUBPACKAGES + str(sorted(pkg_binaries.keys())))
 
         return
@@ -385,17 +383,18 @@ class BinarySlaveTestMethods(GetAllBinariesAndSlaves):
                                 not_in_slaves.remove(b)
                             missplaced.add(b)
 
-                self.failed_tests.append(BINARIES + "do not match " + SLAVES + "in " + subpkg + ". " +
-                                         MISSING + BINARIES + ": {}, ".format(not_in_binaries) + MISSING + SLAVES +
-                                         ": {}.".format(not_in_slaves))
-                self.binaries_test.log(BINARIES + "do not match " + SLAVES + "in " + subpkg + ". " +
-                                       MISSING + BINARIES + ": {}, ".format(not_in_binaries) + MISSING + SLAVES +
-                                       ": {}.".format(not_in_slaves))
+                if len(not_in_binaries) != 0 or len(not_in_slaves) != 0:
+                    self.failed_tests.append(BINARIES + "do not match " + SLAVES + "in " + subpkg + ". " +
+                                             MISSING + BINARIES + ": {}, ".format(not_in_binaries) + MISSING + SLAVES +
+                                             ": {}.".format(not_in_slaves))
+                    self.binaries_test.log(BINARIES + "do not match " + SLAVES + "in " + subpkg + ". " +
+                                           MISSING + BINARIES + ": {}, ".format(not_in_binaries) + MISSING + SLAVES +
+                                           ": {}.".format(not_in_slaves))
 
-                self.binaries_test.log(PRESENTED + BINARIES + "for {}: ".format(subpkg) +
-                                       str(sorted(pkg_binaries[subpkg])))
-                self.binaries_test.log(PRESENTED + SLAVES + "for {}: ".format(subpkg) +
-                                       str(sorted(installed_slaves[subpkg])))
+                    self.binaries_test.log(PRESENTED + BINARIES + "for {}: ".format(subpkg) +
+                                           str(sorted(pkg_binaries[subpkg])))
+                    self.binaries_test.log(PRESENTED + SLAVES + "for {}: ".format(subpkg) +
+                                           str(sorted(installed_slaves[subpkg])))
         for mp in missplaced:
             self.failed_tests.append("Missplaced " + SLAVE + mp + ", it" + MUST_BE_IN + jre_loc + " " + SLAVES +
                                      ", but is in " + sdk_loc + " " + SLAVES)

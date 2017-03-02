@@ -1,7 +1,8 @@
 from testcases.alternativesTests.binaries_test_methods import DEFAULT, DEVEL, EXPORTS_DIR, \
     HEADLESS, JRE_LOCATION, SDK_LOCATION, DEBUG_SUFFIX, POLICYTOOL, PLUGIN, BinarySlaveTestMethods, \
-    BINARIES, JAVA, JAVAC, LIBJAVAPLUGIN, NOT_PRESENT_IN, SUBPACKAGE, \
-    SLAVES, CAN_NOT_BE_IN, MUST_BE_IN, BINARY, SLAVE, BECAUSE_THIS_ARCH_HAS_NO, CONTROL_PANEL, JAVAWS, JCONTROL
+    BINARIES, JAVA, JAVAC, LIBJAVAPLUGIN, NOT_PRESENT_IN, SUBPACKAGE, LIBNSSCKBI_SO, \
+    SLAVES, CAN_NOT_BE_IN, MUST_BE_IN, BINARY, SLAVE, BECAUSE_THIS_ARCH_HAS_NO, CONTROL_PANEL, JAVAWS, JCONTROL, \
+    JAVAFXPACKAGER, JMC_INI, GetAllBinariesAndSlaves
 import utils.pkg_name_split as pkgsplit
 from utils.mock.mock_executor import DefaultMock
 
@@ -213,7 +214,6 @@ class IbmBaseMethods(BinarySlaveTestMethods):
         return
 
 
-
 class IbmWithPluginSubpkg(IbmBaseMethods):
     def document_plugin_and_related_binaries(self, pkg_binaries, installed_slaves = None):
         lcs = self._get_jre_sdk_locations()
@@ -250,6 +250,11 @@ class IbmWithPluginSubpkg(IbmBaseMethods):
         masters.append(LIBJAVAPLUGIN)
         return masters
 
+    def _get_expected_subpkgs(self):
+        exp = super()._get_expected_subpkgs()
+        exp.append("plugin")
+        return exp
+
 
 class IbmS390Archs(IbmBaseMethods):
     def document_plugin_and_related_binaries(self, pkg_binaries, installed_slaves = None):
@@ -278,3 +283,61 @@ class IbmS390Archs(IbmBaseMethods):
 class IbmArchMasterPlugin(IbmWithPluginSubpkg):
     def _get_checked_masters(self):
         return [JAVA, JAVAC, LIBJAVAPLUGIN + "." + self._get_arch()]
+
+
+class Oracle6(IbmWithPluginSubpkg):
+    def doc_and_clean_no_slave_binaries(self, pkg_binaries):
+        return pkg_binaries
+
+    def _get_target(self, name):
+        target = self._get_32bit_id_in_nvra(pkgsplit.get_nvra(name))
+        unnecessary_part = target.split("-")[-1]
+        target = target.replace("-" + unnecessary_part, "")
+        return target
+
+    def exports_dir_check(self, dirs, exports_target = None, _subpkg = None):
+        return super(GetAllBinariesAndSlaves, self).exports_dir_check(dirs, exports_target, _subpkg)
+
+    def _clean_bin_dir_for_ibm(self, binaries):
+        return binaries
+
+
+class Oracle6NoArchPlugin(Oracle6):
+    def _get_checked_masters(self):
+        return [JAVA, JAVAC, LIBNSSCKBI_SO]
+
+
+class Oracle6ArchPlugin(Oracle6):
+    def _get_checked_masters(self):
+        return [JAVA, JAVAC, LIBNSSCKBI_SO + "." + self._get_arch()]
+
+    def _get_target(self, name):
+        target = super()._get_target(name)
+        target += "." + self._get_arch()
+        return target
+
+
+class Oracle7and8(Oracle6ArchPlugin):
+    def doc_and_clean_no_slave_binaries(self, pkg_binaries):
+        self._document("{} is not a binary. It is present in {} subpackages binaries. It has "
+                       "no slave in alternatives.".format(JMC_INI, DEVEL))
+        if JMC_INI in pkg_binaries[DEVEL]:
+            pkg_binaries[DEVEL].remove(JMC_INI)
+        else:
+            self.failed_tests.append(JMC_INI + NOT_PRESENT_IN + DEVEL + SUBPACKAGE)
+            self.binaries_test.log(JMC_INI + NOT_PRESENT_IN + DEVEL + SUBPACKAGE)
+        return pkg_binaries
+
+    def _get_target(self, name):
+        target = self._get_32bit_id_in_nvra(pkgsplit.get_nvra(name))
+        return target
+
+    def _get_checked_masters(self):
+        masters = super()._get_checked_masters()
+        masters.append(JAVAFXPACKAGER)
+        return masters
+
+    def _get_expected_subpkgs(self):
+        exp = super()._get_expected_subpkgs()
+        exp.append("javafx")
+        return exp
