@@ -82,6 +82,9 @@ class RpmList:
     def getDist(self):
         return self.expectSingleMeberSet(split.get_dist, "dist")
 
+    def getNvr(self):
+        return self.expectSingleMeberSet(split.get_name_version_release, "name version release")
+
     def getPackages(self):
         """This method is misleading and is getting nothing saying set of pacakges"""
         pset, props = self.getSetProperty(split.get_package_name)
