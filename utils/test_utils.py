@@ -4,6 +4,7 @@ import errno
 
 import config.global_config
 import outputControl.logging_access
+import config.runtime_config
 
 
 def closeTestSuite(passed, failed, mtc):
@@ -113,3 +114,11 @@ def rename_default_subpkg(subpkg):
     elif subpkg == "debug":
         subpkg = "default-debug"
     return subpkg
+
+def replace_archs_with_general_arch(names, arch):
+    clean_names = []
+    for name in names:
+        if arch in name:
+            name = name.replace(arch, "ARCH")
+        clean_names.append(name)
+    return clean_names
