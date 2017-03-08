@@ -6,13 +6,13 @@ import utils
 from utils.core.configuration_specific import JdkConfiguration
 import os
 import utils.pkg_name_split as pkgsplit
-from utils.test_utils import rename_default_subpkg
+from utils.test_utils import rename_default_subpkg, replace_archs_with_general_arch
 import utils.core.unknown_java_exception as ex
 from utils.mock.mock_executor import DefaultMock
 import config.runtime_config as rc
 from config.global_config import get_32b_arch_identifiers_in_scriptlets as get_id
-from utils.rpmbuild_utils import POSTINSTALL
 
+MANPAGE_SUFFIX = ".1.gz"
 SUBPACKAGE = "subpackage"
 MANPAGE = "Man page"
 SDK_BINARIES = "SDK binaries"
@@ -27,6 +27,7 @@ DEFAULT = "default"
 DEVEL = "devel"
 FILE = 1
 LINK = 0
+HEADLESS = "headless"
 
 
 # this test expects that binaries are equal to its slaves (checked in binaries_test)
@@ -36,7 +37,7 @@ class ManpageTestMethods(JdkConfiguration):
     rpms = rc.RuntimeConfig().getRpmList()
 
     def _get_manpage_suffixes(self):
-        return [".1.gz", "-" + self.rpms.getMajorPackage() + ".1.gz"]
+        return [MANPAGE_SUFFIX, "-" + self.rpms.getMajorPackage() + MANPAGE_SUFFIX]
 
     def _get_subpackages(self):
         return []
@@ -70,15 +71,16 @@ class ManpageTestMethods(JdkConfiguration):
         for pkg in pkgs:
             name = os.path.basename(pkg)
             _subpkg = rename_default_subpkg(pkgsplit.get_subpackage_only(name))
-            # expects binaries are only in devel/default subpackage, is consistent with binaries test
-            if _subpkg not in [DEVEL, DEFAULT]:
+            # expects binaries are only in devel/default/headless subpackage, is consistent with binaries test
+            if _subpkg not in [DEVEL, DEFAULT, HEADLESS]:
                 continue
 
             DefaultMock().importRpm(pkg)
 
             manpages = DefaultMock().execute_ls(MAN_DIR)[0].split("\n")
             manpages = self._clean_default_mpges(default_mans, manpages)
-            manpages_without_postscript[_subpkg] = manpages
+            if len(manpages) != 0:
+                manpages_without_postscript[_subpkg] = manpages
 
             if not DefaultMock().postinstall_exception_checked(pkg):
                 self.skipped.append(_subpkg)
@@ -86,7 +88,8 @@ class ManpageTestMethods(JdkConfiguration):
 
             manpages = DefaultMock().execute_ls(MAN_DIR)[0].split("\n")
             manpages = self._clean_default_mpges(default_mans, manpages)
-            manpages_with_postscript[_subpkg] = manpages
+            if len(manpages) != 0:
+                manpages_with_postscript[_subpkg] = manpages
             masters = DefaultMock().get_masters()
 
             checked_masters = [JAVA, JAVAC]
@@ -117,16 +120,24 @@ class ManpageTestMethods(JdkConfiguration):
         ManpageTests.instance.log(SDK_BINARIES + " without JRE binaries: " + ", ".join(devel_bins))
         bins[packages[1]] = devel_bins
 
-        self._manpages_check_with_command_man(bins)
-        self.manpages_without_postscript_check(manpages_without_postscript, default_mans, bins)
+        self._manpages_check_with_command_man(bins, pkgs)
+        self.manpages_with_out_postscript_check(manpages_without_postscript, default_mans, bins)
         self.manpages_with_postscript_check(manpages_with_postscript, bins)
 
+        ManpageTests.instance.log("Failed tests: " + ", ".join(self.failed))
         assert(len(self.failed) == 0)
 
     # master man pages with command
-    def _manpages_check_with_command_man(self, bins):
+    def _manpages_check_with_command_man(self, bins, pkgs):
         for subpkg in bins.keys():
-            DefaultMock().getSnapshot(POSTINSTALL + "_" + subpkg + "_" + self._get_arch())
+            pack = None
+            for pkg in pkgs:
+                if subpkg == utils.test_utils.rename_default_subpkg(pkgsplit.get_subpackage_only(os.path.basename(pkg))):
+                    pack = pkg
+                    break
+            if pack is None:
+                raise AttributeError("Error occured during searching for snapshot.")
+            DefaultMock().install_postscript(pack)
             for b in bins[subpkg]:
                 o, r = DefaultMock().executeCommand(["man " + b])
                 if r != 0:
@@ -135,9 +146,9 @@ class ManpageTestMethods(JdkConfiguration):
                                               "Error output: {} , {}.".format(b, subpkg, SUBPACKAGE, o, r))
 
     # man pages without postscript check, should be there once - only file
-    def manpages_without_postscript_check(self, manpages_without_postscript=None, default_mans=None, bins=None):
-        self._document("When rpm is only unpacked, there should be only man page file "
-                       "with {} suffix.".format(self._get_manpage_suffixes()[FILE]))
+    def manpages_with_out_postscript_check(self, manpages_without_postscript=None, default_mans=None, bins=None):
+        self._document("When rpm is installed, man page file exists for each binary and is suffixed with "
+                       "with {} suffix.".format(replace_archs_with_general_arch(self._get_manpage_suffixes(), self._get_arch())[FILE]))
         for subpkg in manpages_without_postscript.keys():
             unpacked_mpges = self._clean_default_mpges(default_mans, manpages_without_postscript[subpkg])
             for binary in bins[subpkg]:
@@ -153,8 +164,8 @@ class ManpageTestMethods(JdkConfiguration):
     # man pages with postscript check, should be there twice  - link and man page file
     def manpages_with_postscript_check(self, manpages_with_postscript=None, bins=None):
         checked_manpages_suffixes = self._get_manpage_suffixes()
-        self._document("When postscript is installed, there should be both man file with {} suffix and link with"
-                       " {} suffix.".format(checked_manpages_suffixes[FILE], checked_manpages_suffixes[LINK]))
+        self._document("Each man page file has an alternatives record without full NVRA, only with "
+                       "{} suffix.".format(replace_archs_with_general_arch(self._get_manpage_suffixes(), self._get_arch())[LINK]))
         for subpackage in manpages_with_postscript.keys():
             installed_mpges = manpages_with_postscript[subpackage]
             for bin in bins[subpackage]:
@@ -183,6 +194,17 @@ class OpenJdk6(ManpageTestMethods):
         return [DEFAULT, DEVEL]
 
 
+class OpenJdk7(ManpageTestMethods):
+    def _get_subpackages(self):
+        return [HEADLESS, DEVEL]
+
+    def _get_manpage_suffixes(self):
+        return [MANPAGE_SUFFIX, "-" + self.rpms.getNvr() + "." + self._get_arch() + MANPAGE_SUFFIX]
+
+    def _clean_up_binaries(self, binaries, master):
+        return binaries
+
+
 class ManpageTests(bt.BaseTest):
     instance = None
 
@@ -198,6 +220,9 @@ class ManpageTests(bt.BaseTest):
         if rpms.getVendor() == gc.OPENJDK:
             if rpms.getMajorVersionSimplified() == "6":
                 self.csch = OpenJdk6()
+                return
+            elif rpms.getMajorVersionSimplified() == "7":
+                self.csch = OpenJdk7()
                 return
             else:
                 raise ex.UnknownJavaVersionException("Unknown java version.")
