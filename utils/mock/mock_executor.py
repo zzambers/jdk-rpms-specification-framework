@@ -263,14 +263,10 @@ class Mock:
         return self._install_scriptlet(pkg, utils.rpmbuild_utils.POSTINSTALL)
 
     def _install_scriptlet(self, pkg, scriptlet):
-        scriptlet_pkg = str(scriptlet + "_"
-                            + rename_default_subpkg(pkgsplit.get_subpackage_only(os.path.basename(pkg)))
-                            + "_"
-                            + gc.get_32b_arch_identifiers_in_scriptlets(utils.pkg_name_split.get_arch(os.path.basename(pkg))))
-        key = scriptlet_pkg
+        key = re.sub('[^0-9a-zA-Z]+', '_', ntpath.basename(pkg) + "_" + scriptlet)
         if key in self.snapshots:
             outputControl.logging_access.LoggingAccess().log(pkg + " already extracted in snapshot. Rolling to " + key)
-            self.getSnapshot(scriptlet_pkg)
+            self.getSnapshot(key)
             return
 
         self.importRpm(pkg)
@@ -282,7 +278,7 @@ class Mock:
             o, r = self.executeScriptlet(pkg, scriptlet)
             outputControl.logging_access.LoggingAccess().log(scriptlet + "returned " +
                                                              str(r) + " of " + os.path.basename(pkg))
-            self.createSnapshot(scriptlet_pkg)
+            self.createSnapshot(key)
 
     def execute_ls(self, dir):
         return self.executeCommand(["ls " + dir])
