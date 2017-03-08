@@ -76,7 +76,7 @@ def get_vendor(name):
 def get_major_package_name(name):
     """or java-1.8.0-openjdk"""
     parts = _hyphen_split(name)
-    return "-".join(parts[0:3])
+    return "-".join(set(parts[0:3]))
 
 
 def get_package_name(name):
@@ -134,3 +134,6 @@ def get_nvra(name):
         name = name.replace(".rpm", "")
 
     return name
+
+def get_name_version_release(name):
+    return get_nvra(name).replace("." + get_arch(name), "")
