@@ -3,25 +3,32 @@ TODO (what the framework should do):
 - test that given set of rpms (jdk x os x arch) satisfies:
 
 	* names of the pkgs are as expected
-	- priority check
-	 	- debugpackage have lowered, contains version/release, length is known, prefix s known
-	x all subpackages are present
+	* priority check
+	 	* debugpackage have lower than normal ones, contains version/release, length is known, prefix is known
+	* master and postinstall test
+	    * contains correct set of masters for each pkg
+	    * postinstall script only in packages that are supposed to have it
+	* all subpackages are present
 	* download single-arch (+noarch) parts of build from brew/koji
 	* none subpackage is empty unless expected
 	- check config files are as expected
 	x provides and obsolaetes (and requires?) are as expected
-	- plugin, javaws, jcontrol sanity
-		- if plugin pkg is present, then javaws and jcontrol files should be in that pkg
-		- if plugin pkg is present, then it should provide javaws and jcontrol
+	* plugin, javaws, jcontrol sanity
+		* if plugin pkg is present, then javaws and jcontrol, ControlPanel files should be in that pkg
+		* if plugin pkg is present, then it should provide javaws and jcontrol, ControlPanel
 	- broken symlinks
-	- alternatives are correct
-	- alternatives and binaries in bin or jre/bin are correct
-	- man page corresponds to existing manpages, to alternatives and to binaries in bin jre/bin
+	x alternatives are correct
+	* alternatives and binaries in bin or jre/bin are correct
+	x man page corresponds to existing manpages, to alternatives and to binaries in bin jre/bin
 	- desktop shortcuts are sane
 	- all connections of  binaries x desktop files x alternatives are sane
-	- download whole build from brew/koji (a set of rpms for each arch) and check:
+	x download whole build from brew/koji (a set of rpms for each arch) and check:
 		- correct set of architectures is present
 		- test each architecture separately
+	- check that everything that postinstall script adds is removed when uninstalled - no idea how
+    x warm-up that prepares all the postscripts and other snapshots - seems like its gonna check everything
+    - versionless/versionfull link check - subdirectories in usr/lib/jre/nvra - n - nv -nvr ...
+    - executable permission (slave 755)
 
 * generate in human-readable form, what it itself test
 
@@ -34,3 +41,14 @@ notes:
 	decide whether to use static analys of scripelts, or apply in chroot
 		static analys is easy and faset, but error prone
 		installing to chroot is very errorproof, but very time consuming
+
+minor_tasks:
+* rename mock_executor install script snapshots to something more bug-proof
+- binary test - policytool can be handled by small methods overriding each other in OpenJdk6/7/8 classes
+- for anything but postinstall check, there should be a workaround so we do not check anything but default and
+  devel pkg, might speed up the tests a little bit
+- delete all ibm6 testcases
+- refactor postinstall test
+- fix doc bug
+
+
