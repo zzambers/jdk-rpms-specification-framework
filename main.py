@@ -40,12 +40,12 @@ def header():
 
 
 def runDocks():
-    header();
+    header()
     logging_access.LoggingAccess().log("Running documentation")
     dlist = []
     ilist = []
     flist = []
-    files = getTestFiles();
+    files = getTestFiles()
     for file in files:
         test_module = importlib.import_module(file)
         func = getattr(test_module, "documentAll")
@@ -57,12 +57,12 @@ def runDocks():
 
 
 def runTasks():
-    header();
+    header()
     logging_access.LoggingAccess().log("Running all testsuites")
     plist=[]
     flist=[]
     clist = []
-    files = getTestFiles();
+    files = getTestFiles()
     for file in files:
         test_module = importlib.import_module(file)
         func = getattr(test_module, "testAll")
