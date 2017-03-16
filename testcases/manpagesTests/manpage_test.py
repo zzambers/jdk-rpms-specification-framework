@@ -28,6 +28,7 @@ DEVEL = "devel"
 FILE = 1
 LINK = 0
 HEADLESS = "headless"
+DEBUG_SUFFIX = "-debug"
 
 
 # this test expects that binaries are equal to its slaves (checked in binaries_test)
@@ -36,7 +37,7 @@ class ManpageTestMethods(JdkConfiguration):
     failed = []
     rpms = rc.RuntimeConfig().getRpmList()
 
-    def _get_manpage_suffixes(self):
+    def _get_manpage_suffixes(self, subpackage):
         return [MANPAGE_SUFFIX, "-" + self.rpms.getMajorPackage() + MANPAGE_SUFFIX]
 
     def _get_subpackages(self):
@@ -51,6 +52,9 @@ class ManpageTestMethods(JdkConfiguration):
     def _clean_default_mpges(self, default_mans, all_mpgs):
         extracted_mpges = list(set(all_mpgs) - set(default_mans))
         return extracted_mpges
+
+    def _clean_debug_subpackages(self, bins):
+        return
 
     # wont be doc-ed, is already handled in binary test
     def _remove_java_rmi_cgi(self, binaries):
@@ -72,7 +76,7 @@ class ManpageTestMethods(JdkConfiguration):
             name = os.path.basename(pkg)
             _subpkg = rename_default_subpkg(pkgsplit.get_subpackage_only(name))
             # expects binaries are only in devel/default/headless subpackage, is consistent with binaries test
-            if _subpkg not in [DEVEL, DEFAULT, HEADLESS]:
+            if _subpkg not in self._get_subpackages():
                 continue
 
             DefaultMock().importRpm(pkg)
@@ -112,11 +116,12 @@ class ManpageTestMethods(JdkConfiguration):
         ManpageTests.instance.log("Cleaning {} from JRE binaries "
                                   "(JRE bins do not have man pages in {}.)" .format(SDK_BINARIES, DEVEL))
         devel_bins = []
-        ManpageTests.instance.log("Original " + SDK_BINARIES + ": " + ", ".join(bins[packages[1]]))
+        ManpageTests.instance.log("Original " + SDK_BINARIES + ": " + ", ".join(bins[DEVEL]))
 
         for b in bins[packages[1]]:
             if b not in bins[packages[0]]:
                 devel_bins.append(b)
+        self._clean_debug_subpackages(bins)
         ManpageTests.instance.log(SDK_BINARIES + " without JRE binaries: " + ", ".join(devel_bins))
         bins[packages[1]] = devel_bins
 
@@ -147,8 +152,10 @@ class ManpageTestMethods(JdkConfiguration):
 
     # man pages without postscript check, should be there once - only file
     def manpages_with_out_postscript_check(self, manpages_without_postscript=None, default_mans=None, bins=None):
-        self._document("When rpm is installed, man page file exists for each binary and is suffixed with "
-                       "with {} suffix.".format(replace_archs_with_general_arch(self._get_manpage_suffixes(), self._get_arch())[FILE]))
+        docs = "When rpm is installed, man page file exists for each binary and is suffixed with " \
+               "{} suffix.".format(replace_archs_with_general_arch(self._get_manpage_suffixes(DEFAULT),
+                                                                   self._get_arch())[FILE])
+        self._document(docs)
         for subpkg in manpages_without_postscript.keys():
             unpacked_mpges = self._clean_default_mpges(default_mans, manpages_without_postscript[subpkg])
             for binary in bins[subpkg]:
@@ -162,11 +169,25 @@ class ManpageTestMethods(JdkConfiguration):
                     ManpageTests.instance.log(MANPAGE_FOR_BINARY + " " + binary + " " + WAS_NOT_FOUND)
 
     # man pages with postscript check, should be there twice  - link and man page file
+    def manpages_file_debug_subpackages_doc(self, args):
+        rpms_by_arch = self.rpms.getPackagesByArch(ManpageTests.instance.getCurrentArch())
+        has_debug = False
+        for rpm in rpms_by_arch:
+            if HEADLESS + DEBUG_SUFFIX in rpm:
+                has_debug = True
+                break
+
+        if has_debug:
+            self._document(" For debug subpackages, manpage file is suffixed " \
+                    "with {}.".format(replace_archs_with_general_arch((self._get_manpage_suffixes(DEBUG_SUFFIX)),
+                                                                      self._get_arch())[FILE]))
+        return
+
     def manpages_with_postscript_check(self, manpages_with_postscript=None, bins=None):
-        checked_manpages_suffixes = self._get_manpage_suffixes()
         self._document("Each man page file has an alternatives record without full NVRA, only with "
-                       "{} suffix.".format(replace_archs_with_general_arch(self._get_manpage_suffixes(), self._get_arch())[LINK]))
+                       "{} suffix.".format(replace_archs_with_general_arch(self._get_manpage_suffixes(DEFAULT), self._get_arch())[LINK]))
         for subpackage in manpages_with_postscript.keys():
+            checked_manpages_suffixes = self._get_manpage_suffixes(subpackage)
             installed_mpges = manpages_with_postscript[subpackage]
             for bin in bins[subpackage]:
                 for suffix in checked_manpages_suffixes:
@@ -191,18 +212,48 @@ class OpenJdk6(ManpageTestMethods):
         return binaries
 
     def _get_subpackages(self):
-        return [DEFAULT, DEVEL]
+        return [DEFAULT, DEVEL, ]
 
 
 class OpenJdk7(ManpageTestMethods):
+    # default subpackage has no alternatives, no slaves, no manpages
     def _get_subpackages(self):
         return [HEADLESS, DEVEL]
 
-    def _get_manpage_suffixes(self):
+    def _get_manpage_suffixes(self, subpackage):
         return [MANPAGE_SUFFIX, "-" + self.rpms.getNvr() + "." + self._get_arch() + MANPAGE_SUFFIX]
 
+    # policytool binary is in devel and default, slave in devel
     def _clean_up_binaries(self, binaries, master):
         return binaries
+
+
+class OpenJdk8(OpenJdk7):
+    # policytool binary is in default and devel, but slave in headless
+    def _clean_up_binaries(self, binaries, master):
+        if master == JAVA:
+            binaries.append(POLICYTOOL)
+        return binaries
+
+
+class OpenJdk8WithDebug(OpenJdk8):
+    def _clean_debug_subpackages(self, bins):
+        devel_bins = []
+        ManpageTests.instance.log("Original debug " + SDK_BINARIES + ": " + ", ".join(bins[self._get_subpackages()[3]]))
+        for b in bins[self._get_subpackages()[3]]:
+            if b not in bins[self._get_subpackages()[2]]:
+                devel_bins.append(b)
+        bins[DEVEL + DEBUG_SUFFIX] = devel_bins
+        return
+
+    def _get_subpackages(self):
+        return [HEADLESS, DEVEL, HEADLESS + DEBUG_SUFFIX, DEVEL + DEBUG_SUFFIX]
+
+    def _get_manpage_suffixes(self, subpackage):
+        if DEBUG_SUFFIX in subpackage:
+            return [MANPAGE_SUFFIX, "-" + self.rpms.getNvr() + "." + self._get_arch() + DEBUG_SUFFIX + MANPAGE_SUFFIX]
+        else:
+            return super()._get_manpage_suffixes(subpackage)
 
 
 class ManpageTests(bt.BaseTest):
@@ -221,9 +272,19 @@ class ManpageTests(bt.BaseTest):
             if rpms.getMajorVersionSimplified() == "6":
                 self.csch = OpenJdk6()
                 return
+
             elif rpms.getMajorVersionSimplified() == "7":
                 self.csch = OpenJdk7()
                 return
+
+            elif rpms.getMajorVersionSimplified() == "8":
+                if self.getCurrentArch() in gc.getX86_64Arch() + gc.getIx86archs():
+                    self.csch = OpenJdk8WithDebug()
+                    return
+                else:
+                    self.csch = OpenJdk8()
+                    return
+
             else:
                 raise ex.UnknownJavaVersionException("Unknown java version.")
         else:
