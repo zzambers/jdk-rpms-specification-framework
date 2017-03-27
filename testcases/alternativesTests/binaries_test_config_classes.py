@@ -1,10 +1,102 @@
-from testcases.alternativesTests.binaries_test_methods import DEFAULT, DEVEL, EXPORTS_DIR, \
-    HEADLESS, JRE_LOCATION, SDK_LOCATION, DEBUG_SUFFIX, POLICYTOOL, PLUGIN, BinarySlaveTestMethods, \
+from testcases.alternativesTests.binaries_test_paths import DEFAULT, DEVEL, EXPORTS_DIR, \
+    HEADLESS, JRE_LOCATION, SDK_LOCATION, DEBUG_SUFFIX, POLICYTOOL, PLUGIN,  \
     BINARIES, JAVA, JAVAC, LIBJAVAPLUGIN, NOT_PRESENT_IN, SUBPACKAGE, LIBNSSCKBI_SO, \
     SLAVES, CAN_NOT_BE_IN, MUST_BE_IN, BINARY, SLAVE, BECAUSE_THIS_ARCH_HAS_NO, CONTROL_PANEL, JAVAWS, JCONTROL, \
-    JAVAFXPACKAGER, JMC_INI, GetAllBinariesAndSlaves
+    JAVAFXPACKAGER, JMC_INI, ITW_BIN_LOCATION, POLICYEDITOR
+from testcases.alternativesTests.binaries_test_methods import BinarySlaveTestMethods, GetAllBinariesAndSlaves
 import utils.pkg_name_split as pkgsplit
 from utils.mock.mock_executor import DefaultMock
+import os
+from utils.test_utils import rename_default_subpkg
+
+
+class Itw(BinarySlaveTestMethods):
+    def _get_checked_masters(self):
+        return [LIBJAVAPLUGIN + "." + self._get_arch()]
+
+    # there is no jre/sdk in itw
+    def _get_slave_pkgs(self):
+        return [[None], [None]]
+
+    def document_plugin_and_related_binaries(self, pkg_binaries, installed_slaves=None):
+        # here document that it is a special plugin package
+        self._document("ITW replaces plugin package for OpenJDK")
+        pass
+
+    def _get_expected_subpkgs(self, subpkgs):
+        return [DEFAULT]
+
+    def check_java_cgi(self, pkg_binaries):
+        return pkg_binaries
+
+    def exports_dir_check(self, dirs, exports_target=None, _subpkg=None):
+        self._document("ITW has no export directories")
+        return
+
+    def get_all_binaries_and_slaves(self, pkgs):
+        self._document("Binaries and slaves must be present only in {} subpackage.  ".format(DEFAULT))
+        pkg_binaries = {}
+        installed_slaves = {}
+        DefaultMock().provideCleanUsefullRoot()
+        clean_bins = DefaultMock().execute_ls(ITW_BIN_LOCATION)[0].split("\n")
+        # ITW specific: does not require postinstall to get binaries, only unpacking
+        for pkg in pkgs:
+            name = os.path.basename(pkg)
+            _subpkg = rename_default_subpkg(pkgsplit.get_subpackage_only(name))
+            if _subpkg != DEFAULT:
+                continue
+            DefaultMock().importRpm(pkg)
+            loc = DefaultMock().execute_ls(ITW_BIN_LOCATION)
+            if loc[1] != 0:
+                self.binaries_test.log(
+                    "Location {} does not exist, binaries test skipped for ".format(ITW_BIN_LOCATION) + name)
+                self.skipped.append(_subpkg)
+                continue
+            # to get slaves, we need the postinstall snapshot
+            if not DefaultMock().postinstall_exception_checked(pkg):
+                self.skipped.append(_subpkg)
+                continue
+            slaves = self.get_slaves(_subpkg)
+            installed_slaves[_subpkg] = slaves
+            pkg_binaries[_subpkg] = list(set(loc[0].split("\n")) - set(clean_bins))
+        return pkg_binaries, installed_slaves, {}
+
+    def _get_binaries_and_exports_directories(self, _subpkg, loc, name):
+        pass
+
+    def _export_directories_check(self, export_directories):
+        pass
+
+    def jre_sdk_exports_check(self, installed_slaves):
+        return installed_slaves
+
+    def check_policytool_for_jdk(self, pkg_binaries):
+        return pkg_binaries
+
+    def doc_and_clean_no_slave_binaries(self, pkg_binaries, installed_slaves=None):
+        bins = ['javaws.itweb', POLICYEDITOR]
+
+        itweb = 'itweb-settings.itweb'
+        self._document(itweb + " is an iced-tea binary. Its slave is " + CONTROL_PANEL)
+
+        for binary in pkg_binaries[DEFAULT]:
+            if binary in bins:
+                i = pkg_binaries[DEFAULT].index(binary)
+                pkg_binaries[DEFAULT][i] = binary.replace(".itweb", "")
+
+        if itweb in pkg_binaries[DEFAULT]:
+            pkg_binaries[DEFAULT].remove(itweb)
+        else:
+            self.failed_tests.append(itweb + " binary missing in " + DEFAULT)
+        if CONTROL_PANEL in installed_slaves[DEFAULT]:
+            installed_slaves[DEFAULT].remove(CONTROL_PANEL)
+        else:
+            self.failed_tests.append(CONTROL_PANEL + " slave missing in " + DEFAULT)
+
+        return pkg_binaries, installed_slaves
+
+    def _all_jre_in_sdk_check(self, pkg_binaries):
+        return pkg_binaries
 
 
 class OpenJdk6(BinarySlaveTestMethods):
@@ -38,7 +130,7 @@ class OpenJdk6(BinarySlaveTestMethods):
                        "\n - {} binary must be present in {} "
                        "subpackages.".format(POLICYTOOL, " and ".join(self._get_policytool_location()[JRE_LOCATION])) +
                        "\n - {} slave must be present in {} "
-                       "subpackages.".format(POLICYTOOL, " and ".join( policytool_location[1])))
+                       "subpackages.".format(POLICYTOOL, " and ".join(policytool_location[1])))
         def_debug_pkg = None
         def_pkg = None
 
@@ -150,7 +242,7 @@ class IbmBaseMethods(BinarySlaveTestMethods):
         directory = EXPORTS_DIR + target
         return directory
 
-    def doc_and_clean_no_slave_binaries(self, pkg_binaries):
+    def doc_and_clean_no_slave_binaries(self, pkg_binaries, installed_slaves=None):
         lcs = self._get_jre_sdk_locations()
         notbinaries = ["klist", "kinit", "ktab"]
         notinsdk = ["ikeycmd", "ikeyman"]
@@ -173,9 +265,9 @@ class IbmBaseMethods(BinarySlaveTestMethods):
                     self.binaries_test.log(binary + NOT_PRESENT_IN + str(subpackage) + " " + SUBPACKAGE + BINARIES)
                 else:
                     pkg_binaries[subpackage].remove(binary)
-        return pkg_binaries
+        return pkg_binaries, installed_slaves
 
-    def document_plugin_and_related_binaries(self, pkg_binaries, installed_slaves = None):
+    def document_plugin_and_related_binaries(self, pkg_binaries, installed_slaves=None):
         lcs = self._get_jre_sdk_locations()
         locs = lcs[JRE_LOCATION] + lcs[SDK_LOCATION]
         bins = [JCONTROL, CONTROL_PANEL, JAVAWS]
@@ -199,7 +291,7 @@ class IbmBaseMethods(BinarySlaveTestMethods):
                                             BECAUSE_THIS_ARCH_HAS_NO + PLUGIN + " " + SUBPACKAGE)
         return
 
-    def exports_dir_check(self, dirs, exports_target = None, _subpkg = None):
+    def exports_dir_check(self, dirs, exports_target=None, _subpkg=None):
         self._document("IBM java does not have export directory for {} subpackage.".format(DEVEL) +
                        "\n - Exports slaves point at {} directory. ".format(EXPORTS_DIR))
         if _subpkg == DEVEL:
@@ -215,7 +307,7 @@ class IbmBaseMethods(BinarySlaveTestMethods):
 
 
 class IbmWithPluginSubpkg(IbmBaseMethods):
-    def document_plugin_and_related_binaries(self, pkg_binaries, installed_slaves = None):
+    def document_plugin_and_related_binaries(self, pkg_binaries, installed_slaves=None):
         lcs = self._get_jre_sdk_locations()
         bins = [JCONTROL, CONTROL_PANEL, JAVAWS]
         self._document("{} are binaries related with {}. They are present and have slaves only in {} "
@@ -234,30 +326,25 @@ class IbmWithPluginSubpkg(IbmBaseMethods):
                     self.failed_tests.append(b + " " + BINARY + CAN_NOT_BE_IN + str(l))
                     self.binaries_test.log(b + " " + BINARY + CAN_NOT_BE_IN + str(l) + ", it " + MUST_BE_IN +
                                            PLUGIN + " " + SUBPACKAGE)
-                    pkg_binaries[l].remove(b)
                 if b in installed_slaves[l]:
                     self.failed_tests.append( b + " " + SLAVE + CAN_NOT_BE_IN + str(l))
                     self.binaries_test.log(b + " " + SLAVE + CAN_NOT_BE_IN + str(l)+ ", it" + MUST_BE_IN +
                                            PLUGIN + " " + SUBPACKAGE)
-                    installed_slaves[l].remove(b)
         return
-
-    def _has_plugin_subpkg(self):
-        return [PLUGIN]
 
     def _get_checked_masters(self):
         masters = super()._get_checked_masters()
         masters.append(LIBJAVAPLUGIN)
         return masters
 
-    def _get_expected_subpkgs(self):
-        exp = super()._get_expected_subpkgs()
+    def _get_expected_subpkgs(self, subpkgs):
+        exp = super()._get_expected_subpkgs(subpkgs)
         exp.append("plugin")
         return exp
 
 
 class IbmS390Archs(IbmBaseMethods):
-    def document_plugin_and_related_binaries(self, pkg_binaries, installed_slaves = None):
+    def document_plugin_and_related_binaries(self, pkg_binaries, installed_slaves=None):
         lcs = self._get_jre_sdk_locations()
         bins = [JCONTROL, CONTROL_PANEL, JAVAWS]
         self._document("{} are not present in binaries in any subpackage. This architecture "
@@ -286,8 +373,8 @@ class IbmArchMasterPlugin(IbmWithPluginSubpkg):
 
 
 class Oracle6(IbmWithPluginSubpkg):
-    def doc_and_clean_no_slave_binaries(self, pkg_binaries):
-        return pkg_binaries
+    def doc_and_clean_no_slave_binaries(self, pkg_binaries, installed_slaves=None):
+        return pkg_binaries, installed_slaves
 
     def _get_target(self, name):
         target = self._get_32bit_id_in_nvra(pkgsplit.get_nvra(name))
@@ -295,7 +382,7 @@ class Oracle6(IbmWithPluginSubpkg):
         target = target.replace("-" + unnecessary_part, "")
         return target
 
-    def exports_dir_check(self, dirs, exports_target = None, _subpkg = None):
+    def exports_dir_check(self, dirs, exports_target=None, _subpkg=None):
         return super(GetAllBinariesAndSlaves, self).exports_dir_check(dirs, exports_target, _subpkg)
 
     def _clean_bin_dir_for_ibm(self, binaries):
@@ -318,7 +405,7 @@ class Oracle6ArchPlugin(Oracle6):
 
 
 class Oracle7and8(Oracle6ArchPlugin):
-    def doc_and_clean_no_slave_binaries(self, pkg_binaries):
+    def doc_and_clean_no_slave_binaries(self, pkg_binaries, installed_slaves=None):
         self._document("{} is not a binary. It is present in {} subpackages binaries. It has "
                        "no slave in alternatives.".format(JMC_INI, DEVEL))
         if JMC_INI in pkg_binaries[DEVEL]:
@@ -326,7 +413,7 @@ class Oracle7and8(Oracle6ArchPlugin):
         else:
             self.failed_tests.append(JMC_INI + NOT_PRESENT_IN + DEVEL + SUBPACKAGE)
             self.binaries_test.log(JMC_INI + NOT_PRESENT_IN + DEVEL + SUBPACKAGE)
-        return pkg_binaries
+        return pkg_binaries, installed_slaves
 
     def _get_target(self, name):
         target = self._get_32bit_id_in_nvra(pkgsplit.get_nvra(name))
@@ -337,7 +424,7 @@ class Oracle7and8(Oracle6ArchPlugin):
         masters.append(JAVAFXPACKAGER)
         return masters
 
-    def _get_expected_subpkgs(self):
-        exp = super()._get_expected_subpkgs()
+    def _get_expected_subpkgs(self, subpkgs):
+        exp = super()._get_expected_subpkgs(subpkgs)
         exp.append("javafx")
         return exp

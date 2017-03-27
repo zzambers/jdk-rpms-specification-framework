@@ -7,7 +7,7 @@ import utils.core.unknown_java_exception as ex
 import utils
 from testcases.alternativesTests.binaries_test_config_classes import OpenJdk8, OpenJdk7, OpenJdk8Intel,\
     OpenJdk6PowBeArchAndX86, OpenJdk6, IbmBaseMethods, IbmWithPluginSubpkg, IbmS390Archs, IbmArchMasterPlugin,\
-    Oracle6ArchPlugin, Oracle6NoArchPlugin, Oracle7and8
+    Oracle6ArchPlugin, Oracle6NoArchPlugin, Oracle7and8, Itw
 
 
 class BinariesTest(bt.BaseTest):
@@ -94,6 +94,10 @@ class BinariesTest(bt.BaseTest):
                 return
             else:
                 raise ex.UnknownJavaVersionException("Unknown Oracle java version")
+
+        elif rpms.getVendor() == gc.ITW:
+            self.csch = Itw(BinariesTest.instance)
+            return
 
         else:
             raise ex.UnknownJavaVersionException("Unknown platform, java was not identified.")
