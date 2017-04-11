@@ -1,6 +1,7 @@
 from collections import namedtuple
 import config.global_config
 import ntpath
+from collections import OrderedDict
 
 RpmNameParts = namedtuple('RpmNameParts',
                           ['java', 'java_ver', 'vendor', 'pkg',
@@ -76,7 +77,7 @@ def get_vendor(name):
 def get_major_package_name(name):
     """or java-1.8.0-openjdk"""
     parts = _hyphen_split(name)
-    return "-".join(set(parts[0:3]))
+    return "-".join(list(OrderedDict.fromkeys(parts[0:3])))
 
 
 def get_package_name(name):
