@@ -12,19 +12,11 @@ import utils
 from utils.mock.mock_executor import DefaultMock
 from config.global_config import get_32b_arch_identifiers_in_scriptlets as get_id
 from utils.test_utils import rename_default_subpkg
+from utils.test_constants import *
 
-JAVAFXPACKAGER = "javafxpackager"
-JAVAFX = "javafx"
 JAVADOCZIP = 'javadoczip'
 JAVADOCDIR = 'javadocdir'
 JAVADOC_ZIP = "javadoc-zip"
-JAVADOC = "javadoc"
-DEVEL = "devel"
-DEFAULT = "default"
-DEBUG_SUFFIX = "-debug"
-HEADLESS = "headless"
-PLUGIN = "plugin"
-LIBJAVAPLUGIN = "libjavaplugin.so"
 
 
 class BasePackages(JdkConfiguration):
@@ -172,12 +164,12 @@ class ProprietaryJava6(OpenJdk6):
     def _generate_masters(self):
         masters = super(ProprietaryJava6, self)._generate_masters()
         masters[DEFAULT].append(self._add_local_policy())
-        masters[PLUGIN] = [self._add_plugin()]
+        masters[PLUGIN] = self._add_plugin()
         masters.pop(JAVADOC)
         return masters
 
     def _add_plugin(self):
-        return LIBJAVAPLUGIN
+        return [LIBJAVAPLUGIN]
 
     def _add_local_policy(self):
         return "jce_" + self._get_version() + "_" + self._get_vendor() + "_local_policy"
@@ -213,7 +205,7 @@ class Ibm7(ProprietaryJava7and8Base):
 
 class Ibm7x86(Ibm7):
     def _add_plugin(self):
-        return self._get_masters_arch_copy(LIBJAVAPLUGIN)
+        return [self._get_masters_arch_copy(LIBJAVAPLUGIN)]
 
 
 class Ibm7WithoutPlugin(Ibm7):
@@ -232,7 +224,7 @@ class Oracle7(ProprietaryJava7and8Base):
 
 class Ibm8(ProprietaryJava7and8Base):
     def _add_plugin(self):
-        return self._get_masters_arch_copy(LIBJAVAPLUGIN)
+        return [self._get_masters_arch_copy(LIBJAVAPLUGIN)]
 
 
 class Ibm8WithoutPlugin(Ibm8):
@@ -244,7 +236,7 @@ class Ibm8WithoutPlugin(Ibm8):
 
 class Oracle8x86(Oracle7):
     def _add_plugin(self):
-        return self._get_masters_arch_copy(LIBJAVAPLUGIN)
+        return [self._get_masters_arch_copy(LIBJAVAPLUGIN)]
 
 
 class PostinstallScriptTest(bt.BaseTest):
