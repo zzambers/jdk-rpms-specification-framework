@@ -1,7 +1,5 @@
 import sys
 import os
-
-
 from utils.core.configuration_specific import JdkConfiguration
 from utils.mock.mock_executor import DefaultMock
 import config.runtime_config
@@ -11,8 +9,15 @@ from outputControl import logging_access as la
 import utils.core.base_xtest
 import utils.rpm_list
 import utils.pkg_name_split
-import utils.rpmbuild_utils as rbu
 import utils.mock.mock_execution_exception
+from utils.test_constants import *
+
+PREFIX_160 = "160"
+PREFIX_170 = "170"
+PREFIX_180 = "180"
+LEN_5 = 5
+LEN_6 = 6
+LEN_7 = 7
 
 
 class CommonMethods(JdkConfiguration):
@@ -60,8 +65,8 @@ class CommonMethods(JdkConfiguration):
         pkgs = pkg_priorities.keys()
 
         for pkg in pkgs:
-            if "-debug" in pkg:
-                name = pkg.replace("-debug", "")
+            if DEBUG_SUFFIX in pkg:
+                name = pkg.replace(DEBUG_SUFFIX, "")
             else:
                 continue
 
@@ -125,37 +130,37 @@ class MajorCheck(CommonMethods):
 
 class OpenJdk6(MajorCheck):
     def __init__(self):
-        super(OpenJdk6, self).__init__(5, "160")
+        super().__init__(LEN_5, PREFIX_160)
 
 
 class OpenJdk7(MajorCheck):
     def __init__(self):
-        super(OpenJdk7, self).__init__(7, "170")
+        super().__init__(LEN_7, PREFIX_170)
 
 
 class OpenJdk8(MajorCheck):
     def __init__(self):
-        super(OpenJdk8, self).__init__(7, "180")
+        super().__init__(LEN_7, PREFIX_180)
 
 
 class ProprietaryJava6(MajorCheck):
     def __init__(self):
-        super(ProprietaryJava6, self).__init__(6, "160")
+        super().__init__(LEN_6, PREFIX_160)
 
 
 class ProprietaryJava7(MajorCheck):
     def __init__(self):
-        super(ProprietaryJava7, self).__init__(6, "170")
+        super().__init__(LEN_6, PREFIX_170)
 
 
 class ProprietaryJava8(MajorCheck):
     def __init__(self):
-        super(ProprietaryJava8, self).__init__(6, "180")
+        super().__init__(LEN_6, PREFIX_180)
 
 
 class IcedTeaWeb(MajorCheck):
     def __init__(self):
-        super(IcedTeaWeb, self).__init__(5, "180")
+        super().__init__(LEN_5, PREFIX_180)
 
 
 class PriorityCheck(utils.core.base_xtest.BaseTest):
