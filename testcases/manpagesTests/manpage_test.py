@@ -28,6 +28,15 @@ class ManpageTestMethods(JdkConfiguration):
     failed = []
     rpms = rc.RuntimeConfig().getRpmList()
 
+    def _remove_excludes(self, binaries):
+        excludes = self._get_excludes()
+        if len(excludes) == 0:
+            return binaries
+        for e in excludes:
+            if e in binaries:
+                binaries.remove(e)
+        return binaries
+
     def _get_extra_bins(self, plugin_bin_content):
         return []
 
@@ -73,6 +82,9 @@ class ManpageTestMethods(JdkConfiguration):
 
     def _itw_plugin_bin_location(self):
         return "/usr/lib"
+
+    def _get_excludes(self):
+        return []
 
     def _clean_sdk_from_jre(self, bins, packages):
         ManpageTests.instance.log("Cleaning {} from JRE binaries "
@@ -149,6 +161,7 @@ class ManpageTestMethods(JdkConfiguration):
                 binaries = DefaultMock().execute_ls(tg)[0].split("\n")
                 binaries = self._clean_up_binaries(binaries, m, usr_bin_content)
                 binaries = self._remove_java_rmi_cgi(binaries)
+                binaries = self._remove_excludes(binaries)
                 plugin_binaries = self._get_extra_bins(plugin_bin_content)
                 bins[_subpkg] = binaries + plugin_binaries
 
@@ -169,7 +182,6 @@ class ManpageTestMethods(JdkConfiguration):
 
         self.iced_tea_web_check(manpages_with_postscript, manpages_without_postscript)
 
-        print(self.failed)
         ManpageTests.instance.log("Failed tests: " + ", ".join(self.failed))
         assert(len(self.failed) == 0)
 
@@ -184,9 +196,8 @@ class ManpageTestMethods(JdkConfiguration):
 
         if has_debug:
             self._document(" For debug subpackages, man page file is suffixed " \
-                           "with {}.".format(
-                replace_archs_with_general_arch((self._get_manpage_suffixes(DEBUG_SUFFIX)),
-                                                self._get_arch())[FILE]))
+                           "with {}.".format(replace_archs_with_general_arch((self._get_manpage_suffixes(DEBUG_SUFFIX)),
+                                                                             self._get_arch())[FILE]))
         return
 
 
@@ -329,6 +340,31 @@ class Itw64Bit(ITW):
         return "/usr/lib64/mozilla/plugins"
 
 
+class Oracle(ManpageTestMethods):
+    def _get_subpackages(self):
+        return [DEFAULT, DEVEL, PLUGIN]
+
+    def _clean_up_binaries(self, binaries, master, usr_bin):
+        return binaries
+
+    def _get_checked_masters(self):
+        return [JAVA, JAVAC]
+
+    def _get_manpage_suffixes(self, subpackage):
+        return [MANPAGE_SUFFIX, "-" + self.rpms.getNvr() + "." + self._get_arch() + MANPAGE_SUFFIX]
+
+    def _get_excludes(self):
+        return oracle_exclude_list()
+
+
+class Oracle6(Oracle):
+    def _get_manpage_suffixes(self, subpackage):
+        return [MANPAGE_SUFFIX, "-" + self.rpms.getMajorPackage() + "." + self._get_arch() + MANPAGE_SUFFIX]
+
+    def _get_excludes(self):
+        return []
+
+
 class ManpageTests(bt.BaseTest):
     instance = None
 
@@ -369,6 +405,15 @@ class ManpageTests(bt.BaseTest):
             else:
                 self.csch = ITW()
                 return
+        elif rpms.getVendor() == gc.SUN or rpms.getVendor() == gc.ORACLE:
+            if rpms.getMajorVersionSimplified() == "6":
+                self.csch = Oracle6()
+                return
+            elif rpms.getMajorVersionSimplified() == "7" or rpms.getMajorVersionSimplified() == "8":
+                self.csch = Oracle()
+                return
+            else:
+                raise ex.UnknownJavaVersionException("Unknown java version.")
 
         else:
             raise ex.UnknownJavaVersionException("Unknown platform, java was not identified.")
