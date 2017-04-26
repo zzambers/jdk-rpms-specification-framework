@@ -5,20 +5,12 @@ from utils.mock.mock_execution_exception import MockExecutionException
 from utils.test_utils import rename_default_subpkg
 from config.global_config import get_32b_arch_identifiers_in_scriptlets as get_id
 import os
+from utils.test_constants import *
 
-JAVA_CGI = "java-rmi.cgi"
-DEBUG_SUFFIX = "-debug"
-HEADLESS = "headless"
-DEVEL = "devel"
-DEFAULT = "default"
 JVM_DIR = "/usr/lib/jvm/"
 EXPORTS_DIR = "/usr/lib/jvm-exports/"
-POLICYTOOL = "policytool"
 SDK_LOCATION = 1
 JRE_LOCATION = 0
-PLUGIN = "plugin"
-JAVA = "java"
-JAVAC = "javac"
 SUBPACKAGE = "subpackage "
 SUBPACKAGES = "subpackages "
 PRESENTED = "presented "
@@ -33,13 +25,8 @@ BINARY = "binary "
 SLAVE = "slave "
 BECAUSE_THIS_ARCH_HAS_NO = ", because this architecture has no "
 JCONTROL = "jcontrol"
-CONTROL_PANEL = "ControlPanel"
 JAVAWS = "javaws"
 MISSING = "missing "
-LIBJAVAPLUGIN = "libjavaplugin.so"
-LIBNSSCKBI_SO = "libnssckbi.so"
-JAVAFXPACKAGER = "javafxpackager"
-JMC_INI = "jmc.ini"
 ITW_BIN_LOCATION = "/usr/bin"
 POLICYEDITOR = 'policyeditor.itweb'
 
@@ -56,8 +43,8 @@ class BaseTest(JdkConfiguration):
     def _clean_bin_dir_for_ibm(self, binaries):
         return binaries
 
-     # this handles everything connected to plugin - jcontrol, ControlPanel, javaws binaries,
-     # slaves, where they should be and plugin subpackage - if it is present on current arch
+    # this handles everything connected to plugin - jcontrol, ControlPanel, javaws binaries,
+    # slaves, where they should be and plugin subpackage - if it is present on current arch
     def document_plugin_and_related_binaries(self, pkg_binaries, installed_slaves = None):
         return
 
@@ -111,18 +98,18 @@ class BaseTest(JdkConfiguration):
     # appear in IBM7 64 bit power archs and in x86_64 arch
     def check_java_cgi(self, pkg_binaries):
         expected_slave_pkgs = self._get_slave_pkgs()
-        self._document("{} must be present in {} binaries. It has no slave in alternatives.".format(JAVA_CGI,
+        self._document("{} must be present in {} binaries. It has no slave in alternatives.".format(JAVA_RMI_CGI,
                        " and ".join(expected_slave_pkgs[SDK_LOCATION])))
         # java-rmi.cgi binary check
         for sbpkg in expected_slave_pkgs[SDK_LOCATION]:
             cgi_present = False
             for s in pkg_binaries[sbpkg]:
-                if JAVA_CGI == s:
+                if JAVA_RMI_CGI == s:
                     pkg_binaries[sbpkg].remove(s)
                     cgi_present = True
             if not cgi_present:
-                self.failed_tests.append("Missing {} in {}.".format(JAVA_CGI, sbpkg))
-                self.binaries_test.log("Missing {} in {}.".format(JAVA_CGI, sbpkg))
+                self.failed_tests.append("Missing {} in {}.".format(JAVA_RMI_CGI, sbpkg))
+                self.binaries_test.log("Missing {} in {}.".format(JAVA_RMI_CGI, sbpkg))
 
         return pkg_binaries
 
@@ -137,7 +124,6 @@ class BaseTest(JdkConfiguration):
         else:
             dirs.append(exports_check)
         return
-
 
     def _get_32bit_id_in_nvra(self, nvra):
         parts = nvra.split(".")

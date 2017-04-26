@@ -1,13 +1,13 @@
-from testcases.alternativesTests.binaries_test_paths import DEFAULT, DEVEL, EXPORTS_DIR, \
-    HEADLESS, JRE_LOCATION, SDK_LOCATION, DEBUG_SUFFIX, POLICYTOOL, PLUGIN,  \
-    BINARIES, JAVA, JAVAC, LIBJAVAPLUGIN, NOT_PRESENT_IN, SUBPACKAGE, LIBNSSCKBI_SO, \
-    SLAVES, CAN_NOT_BE_IN, MUST_BE_IN, BINARY, SLAVE, BECAUSE_THIS_ARCH_HAS_NO, CONTROL_PANEL, JAVAWS, JCONTROL, \
-    JAVAFXPACKAGER, JMC_INI, ITW_BIN_LOCATION, POLICYEDITOR
+from testcases.alternativesTests.binaries_test_paths import EXPORTS_DIR, \
+    JRE_LOCATION, SDK_LOCATION, BINARIES, NOT_PRESENT_IN, SUBPACKAGE,ITW_BIN_LOCATION, POLICYEDITOR, \
+    SLAVES, CAN_NOT_BE_IN, MUST_BE_IN, BINARY, SLAVE, BECAUSE_THIS_ARCH_HAS_NO, JAVAWS, JCONTROL \
+
 from testcases.alternativesTests.binaries_test_methods import BinarySlaveTestMethods, GetAllBinariesAndSlaves
 import utils.pkg_name_split as pkgsplit
 from utils.mock.mock_executor import DefaultMock
 import os
 from utils.test_utils import rename_default_subpkg
+from utils.test_constants import *
 
 
 class Itw(BinarySlaveTestMethods):
@@ -406,13 +406,14 @@ class Oracle6ArchPlugin(Oracle6):
 
 class Oracle7and8(Oracle6ArchPlugin):
     def doc_and_clean_no_slave_binaries(self, pkg_binaries, installed_slaves=None):
-        self._document("{} is not a binary. It is present in {} subpackages binaries. It has "
-                       "no slave in alternatives.".format(JMC_INI, DEVEL))
-        if JMC_INI in pkg_binaries[DEVEL]:
-            pkg_binaries[DEVEL].remove(JMC_INI)
-        else:
-            self.failed_tests.append(JMC_INI + NOT_PRESENT_IN + DEVEL + SUBPACKAGE)
-            self.binaries_test.log(JMC_INI + NOT_PRESENT_IN + DEVEL + SUBPACKAGE)
+        exclude_list = oracle_exclude_list()
+        for exclude in exclude_list:
+            self._document("{} is not a binary. It is present in {} subpackages binaries. It has "
+                           "no slave in alternatives.".format(exclude, DEVEL))
+            if exclude in pkg_binaries[DEVEL]:
+                pkg_binaries[DEVEL].remove(exclude)
+            else:
+                self.failed_tests.append(exclude + NOT_PRESENT_IN + DEVEL + SUBPACKAGE)
         return pkg_binaries, installed_slaves
 
     def _get_target(self, name):

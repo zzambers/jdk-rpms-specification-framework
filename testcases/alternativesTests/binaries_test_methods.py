@@ -4,9 +4,10 @@ from utils.mock.mock_execution_exception import MockExecutionException
 from utils.test_utils import rename_default_subpkg, replace_archs_with_general_arch
 import os
 import config.runtime_config as rc
-from testcases.alternativesTests.binaries_test_paths import PathTest, JAVA,JRE_LOCATION,\
-SDK_LOCATION,DEBUG_SUFFIX, JAVAC, JVM_DIR, BINARIES, SUBPACKAGES, EXPECTED_SUBPACKAGES, PRESENTED_SUBPACKAGES, \
+from testcases.alternativesTests.binaries_test_paths import PathTest, JRE_LOCATION,\
+SDK_LOCATION, JVM_DIR, BINARIES, SUBPACKAGES, EXPECTED_SUBPACKAGES, PRESENTED_SUBPACKAGES, \
 SLAVE, SLAVES, NOT_PRESENT_IN, BINARY, MISSING, PRESENTED, MUST_BE_IN
+from utils.test_constants import *
 
 
 class GetAllBinariesAndSlaves(PathTest):
@@ -160,8 +161,8 @@ class BinarySlaveTestMethods(GetAllBinariesAndSlaves):
 
     # checks if exports and jre/sdk slaves are present
     def jre_sdk_exports_check(self, installed_slaves):
-        jre_exp = ["jre_exports", "jre"]
-        sdk_exp = ["java_sdk_exports", "java_sdk"]
+        jre_exp = get_exports_binaries_jre()
+        sdk_exp = get_exports_binaries_sdk()
         self._document(" and ".join(jre_exp) + " are "+ JAVA + " " + SLAVES + ", " + " and ".join(sdk_exp) +
                        " are " + JAVAC + " " + SLAVES +
                        "- they are not binaries, their links point at jvm-exports and jre/sdk directories.")
