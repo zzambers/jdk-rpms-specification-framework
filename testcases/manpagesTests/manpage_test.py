@@ -365,6 +365,18 @@ class Oracle6(Oracle):
         return []
 
 
+class Ibm(ManpageTestMethods):
+    def man_page_test(self, pkgs):
+        self._document("Ibm binaries do not have manpages.")
+        return
+
+    def manpage_file_check(self, bins, subpackage=None, plugin_bin_content=None, manpages_without_postscript=None):
+        return
+
+    def manpage_links_check(self, bins, subpackage=None, manpages_with_postscript=None, manpage_files=None):
+        return
+
+
 class ManpageTests(bt.BaseTest):
     instance = None
 
@@ -386,7 +398,7 @@ class ManpageTests(bt.BaseTest):
                 self.csch = OpenJdk7()
                 return
 
-            elif rpms.getMajorVersionSimplified() == "8":
+            elif rpms.getMajorVersionSimplified() == "8" or rpms.getMajorVersionSimplified() == "9":
                 if self.getCurrentArch() in gc.getX86_64Arch() + gc.getIx86archs():
                     self.csch = OpenJdk8WithDebug()
                     return
@@ -414,6 +426,10 @@ class ManpageTests(bt.BaseTest):
                 return
             else:
                 raise ex.UnknownJavaVersionException("Unknown java version.")
+
+        elif rpms.getVendor() == gc.IBM:
+            self.csch = Ibm()
+            return
 
         else:
             raise ex.UnknownJavaVersionException("Unknown platform, java was not identified.")
