@@ -13,6 +13,7 @@ def closeTestSuite(passed, failed, mtc):
     if failed != 0:
         raise Exception(str(failed) + " tests failed")
 
+
 def closeDocSuite(documented, ignored, failed):
     outputControl.logging_access.LoggingAccess().log("done - Documented: " + str(documented) + " from total: " + str(documented+ignored+failed))
     if (failed+ignored) != 0:
@@ -35,9 +36,11 @@ def get_files(directory, file_suffix="", logging = True):
     files, dirs = get_files_and_dirs(directory, file_suffix, logging)
     return files
 
+
 def get_dirs(directory, file_suffix="", logging = True):
     files, dirs = get_files_and_dirs(directory, file_suffix, logging)
     return dirs
+
 
 def get_files_and_dirs(directory, file_suffix="", logging = True):
     """Walk `directory' and get a list of all filenames/dirs in it."""
@@ -57,6 +60,7 @@ def get_files_and_dirs(directory, file_suffix="", logging = True):
                 dirList = dirList + nwDirs
     return resList, dirList
 
+
 def get_top_dirs(directory):
     """Walk `directory' and get a list of all top directory names in it."""
     outputControl.logging_access.LoggingAccess().log("Searching in " + directory + " for: top dirs")
@@ -66,6 +70,7 @@ def get_top_dirs(directory):
             if os.path.isdir(directory + "/" + d):
                 resList.append(d)
     return resList
+
 
 def get_top_dirs_and_files(directory):
     """Walk `directory' and get a list of all top directory names in it."""
@@ -108,12 +113,14 @@ def mkdir_p(path):
         else:
             raise
 
+
 def rename_default_subpkg(subpkg):
     if subpkg == "":
         subpkg = "default"
     elif subpkg == "debug":
         subpkg = "default-debug"
     return subpkg
+
 
 def replace_archs_with_general_arch(names, arch):
     clean_names = []
@@ -122,3 +129,16 @@ def replace_archs_with_general_arch(names, arch):
             name = name.replace(arch, "ARCH")
         clean_names.append(name)
     return clean_names
+
+
+def two_lists_diff(desired_list, elements_to_remove):
+    diff = list(set(desired_list) - set(elements_to_remove))
+    return diff
+
+
+def get_32bit_id_in_nvra(nvra):
+    from config.global_config import get_32b_arch_identifiers_in_scriptlets as get_id
+    parts = nvra.split(".")
+    parts[-1] = get_id(parts[-1])
+    nvra = ".".join(parts)
+    return nvra
