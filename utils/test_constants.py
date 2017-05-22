@@ -20,6 +20,10 @@ JMC_INI = "jmc.ini"
 JVM_DIR = "/usr/lib/jvm/"
 SDK_DIRECTORY = "/bin"
 JRE_DIRECTORY = "/jre/bin"
+JCONTROL = "jcontrol"
+JAVAWS = "javaws"
+ITWEB_SETTINGS = "itweb-settings"
+USR_BIN = "/usr/bin"
 
 
 # exports jre binaries
@@ -50,3 +54,7 @@ def oracle_exclude_list():
 
 def get_ibm_exclude_list():
     return get_ibm_k_bins() + get_ibm_folders() + get_ibm_ikey_bins()
+
+
+def get_plugin_binaries():
+    return [JCONTROL, CONTROL_PANEL, JAVAWS]
