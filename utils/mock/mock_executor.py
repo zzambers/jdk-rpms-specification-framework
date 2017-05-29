@@ -142,6 +142,8 @@ class Mock:
         outputControl.logging_access.LoggingAccess().log(e)
         o, e = exxec.processToStrings(self.mainCommand() + ["--install", "man"])
         outputControl.logging_access.LoggingAccess().log(e)
+        o, e = exxec.processToStrings(self.mainCommand() + ["--install", "symlinks"])
+        outputControl.logging_access.LoggingAccess().log(e)
         self.createSnapshot("alternatives")
         self.alternatives=True
 
