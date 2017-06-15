@@ -23,3 +23,16 @@ class FileLog(metaclass=Singleton):
         self.target.write(arg2)
         self.target.write("\n")
         self.target.flush()
+
+
+class DefaultLog(metaclass=Singleton):
+    def __init__(self):
+        self.target = open("verbose_log_file.log", 'w')
+        self.println("#" + dt.datetime.today().strftime("%Y-%m-%d %H:%M:%S"))
+
+    def println(self, arg2):
+        self.target.write(arg2)
+        self.target.write("\n")
+        self.target.flush()
+
+
