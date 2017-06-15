@@ -13,7 +13,8 @@ class Singleton(type):
 
 
 def _createParser():
-    lparser = argparse.ArgumentParser(description="To use the tests correctly you need to have correctly working mock in non-root mode.")
+    lparser = argparse.ArgumentParser(description="To use the tests correctly you need to have correctly working mock "
+                                                  "in non-root mode.")
     lparser.add_argument("-v", "--version",
                          help="display the version of the framework",
                          action="store_true")
@@ -28,10 +29,14 @@ def _createParser():
     lparser.add_argument("-b", "--build",
                          help="Will download the build specified by NVR from koji/brew to (empty) --dir")
     lparser.add_argument("-a", "--archs",
-                         help="coma separated list t limit/extend download/spepcification to given arches. Use with caution, and dont foget srpm/noarch. You can use all for all architectures.")
+                         help="coma separated list t limit/extend download/spepcification to given arches. Use with "
+                              "caution, and dont foget srpm/noarch. You can use all for all architectures.")
     lparser.add_argument("--noheader",
                          help="don't print header",
                          action="store_true")
+    lparser.add_argument("--verbosity",
+                         help="verbosity of logfile, 3 - most verbose, "
+                              "2 - only test output, 1 - only fail output, default is 2")
     return lparser
 
 
