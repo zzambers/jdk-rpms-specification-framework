@@ -1,6 +1,6 @@
 import config.global_config
-import outputControl.logging_access
 import utils.build_downloader
+from outputControl import logging_access as la
 
 VERSION_STRING = "jdks_specification_framework, version 0.1"
 
@@ -22,8 +22,9 @@ class RuntimeConfig(metaclass=Singleton):
         self.logsFile = "jsf.log"
         self.rpmList = None
         self.docs = False
-        self.header= True
+        self.header = True
         self.archs = None
+        self.verbosity = la.Verbosity.TEST
 
     def getRpmList(self):
         if self.rpmList == None:
@@ -33,7 +34,13 @@ class RuntimeConfig(metaclass=Singleton):
     def setLogsFile(self, nwFile):
         oldValue = self.logsFile
         self.logsFile = nwFile
-        outputControl.logging_access.LoggingAccess().log("Logfile set to " + nwFile + " instead of " + oldValue)
+        la.LoggingAccess().log("Logfile set to " + nwFile + " instead of " + oldValue, la.Verbosity.TEST)
+
+    def set_verbosity(self, verbosity):
+        self.verbosity = verbosity
+
+    def get_verbosity(self):
+        return self.verbosity
 
     def getLogsFile(self):
         return self.logsFile
@@ -45,7 +52,7 @@ class RuntimeConfig(metaclass=Singleton):
         return self.header
 
     def setPkgsDir(self, nwDir):
-        outputControl.logging_access.LoggingAccess().log("Rpms looked for in " + nwDir + " instead of " + self.pkgsDir)
+        la.LoggingAccess().log("Rpms looked for in " + nwDir + " instead of " + self.pkgsDir, la.Verbosity.TEST)
         self.pkgsDir = nwDir
 
     def getPkgsDir(self):
@@ -56,9 +63,8 @@ class RuntimeConfig(metaclass=Singleton):
             self.archs = config.global_config.getAllArchs()
         else:
             words = archString.split(",")
-            self.archs= words
-        outputControl.logging_access.LoggingAccess().log("archs limited/forced to " + str(self.archs))
-
+            self.archs = words
+        la.LoggingAccess().log("archs limited/forced to " + str(self.archs), la.Verbosity.TEST)
 
     def getArchs(self):
         return self.archs
@@ -69,10 +75,10 @@ class RuntimeConfig(metaclass=Singleton):
         if args.logfile:
             self.setLogsFile(args.logfile)
         if args.version:
-            outputControl.logging_access.LoggingAccess().stdout(VERSION_STRING)
+            la.LoggingAccess().stdout(VERSION_STRING)
             return False
         # later it does not matter as logging is already going to log file
-        outputControl.logging_access.LoggingAccess().log(VERSION_STRING)
+        la.LoggingAccess().log(VERSION_STRING, la.Verbosity.TEST)
         # switches should go before commands, so commands can use them
         if args.dir:
             self.setPkgsDir(args.dir)
@@ -89,4 +95,11 @@ class RuntimeConfig(metaclass=Singleton):
         if args.noheader:
             # no setter - should not be set from outside
             self.header = False
+        if args.verbosity:
+            try:
+                verbosity = la.Verbosity(int(args.verbosity))
+            except Exception:
+                raise AttributeError("Invalid verbosity argument, expected 1, 2 or 3, but got {}.".format(args.verbosity))
+
+            self.set_verbosity(verbosity)
         return True
