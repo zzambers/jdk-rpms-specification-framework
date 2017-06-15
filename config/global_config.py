@@ -1,4 +1,4 @@
-import outputControl.logging_access
+from outputControl import logging_access as la
 from utils import rpmbuild_utils
 
 # The get_methods nor find_on_disc are order-granting. However they seems to be sorted... Sometimes. So this switch will ensure it.
@@ -18,7 +18,7 @@ class Singleton(type):
 # Some arches have more then one varint. rpmbuild  is keeping an eye on this so currently known trouble makers are --eval there.
 # power64 arm ix86
 class DynamicArches(metaclass=Singleton):
-    pass;
+    pass
 
     def __init__(self):
         self.arm32 = None
@@ -26,7 +26,7 @@ class DynamicArches(metaclass=Singleton):
         self.power64 = None
 
     def getDynamicArches(self, arch):
-        outputControl.logging_access.LoggingAccess().log("Getting dynamic arches for: " + arch)
+        la.LoggingAccess().log("Getting dynamic arches for: " + arch, la.Verbosity.MOCK)
         output= rpmbuild_utils.rpmbuildEval(arch)
         li = output.split(" ")
         for i in range(len(li)):
