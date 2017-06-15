@@ -1,4 +1,11 @@
 import outputControl.file_log
+from enum import Enum
+
+
+class Verbosity(Enum):
+    ERROR = 1
+    TEST = 2
+    MOCK = 3
 
 
 class Singleton(type):
@@ -15,7 +22,11 @@ class LoggingAccess(metaclass=Singleton):
 
     def stdout(self, arg2):
         print(arg2)
-        self.log(arg2)
+        self.log(arg2, Verbosity.ERROR)
 
-    def log(self, arg2):
-        outputControl.file_log.FileLog().println(arg2)
+    def log(self, arg2, verbosity=Verbosity.TEST):
+        from config.runtime_config import RuntimeConfig
+        if verbosity.value <= RuntimeConfig().get_verbosity().value:
+            outputControl.file_log.FileLog().println(arg2)
+        outputControl.file_log.DefaultLog().println(arg2)
+
