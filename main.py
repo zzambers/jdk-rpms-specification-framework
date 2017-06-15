@@ -9,13 +9,13 @@ import sys
 import config.general_parser
 import config.runtime_config
 import utils.test_utils as tu
-from outputControl import logging_access
+from outputControl import logging_access as la
 
 
 def getTestFiles():
     dir = os.path.dirname(os.path.abspath(__file__))
     flist = tu.get_files(dir+"/testcases", "_test.py")
-    logging_access.LoggingAccess().log("Found " + str(len(flist))+" files to run.")
+    la.LoggingAccess().log("Found " + str(len(flist))+" files to run.", la.Verbosity.TEST)
     for n, file in enumerate(flist):
         flist[n] = file[len(dir)+1:-3].replace("/",".")
     if config.global_config.leSort:
@@ -23,25 +23,25 @@ def getTestFiles():
     return flist
 
 def header():
-    if  not config.runtime_config.RuntimeConfig().isHeader():
+    if not config.runtime_config.RuntimeConfig().isHeader():
         return
     rpm = config.runtime_config.RuntimeConfig().getRpmList()
-    logging_access.LoggingAccess().stdout("os                 : " +rpm.getOs())
-    logging_access.LoggingAccess().stdout("os version major   : " +str(rpm.getOsVersionMajor()))
-    logging_access.LoggingAccess().stdout("os version         : " +rpm.getOsVersion())
-    logging_access.LoggingAccess().stdout("dist               : " +rpm.getDist())
-    logging_access.LoggingAccess().stdout("product            : " +rpm.getJava())
-    logging_access.LoggingAccess().stdout("version major      : " +rpm.getMajorVersion())
-    logging_access.LoggingAccess().stdout("version simplified : " +rpm.getMajorVersionSimplified())
-    logging_access.LoggingAccess().stdout("vendor             : " +rpm.getVendor())
-    logging_access.LoggingAccess().stdout("package version    : " +rpm.getVersion())
-    logging_access.LoggingAccess().stdout("package release    : " +rpm.getRelease())
-    logging_access.LoggingAccess().stdout("contained arches   : " +str(rpm.getAllArches()))
+    la.LoggingAccess().stdout("os                 : " +rpm.getOs())
+    la.LoggingAccess().stdout("os version major   : " +str(rpm.getOsVersionMajor()))
+    la.LoggingAccess().stdout("os version         : " +rpm.getOsVersion())
+    la.LoggingAccess().stdout("dist               : " +rpm.getDist())
+    la.LoggingAccess().stdout("product            : " +rpm.getJava())
+    la.LoggingAccess().stdout("version major      : " +rpm.getMajorVersion())
+    la.LoggingAccess().stdout("version simplified : " +rpm.getMajorVersionSimplified())
+    la.LoggingAccess().stdout("vendor             : " +rpm.getVendor())
+    la.LoggingAccess().stdout("package version    : " +rpm.getVersion())
+    la.LoggingAccess().stdout("package release    : " +rpm.getRelease())
+    la.LoggingAccess().stdout("contained arches   : " +str(rpm.getAllArches()))
 
 
 def runDocks():
     header()
-    logging_access.LoggingAccess().log("Running documentation")
+    la.LoggingAccess().log("Running documentation", la.Verbosity.TEST)
     dlist = []
     ilist = []
     flist = []
@@ -58,7 +58,7 @@ def runDocks():
 
 def runTasks():
     header()
-    logging_access.LoggingAccess().log("Running all testsuites")
+    la.LoggingAccess().log("Running all testsuites", la.Verbosity.TEST)
     plist=[]
     flist=[]
     clist = []
