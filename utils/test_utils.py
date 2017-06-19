@@ -3,19 +3,20 @@ import tempfile
 import errno
 
 import config.global_config
-import outputControl.logging_access
+from outputControl import logging_access as la
 import config.runtime_config
 
 
 def closeTestSuite(passed, failed, mtc):
-    outputControl.logging_access.LoggingAccess().stdout("Arch-independet mehtods counted: " + str(mtc))
-    outputControl.logging_access.LoggingAccess().stdout("done - Passed: " + str(passed) + " from total: " + str(passed + failed))
+    la.LoggingAccess().stdout("Arch-independet mehtods counted: " + str(mtc))
+    la.LoggingAccess().stdout("done - Passed: " + str(passed) + " from total: " + str(passed + failed))
     if failed != 0:
         raise Exception(str(failed) + " tests failed")
 
 
 def closeDocSuite(documented, ignored, failed):
-    outputControl.logging_access.LoggingAccess().log("done - Documented: " + str(documented) + " from total: " + str(documented+ignored+failed))
+    la.LoggingAccess().log("done - Documented: " + str(documented) + " from total: " + str(documented+ignored+failed),
+                           la.Verbosity.TEST)
     if (failed+ignored) != 0:
         raise Exception(str(failed+ignored) + " docs failed")
 
@@ -45,7 +46,7 @@ def get_dirs(directory, file_suffix="", logging = True):
 def get_files_and_dirs(directory, file_suffix="", logging = True):
     """Walk `directory' and get a list of all filenames/dirs in it."""
     if logging:
-        outputControl.logging_access.LoggingAccess().log("Searching in " + directory + " for: *" + file_suffix)
+        la.LoggingAccess().log("Searching in " + directory + " for: *" + file_suffix, la.Verbosity.TEST)
     resList = []
     dirList = []
     for root, dirs, files in os.walk(directory):
@@ -63,7 +64,7 @@ def get_files_and_dirs(directory, file_suffix="", logging = True):
 
 def get_top_dirs(directory):
     """Walk `directory' and get a list of all top directory names in it."""
-    outputControl.logging_access.LoggingAccess().log("Searching in " + directory + " for: top dirs")
+    la.LoggingAccess().log("Searching in " + directory + " for: top dirs", la.Verbosity.TEST)
     resList = []
     for root, dirs, files in os.walk(directory):
         for d in dirs:
@@ -74,7 +75,7 @@ def get_top_dirs(directory):
 
 def get_top_dirs_and_files(directory):
     """Walk `directory' and get a list of all top directory names in it."""
-    outputControl.logging_access.LoggingAccess().log("Searching in " + directory + " for: top dirs and files")
+    la.LoggingAccess().log("Searching in " + directory + " for: top dirs and files", la.Verbosity.TEST)
     resList = []
     for root, dirs, files in os.walk(directory):
         for f in files:
@@ -142,3 +143,10 @@ def get_32bit_id_in_nvra(nvra):
     parts[-1] = get_id(parts[-1])
     nvra = ".".join(parts)
     return nvra
+
+
+# this method expects your testsuite has a "failed" list, if you do not, just use logging_access methods
+def log_failed_test(instance, fail):
+    instance.failed.append(fail)
+    la.LoggingAccess().log("        " + fail, la.Verbosity.TEST)
+    return
