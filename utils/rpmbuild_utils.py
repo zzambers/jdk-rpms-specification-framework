@@ -1,4 +1,4 @@
-import outputControl.logging_access
+from outputControl import logging_access as la
 import utils.process_utils
 import utils.test_utils
 import os
@@ -99,23 +99,26 @@ class ScripletStarterFinisher:
         return True  # continue
 
 
-scriptlets=dict()
+scriptlets = dict()
+
 
 def getSrciplet(rpmFile, scripletId):
     if not isScripletNameValid(scripletId):
-        outputControl.logging_access.LoggingAccess().log("warning! Scriplet name " + scripletId
+        la.LoggingAccess().log("warning! Scriplet name " + scripletId
                                                          + " is not known. It should be one of: "
-                                                         + ",".join(ScripletStarterFinisher.allScriplets))
+                                                         + ",".join(ScripletStarterFinisher.allScriplets),
+                               la.Verbosity.TEST)
     key = rpmFile+"-"+scripletId
     if key in scriptlets:
-        outputControl.logging_access.LoggingAccess().log(key + " already cached, returning")
+        la.LoggingAccess().log(key + " already cached, returning", la.Verbosity.MOCK)
         return scriptlets[key]
-    outputControl.logging_access.LoggingAccess().log(key + " not yet cached, reading")
+    la.LoggingAccess().log(key + " not yet cached, reading", la.Verbosity.MOCK)
     sf = ScripletStarterFinisher(scripletId)
-    script =  utils.process_utils.processAsStrings(['rpm', '-qp', '--scripts', rpmFile], sf.start, sf.stop,
+    script = utils.process_utils.processAsStrings(['rpm', '-qp', '--scripts', rpmFile], sf.start, sf.stop,
                                                 False)
     scriptlets[key] = script
     return script
+
 
 def unpackFilesFromRpm(rpmFile, destination):
     absFile = os.path.abspath(rpmFile)
