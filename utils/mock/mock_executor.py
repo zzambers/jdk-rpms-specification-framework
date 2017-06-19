@@ -7,13 +7,11 @@ import utils.mock.rpm_uncpio_cache
 import utils.process_utils as exxec
 import utils.rpmbuild_utils as rpmuts
 import utils.test_utils as tu
-from utils.rpmbuild_utils import unpackFilesFromRpm
 import utils.mock.mock_execution_exception
 import utils.pkg_name_split
 import config.runtime_config as rc
 import config.global_config as gc
-from utils.test_utils import rename_default_subpkg
-import utils.pkg_name_split as pkgsplit
+import outputControl.logging_access as la
 
 PRIORITY = "priority"
 STATUS = "status"
@@ -51,10 +49,10 @@ class Mock:
         self.inited = False
         self.alternatives = False
         self.snapshots = dict()
-        outputControl.logging_access.LoggingAccess().log("Providing new instance of " + self.getMockName())
+        outputControl.logging_access.LoggingAccess().log("Providing new instance of " + self.getMockName(),
+                                                         la.Verbosity.MOCK)
         # comment this, set inited and alternatives to true if debug of some test needs to be done in hurry
         self._scrubLvmCommand()
-
 
     def getMockName(self):
         return self.os + "-" + self.version + "-" + self.arch
@@ -88,7 +86,7 @@ class Mock:
 
     def _init(self):
         o, e = exxec.processToStrings(self.mainCommand() + ["--init"])
-        outputControl.logging_access.LoggingAccess().log(e)
+        outputControl.logging_access.LoggingAccess().log(e, la.Verbosity.MOCK)
         self.inited = True
 
     def reinit(self):
@@ -100,29 +98,29 @@ class Mock:
         items = []
         for item in o[1:len(o)]:
             i = re.sub("^.\s+","", item)
-            if (item.startswith("*")):
+            if item.startswith("*"):
                 current = i
             items.append(i)
         return current, items
 
     def _snapsotCommand(self, name):
         o, e = exxec.processToStrings(self.mainCommand() + ["--snapshot", name])
-        outputControl.logging_access.LoggingAccess().log(e)
-        outputControl.logging_access.LoggingAccess().log(o)
-        outputControl.logging_access.LoggingAccess().log(str(self.listSnapshots()))
+        outputControl.logging_access.LoggingAccess().log(e, la.Verbosity.MOCK)
+        outputControl.logging_access.LoggingAccess().log(o, la.Verbosity.MOCK)
+        outputControl.logging_access.LoggingAccess().log(str(self.listSnapshots()), la.Verbosity.MOCK)
 
     def _rollbackCommand(self, name):
         o, e, r = exxec.processToStringsWithResult(self.mainCommand() + ["--rollback-to", name])
-        outputControl.logging_access.LoggingAccess().log(e)
-        outputControl.logging_access.LoggingAccess().log(o)
-        outputControl.logging_access.LoggingAccess().log(str(self.listSnapshots()))
+        outputControl.logging_access.LoggingAccess().log(e, la.Verbosity.MOCK)
+        outputControl.logging_access.LoggingAccess().log(o, la.Verbosity.MOCK)
+        outputControl.logging_access.LoggingAccess().log(str(self.listSnapshots()), la.Verbosity.MOCK)
         return e, o, r
 
     def _scrubLvmCommand(self):
         o, e = exxec.processToStrings(self.mainCommand() + ["--scrub", "lvm"])
-        outputControl.logging_access.LoggingAccess().log(e)
-        outputControl.logging_access.LoggingAccess().log(o)
-        outputControl.logging_access.LoggingAccess().log(str(self.listSnapshots()))
+        outputControl.logging_access.LoggingAccess().log(e, la.Verbosity.MOCK)
+        outputControl.logging_access.LoggingAccess().log(o, la.Verbosity.MOCK)
+        outputControl.logging_access.LoggingAccess().log(str(self.listSnapshots()), la.Verbosity.MOCK)
 
     def installAlternatives(self):
         if self.alternatives:
@@ -130,26 +128,25 @@ class Mock:
         else:
             self._installAlternatives()
 
-
     def _installAlternatives(self):
         o, e = exxec.processToStrings(self.mainCommand() + ["--install", "lua"])
-        outputControl.logging_access.LoggingAccess().log(e)
+        outputControl.logging_access.LoggingAccess().log(e, la.Verbosity.MOCK)
         o, e = exxec.processToStrings(self.mainCommand() + ["--install", "lua-posix"])
-        outputControl.logging_access.LoggingAccess().log(e)
+        outputControl.logging_access.LoggingAccess().log(e, la.Verbosity.MOCK)
         o, e = exxec.processToStrings(self.mainCommand() + ["--install", "copy-jdk-configs"])
-        outputControl.logging_access.LoggingAccess().log(e)
+        outputControl.logging_access.LoggingAccess().log(e, la.Verbosity.MOCK)
         o, e = exxec.processToStrings(self.mainCommand() + ["--install", "chkconfig"])
-        outputControl.logging_access.LoggingAccess().log(e)
+        outputControl.logging_access.LoggingAccess().log(e, la.Verbosity.MOCK)
         o, e = exxec.processToStrings(self.mainCommand() + ["--install", "man"])
-        outputControl.logging_access.LoggingAccess().log(e)
+        outputControl.logging_access.LoggingAccess().log(e, la.Verbosity.MOCK)
         o, e = exxec.processToStrings(self.mainCommand() + ["--install", "symlinks"])
-        outputControl.logging_access.LoggingAccess().log(e)
+        outputControl.logging_access.LoggingAccess().log(e, la.Verbosity.MOCK)
         self.createSnapshot("alternatives")
-        self.alternatives=True
+        self.alternatives = True
 
     def mktemp(self, suffix="me"):
         o, e = exxec.processToStrings(self.mainCommand() + ["--chroot", "mktemp --suffix " + suffix])
-        outputControl.logging_access.LoggingAccess().log(e)
+        outputControl.logging_access.LoggingAccess().log(e, la.Verbosity.MOCK)
         return o
 
     def importFileContnet(self, suffix, content):
@@ -160,23 +157,26 @@ class Mock:
 
     def copyIn(self, src, dest):
         o, e, r = exxec.processToStringsWithResult(self.mainCommand() + ["--copyin"] + src + [dest])
-        outputControl.logging_access.LoggingAccess().log(e)
+        outputControl.logging_access.LoggingAccess().log(e, la.Verbosity.MOCK)
         return o, e, r
 
     def copyIns(self, cwd, srcs, dest):
-        #unlike copyIn, this copppy list of files TO destination. Because of necessary relativitu of srcs, CWD is included
+        # unlike copyIn, this copy list of files TO destination. Because of necessary relativity of srcs,
+        # CWD is included
         o, e, r = exxec.processToStringsWithResult(self.mainCommand() + ["--copyin"] + srcs + [dest], True, cwd)
-        outputControl.logging_access.LoggingAccess().log(e)
+        outputControl.logging_access.LoggingAccess().log(e, la.Verbosity.MOCK)
         return o, e, r
 
     def importRpm(self, rpmPath, resetBuildRoot=True):
         # there is restriciton to chars and length in/of vg name
         key= re.sub('[^0-9a-zA-Z]+', '_', ntpath.basename(rpmPath))
         if key in self.snapshots:
-            outputControl.logging_access.LoggingAccess().log(rpmPath + " already extracted in snapshot. Rolling to " + key)
+            outputControl.logging_access.LoggingAccess().log(rpmPath + " already extracted in snapshot. "
+                                                                       "Rolling to " + key, la.Verbosity.MOCK)
             return self.getSnapshot(key)
         else:
-            outputControl.logging_access.LoggingAccess().log(rpmPath + " not extracted in snapshot. Creatign " + key)
+            outputControl.logging_access.LoggingAccess().log(rpmPath + " not extracted in snapshot. Creating " + key,
+                                                             la.Verbosity.MOCK)
             out, serr, res = self.importRpmCommand(rpmPath, resetBuildRoot)
             self.createSnapshot(key)
             self.snapshots[key] = rpmPath
@@ -200,12 +200,12 @@ class Mock:
 
     def executeCommand(self, cmds):
         o, e, r = exxec.processToStringsWithResult(self.mainCommand() + ["--chroot"] + cmds)
-        outputControl.logging_access.LoggingAccess().log(e)
+        outputControl.logging_access.LoggingAccess().log(e, la.Verbosity.MOCK)
         return o, r
 
     def executeShell(self, scriptFilePath):
         o, e, r = exxec.processToStringsWithResult(self.mainCommand() + ["--chroot", "sh", scriptFilePath])
-        outputControl.logging_access.LoggingAccess().log(e)
+        outputControl.logging_access.LoggingAccess().log(e, la.Verbosity.MOCK)
         return o, r
 
     def listFiles(self):
@@ -224,7 +224,8 @@ class Mock:
             self.init()
             self.installAlternatives()
         if rc.RuntimeConfig().getRpmList().getVendor() in (gc.ORACLE + gc.SUN + gc.IBM + gc.ITW):
-            # ibm/itw/oracle plugin packages expect mozilla installed in the filesystem, this gives us directories neccessary
+            # ibm/itw/oracle plugin packages expect mozilla installed in the filesystem, this gives us
+            # directories neccessary
             self.mkdirP("/usr/lib64/mozilla")
             self.mkdirP("/usr/lib64/mozilla/plugins")
             self.mkdirP("/usr/lib/mozilla")
@@ -256,7 +257,9 @@ class Mock:
         try:
             DefaultMock().install_postscript(pkg)
         except utils.mock.mock_execution_exception.MockExecutionException:
-            outputControl.logging_access.LoggingAccess().log("Postinstall script not found in " + os.path.basename(pkg))
+            outputControl.logging_access.LoggingAccess().log("        " + "Postinstall script not found in " +
+                                                             os.path.basename(pkg),
+                                                             outputControl.logging_access.Verbosity.TEST)
             return False
 
         return True
@@ -267,19 +270,21 @@ class Mock:
     def _install_scriptlet(self, pkg, scriptlet):
         key = re.sub('[^0-9a-zA-Z]+', '_', ntpath.basename(pkg) + "_" + scriptlet)
         if key in self.snapshots:
-            outputControl.logging_access.LoggingAccess().log(pkg + " already extracted in snapshot. Rolling to " + key)
+            outputControl.logging_access.LoggingAccess().log(pkg + " already extracted in snapshot. Rolling to " + key,
+                                                             la.Verbosity.MOCK)
             self.getSnapshot(key)
             return
 
         self.importRpm(pkg)
         content = utils.rpmbuild_utils.getSrciplet(pkg, scriptlet)
         if len(content) == 0:
-            raise utils.mock.mock_execution_exception.MockExecutionException(scriptlet + " scriptlet not found in given package.")
+            raise utils.mock.mock_execution_exception.MockExecutionException(scriptlet + " scriptlet not found in given"
+                                                                                         " package.")
 
         else:
             o, r = self.executeScriptlet(pkg, scriptlet)
             outputControl.logging_access.LoggingAccess().log(scriptlet + "returned " +
-                                                             str(r) + " of " + os.path.basename(pkg))
+                                                             str(r) + " of " + os.path.basename(pkg), la.Verbosity.MOCK)
             self.createSnapshot(key)
 
     def execute_ls(self, dir):
@@ -300,7 +305,8 @@ class Mock:
     def parse_alternatives_display(self, master):
         output = self.display_alternatives(master)
         if len(output.strip()) == 0:
-            outputControl.logging_access.LoggingAccess().log("alternatives --display master output is empty")
+            outputControl.logging_access.LoggingAccess().log("alternatives --display master output is empty",
+                                                             la.Verbosity.MOCK)
             raise utils.mock.mock_execution_exception.MockExecutionException("alternatives --display master "
                                                                              "output is empty ")
         data = {}
@@ -342,6 +348,7 @@ class Mock:
     def get_default_masters(self):
         self.provideCleanUsefullRoot()
         return self.get_masters()
+
 
 class Singleton(type):
     _instances = {}
