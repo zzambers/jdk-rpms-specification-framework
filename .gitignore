@@ -6,3 +6,5 @@
 .idea
 # default dir for rpms to be tested
 rpms
+# verbose logfile
+*verbose_log_file.log
