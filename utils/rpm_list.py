@@ -3,13 +3,14 @@ import re
 
 import config.global_config
 import config.runtime_config
-import outputControl.logging_access
+from outputControl import logging_access as la
 import utils.pkg_name_split as split
 import utils.test_utils
 
 
 class RpmList:
-    """Class to hold list of file, providing various operations above them like get bny arch, get by build (arch+noarch), get srpm and so on"""
+    """Class to hold list of file, providing various operations above them like get bny arch, get by build (arch+noarch)
+    , get srpm and so on"""
 
     def __init__(self, ddir):
         self.files = utils.test_utils.get_rpms(ddir)
@@ -18,10 +19,11 @@ class RpmList:
         for file in self.files:
             self.names.append(ntpath.basename(file))
         allFiles = utils.test_utils.get_files(ddir)
-        outputControl.logging_access.LoggingAccess().log("Loaded list of " + str(len(self.files)) + " rpms from  directory " + ddir)
+        la.LoggingAccess().log("Loaded list of " + str(len(self.files)) + " rpms from  directory " + ddir,
+                               la.Verbosity.TEST)
         if len(self.files) != len(allFiles):
-            outputControl.logging_access.LoggingAccess().log("Warning, some files in  " + ddir + " - " + str(
-                len(allFiles) - len(self.files)) + " are NOT rpms. Ignored")
+            la.LoggingAccess().log("Warning, some files in  " + ddir + " - " + str(
+                len(allFiles) - len(self.files)) + " are NOT rpms. Ignored", la.Verbosity.TEST)
 
     def getAllNames(self):
         if len(self.names) == 0:
@@ -96,13 +98,13 @@ class RpmList:
         return pset
 
     def getAllArches(self):
-        if (config.runtime_config.RuntimeConfig().getArchs() != None):
+        if config.runtime_config.RuntimeConfig().getArchs() is not None:
             return set(config.runtime_config.RuntimeConfig().getArchs())
         pset, props = self.getSetProperty(split.get_arch)
         return pset
 
     def getNativeArches(self):
-        if (config.runtime_config.RuntimeConfig().getArchs() != None):
+        if config.runtime_config.RuntimeConfig().getArchs() is not None:
             return set(utils.test_utils.removeNoarchSrpmArch(config.runtime_config.RuntimeConfig().getArchs()))
         pset, props = self.getSetProperty(split.get_arch)
         return pset - set(config.global_config.getNoarch()) - set(config.global_config.getSrcrpmArch())
