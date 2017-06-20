@@ -1,15 +1,17 @@
 from subprocess import Popen, PIPE
 import io
-import outputControl.logging_access
+from outputControl import logging_access as la
 
 
 def processToString(args):
     o, e = processToStrings(args, False)
     return o
 
+
 def processToStrings(args, err = True):
     o, e, r = processToStringsWithResult(args, err)
     return o, e
+
 
 def processToStringsWithResult(args, err=True, cwd=None):
     proc = _exec(args, err, cwd)
@@ -18,54 +20,60 @@ def processToStringsWithResult(args, err=True, cwd=None):
     outpute = ""
     if err is not None:
         outpute = err.decode('utf-8').strip()
-    outputControl.logging_access.LoggingAccess().log("got: " + output)
+    la.LoggingAccess().log("got: " + output, la.Verbosity.MOCK)
     ret = proc.wait()
     return output, outpute, ret
+
 
 def processAsStrings(args, starter=None, finisher=None, initialCanRead=True, log = True):
     o, r = processAsStringsWithResult(args, starter, finisher, initialCanRead, log)
     return o
 
+
 def processAsStringsWithResult(args, starter=None, finisher=None, initialCanRead=True, log = True):
-    """ read process line by line. starter and finisher are methods, which returns true/false to set read. Theirs immput is line"""
+    """ read process line by line. starter and finisher are methods, which returns true/false to set read. Their input
+     is line"""
     res = []
     proc = _exec(args)
     canRead=initialCanRead
     for line in io.TextIOWrapper(proc.stdout, encoding="utf-8"):
         line = line.strip()
         if log:
-            outputControl.logging_access.LoggingAccess().log("reading: "+line)
-        if (canRead and finisher is not None):
+            la.LoggingAccess().log("reading: "+line, la.Verbosity.MOCK)
+        if canRead and finisher is not None:
             canRead = finisher(line)
-            if (not canRead):
-                outputControl.logging_access.LoggingAccess().log(str(finisher)+" stopped recording")
+            if not canRead:
+                la.LoggingAccess().log(str(finisher)+" stopped recording", la.Verbosity.MOCK)
         if canRead:
             res.append(line)
-        if (not canRead and starter is not None):
-            canRead=starter(line)
+        if not canRead and starter is not None:
+            canRead = starter(line)
             if canRead:
-                outputControl.logging_access.LoggingAccess().log(str(starter) + " started recording")
+                la.LoggingAccess().log(str(starter) + " started recording", la.Verbosity.MOCK)
     ret = proc.wait()
     return res, ret
 
+
 def _exec(args, err=False, cwd=None):
-    outputControl.logging_access.LoggingAccess().log("executing: " + str(args))
-    if (err):
-        # args, bufsize=-1, executable=None, stdin=None, stdout=None, stderr=None, preexec_fn=None, close_fds=_PLATFORM_DEFAULT_CLOSE_FDS, shell=False, cwd=None, env=None ...
+    la.LoggingAccess().log("executing: " + str(args), la.Verbosity.MOCK)
+    if err:
+        # args, bufsize=-1, executable=None, stdin=None, stdout=None, stderr=None, preexec_fn=None,
+        # close_fds=_PLATFORM_DEFAULT_CLOSE_FDS, shell=False, cwd=None, env=None ...
         proc = Popen(args, stdout=PIPE, stderr=PIPE, cwd=cwd)
     else:
         proc = Popen(args, stdout=PIPE)
     return proc
 
+
 def executeShell(command):
-    outputControl.logging_access.LoggingAccess().log("executing shell : " + command)
+    la.LoggingAccess().log("executing shell : " + command, la.Verbosity.MOCK)
     shell = Popen(command, stdin=PIPE, stderr=PIPE, shell=True)
-    o, e  = shell.communicate()
-    if (o is not None):
+    o, e = shell.communicate()
+    if o is not None:
         o = o.decode('utf-8').strip()
     else:
         o=""
-    if (3 is not None):
+    if 3 is not None:
         e = e.decode('utf-8').strip()
     else:
         e = ""
