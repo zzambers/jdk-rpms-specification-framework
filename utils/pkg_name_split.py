@@ -25,11 +25,11 @@ def _hyphen_split(name):
     if (name.startswith(gc.ITW)):
         icedtea, web,  *pkg, version, whole_end = hyphen_parts
         pkg = '-'.join(pkg)
-        return ([gc.ITW, gc.ITW, gc.ITW, pkg, version, whole_end])
+        return [gc.ITW, gc.ITW, gc.ITW, pkg, version, whole_end]
     else:
         java, java_ver, vendor, *pkg, version, whole_end = hyphen_parts
         pkg = '-'.join(pkg)
-        return ([java, java_ver, vendor, pkg, version, whole_end])
+        return [java, java_ver, vendor, pkg, version, whole_end]
 
 
 def _get_ith_part(i, name):
@@ -135,6 +135,7 @@ def get_nvra(name):
         name = name.replace(".rpm", "")
 
     return name
+
 
 def get_name_version_release(name):
     return get_nvra(name).replace("." + get_arch(name), "")
