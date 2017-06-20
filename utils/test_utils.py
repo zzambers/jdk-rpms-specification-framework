@@ -122,7 +122,7 @@ def rename_default_subpkg(subpkg):
         subpkg = "default-debug"
     return subpkg
 
-
+# expects a list, not a string, othervise, strange behaviour appears
 def replace_archs_with_general_arch(names, arch):
     clean_names = []
     for name in names:
