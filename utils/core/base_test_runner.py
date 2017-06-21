@@ -194,8 +194,8 @@ class BaseTestRunner:
             " - documented/ignored/failed: " + str(documented) + "/" + str(ignored) + "/" + str(failed))
         return documented, ignored, failed
 
-    def log(self, arg):
-        la.LoggingAccess().log(self.indent + arg)
+    def log(self, arg, verbosity=la.Verbosity.ERROR):
+        la.LoggingAccess().log(self.indent + arg, verbosity)
 
 
 def compareListLaniently(list1, list2):
