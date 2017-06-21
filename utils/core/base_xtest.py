@@ -1,6 +1,7 @@
 import abc
 
 import utils.test_utils as tu
+from outputControl import logging_access as la
 
 import config.general_parser
 import config.global_config
@@ -31,7 +32,7 @@ class BaseTest(BaseTestRunner):
     @abc.abstractmethod
     def setCSCH(self):
         """Set csch as overwriting test wishes"""
-        self.log("Nothing to set.")
+        self.log("Nothing to set.", la.Verbosity.TEST)
 
     @abc.abstractmethod
     def getTestedArchs(self):
@@ -39,5 +40,5 @@ class BaseTest(BaseTestRunner):
         Usually native arches as most of the tests are run on
         getBuildWithoutSrpm or getCompleteBuild
         overwrite and return empty array or None if the test is arch-independent"""
-        self.log("run on all known arches")
+        self.log("run on all known arches", la.Verbosity.TEST)
         return config.runtime_config.RuntimeConfig().getRpmList().getNativeArches()
