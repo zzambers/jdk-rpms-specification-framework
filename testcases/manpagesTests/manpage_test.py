@@ -153,7 +153,6 @@ class ManpageTestMethods(JdkConfiguration):
             masters = DefaultMock().get_masters()
 
             checked_masters = self._get_checked_masters()
-            ManpageTests.instance.log("Checking man pages for masters: {}.".format(checked_masters), la.Verbosity.TEST)
 
             for m in masters:
                 if m not in checked_masters:
@@ -164,12 +163,15 @@ class ManpageTestMethods(JdkConfiguration):
                 binaries = self._remove_java_rmi_cgi(binaries)
                 binaries = self._remove_excludes(binaries)
                 plugin_binaries = self._get_extra_bins(plugin_bin_content)
+                ManpageTests.instance.log("Binaries found for {}: ".format(tg) + ", ".join(binaries + plugin_binaries))
                 bins[_subpkg] = binaries + plugin_binaries
 
             # check links
             manpages = self._clean_default_mpges(default_mans, DefaultMock().execute_ls(MAN_DIR)[0].split("\n"))
+
             if len(manpages) != 0:
                 manpages_with_postscript[_subpkg] = manpages
+                ManpageTests.instance.log("Manpages found: " + ", ".join(manpages))
             else:
                 ManpageTests.instance.log("Warning: {} subpackage does not contain any binaries".format(_subpkg))
 
