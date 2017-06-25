@@ -6,7 +6,7 @@ import utils
 from utils.core.configuration_specific import JdkConfiguration
 import os
 import utils.pkg_name_split as pkgsplit
-from utils.test_utils import rename_default_subpkg, replace_archs_with_general_arch
+from utils.test_utils import rename_default_subpkg, replace_archs_with_general_arch, log_failed_test
 import utils.core.unknown_java_exception as ex
 from utils.mock.mock_executor import DefaultMock
 import config.runtime_config as rc
@@ -88,30 +88,31 @@ class ManpageTestMethods(JdkConfiguration):
 
     def _clean_sdk_from_jre(self, bins, packages):
         ManpageTests.instance.log("Cleaning {} from JRE binaries "
-                                  "(JRE bins do not have man pages in {}.)".format(SDK_BINARIES, DEVEL))
+                                  "(JRE bins do not have man pages in {}.)".format(SDK_BINARIES, DEVEL),
+                                  la.Verbosity.TEST)
 
         devel_bins = []
-        ManpageTests.instance.log("Original " + SDK_BINARIES + ": " + ", ".join(bins[DEVEL]))
+        ManpageTests.instance.log("Original " + SDK_BINARIES + ": " + ", ".join(bins[DEVEL]), la.Verbosity.TEST)
 
         for b in bins[packages[1]]:
             if b not in bins[packages[0]]:
                 devel_bins.append(b)
         self._clean_debug_subpackages(bins)
-        ManpageTests.instance.log(SDK_BINARIES + " without JRE binaries: " + ", ".join(devel_bins))
+        ManpageTests.instance.log(SDK_BINARIES + " without JRE binaries: " + ", ".join(devel_bins), la.Verbosity.TEST)
         bins[packages[1]] = devel_bins
         return bins
 
     def manpage_file_check(self, bins, subpackage=None, plugin_bin_content=None, manpages_without_postscript=None):
         self._document("When rpm is installed, man page file exists for each binary "
                        "with {} suffix.".format(replace_archs_with_general_arch(self._get_manpage_suffixes(DEFAULT),
-                                                                   self._get_arch())[FILE]))
+                                                self._get_arch())[FILE]))
         binaries = self._get_manpage_files_names(bins[subpackage], plugin_bin_content)
         manpage_files = manpages_without_postscript[subpackage]
         # now check that every binary has a man file
         for b in binaries:
             manpage = b + self._get_manpage_suffixes(subpackage)[FILE]
             if not manpage in manpage_files:
-                self.failed.append(manpage + " manpage file not in " + subpackage)
+                log_failed_test(self, manpage + " man page file not in " + subpackage)
         return manpage_files
 
     def manpage_links_check(self, bins, subpackage=None, manpages_with_postscript=None, manpage_files=None):
@@ -123,7 +124,7 @@ class ManpageTestMethods(JdkConfiguration):
         for l in links:
             link = l + self._get_manpage_suffixes(subpackage)[LINK]
             if link not in manpage_links:
-                self.failed.append(link + " manpage link not in " + subpackage)
+                log_failed_test(self, link + " man page link not in " + subpackage)
 
     def man_page_test(self, pkgs):
         self._document("Every binary must have a man page. If binary has a slave, then man page has also its slave."
@@ -152,7 +153,7 @@ class ManpageTestMethods(JdkConfiguration):
             masters = DefaultMock().get_masters()
 
             checked_masters = self._get_checked_masters()
-            ManpageTests.instance.log("Checking man pages for masters: {}.".format(checked_masters))
+            ManpageTests.instance.log("Checking man pages for masters: {}.".format(checked_masters), la.Verbosity.TEST)
 
             for m in masters:
                 if m not in checked_masters:
@@ -169,6 +170,8 @@ class ManpageTestMethods(JdkConfiguration):
             manpages = self._clean_default_mpges(default_mans, DefaultMock().execute_ls(MAN_DIR)[0].split("\n"))
             if len(manpages) != 0:
                 manpages_with_postscript[_subpkg] = manpages
+            else:
+                ManpageTests.instance.log("Warning: {} subpackage does not contain any binaries".format(_subpkg))
 
             # then check files
             DefaultMock().importRpm(pkg)
@@ -182,7 +185,7 @@ class ManpageTestMethods(JdkConfiguration):
 
         self.iced_tea_web_check(manpages_with_postscript, manpages_without_postscript)
 
-        ManpageTests.instance.log("Failed tests: " + ", ".join(self.failed))
+        ManpageTests.instance.log("Failed tests summary: " + ", ".join(self.failed), la.Verbosity.ERROR)
         assert(len(self.failed) == 0)
 
         # only doc-used method, does not execute any tests whatsoever
@@ -195,7 +198,7 @@ class ManpageTestMethods(JdkConfiguration):
                 break
 
         if has_debug:
-            self._document(" For debug subpackages, man page file is suffixed " \
+            self._document(" For debug subpackages, man page file is suffixed "
                            "with {}.".format(replace_archs_with_general_arch((self._get_manpage_suffixes(DEBUG_SUFFIX)),
                                                                              self._get_arch())[FILE]))
         return
@@ -242,7 +245,8 @@ class OpenJdk8(OpenJdk7):
 class OpenJdk8WithDebug(OpenJdk8):
     def _clean_debug_subpackages(self, bins):
         devel_bins = []
-        ManpageTests.instance.log("Original debug " + SDK_BINARIES + ": " + ", ".join(bins[self._get_subpackages()[3]]))
+        ManpageTests.instance.log("Original debug " + SDK_BINARIES + ": " + ", ".join(bins[self._get_subpackages()[3]]),
+                                  la.Verbosity.TEST)
         for b in bins[self._get_subpackages()[3]]:
             if b not in bins[self._get_subpackages()[2]]:
                 devel_bins.append(b)
@@ -326,9 +330,9 @@ class ITW(ManpageTestMethods):
         self._document("IcedTea Web has an " + itw_manpage_file + " man page, that has no binary and " +
                        itw_manpage_link + " man page, that has no slave.")
         if itw_manpage_file not in manpages_without_postscript[DEFAULT]:
-            self.failed.append(itw_manpage_file + " manpage file missing in " + DEFAULT)
+            log_failed_test(self, itw_manpage_file + " manpage file missing in " + DEFAULT)
         if itw_manpage_link not in manpages_with_postcript[DEFAULT]:
-            self.failed.append(itw_manpage_link + " manpage link missing in " + DEFAULT)
+            log_failed_test(self, itw_manpage_link + " manpage link missing in " + DEFAULT)
         return
 
 
@@ -387,7 +391,7 @@ class ManpageTests(bt.BaseTest):
     def setCSCH(self):
         ManpageTests.instance = self
         rpms = rc.RuntimeConfig().getRpmList()
-        self.log("Checking man pages for " + rpms.getMajorPackage())
+        self.log("Checking man pages for " + rpms.getMajorPackage(), la.Verbosity.TEST)
 
         if rpms.getVendor() == gc.OPENJDK:
             if rpms.getMajorVersionSimplified() == "6":
