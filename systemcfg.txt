@@ -28,6 +28,10 @@ sudo vgcreate MOCK_SNAPSHOT_LVM  /dev/loop0
 # Physical volume "/dev/loop0" successfully created
 # Volume group "MOCK_SNAPSHOT_LVM" successfully created
 
+Its possible to use a partition as a snapshot location, its a little bit faster than img file, you need to
+create a volume group with that partition and connect it to the mock, so basically only vgcreate on that partition
+- for virtual machines, use .vdi as a partition for working with mock snapshots
+
 now use this new VG in /etc/mock/site-defaults.cfg:
 
 config_opts['plugin_conf']['root_cache_enable'] = False
@@ -68,3 +72,8 @@ Snapshots for fedora-rawhide-x86_64:
 * postinit
 
 it works.
+
+Dependencies:
+mock
+mock-lvm
+rpm-build
