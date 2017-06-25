@@ -1,12 +1,13 @@
 from utils.mock.mock_executor import DefaultMock
 import utils.pkg_name_split as pkgsplit
 from utils.mock.mock_execution_exception import MockExecutionException
-from utils.test_utils import rename_default_subpkg, replace_archs_with_general_arch
+from utils.test_utils import rename_default_subpkg, replace_archs_with_general_arch, log_failed_test
 import os
 import config.runtime_config as rc
 from testcases.alternativesTests.binaries_test_paths import PathTest
 from utils.test_constants import *
 from utils.test_utils import two_lists_diff as diff
+from outputControl import logging_access as la
 
 
 class GetAllBinariesAndSlaves(PathTest):
@@ -40,7 +41,8 @@ class GetAllBinariesAndSlaves(PathTest):
 
     def get_slaves(self, _subpkg):
         checked_masters = self._get_checked_masters()
-        self._document("Checking slaves for masters: {}".format(" and ".join(replace_archs_with_general_arch(checked_masters, self._get_arch()))))
+        self._document("Checking slaves for masters:"
+                       " {}".format(" and ".join(replace_archs_with_general_arch(checked_masters, self._get_arch()))))
 
         masters = DefaultMock().get_masters()
         clean_slaves = []
@@ -50,7 +52,7 @@ class GetAllBinariesAndSlaves(PathTest):
             try:
                 slaves = DefaultMock().get_slaves(m)
             except MockExecutionException:
-                self.binaries_test.log("No relevant slaves were present for " + _subpkg + ".")
+                self.binaries_test.log("No relevant slaves were present for " + _subpkg + ".", la.Verbosity.TEST)
                 continue
 
             if m in [JAVA, JAVAC]:
@@ -84,7 +86,7 @@ class GetAllBinariesAndSlaves(PathTest):
 
             if binaries[1] != 0:
                 self.binaries_test.log("Location {} does not exist, binaries test skipped "
-                                       "for ".format(binary_directory_path) + name)
+                                       "for ".format(binary_directory_path) + name, la.Verbosity.TEST)
                 continue
             slaves = self.get_slaves(_subpkg)
 
@@ -121,14 +123,14 @@ class BinarySlaveTestMethods(GetAllBinariesAndSlaves):
                     try:
                         sdk.remove(j)
                     except ValueError:
-                        self.failed_tests.append("Binary " + j + " is present in JRE, but is missing in SDK.")
+                        log_failed_test(self, "Binary " + j + " is present in JRE, but is missing in SDK.")
 
         return installed_binaries
 
     def _perform_all_checks(self, installed_slaves, installed_binaries):
         if sorted(installed_slaves.keys()) != sorted(installed_binaries.keys()):
-            self.failed_tests.append("Subpackages that contain binaries and slaves do not match. Subpackages with"
-                                     "binaries: {}, Subpackages with slaves: {}".format(
+            log_failed_test(self, "Subpackages that contain binaries and slaves do not match. Subpackages with"
+                            "binaries: {}, Subpackages with slaves: {}".format(
                                                                 sorted(installed_binaries.keys()),
                                                                 sorted(installed_slaves.keys())))
         try:
@@ -136,13 +138,13 @@ class BinarySlaveTestMethods(GetAllBinariesAndSlaves):
                 slaves = installed_slaves[subpackage]
                 binaries = installed_binaries[subpackage]
                 if sorted(binaries) != sorted(slaves):
-                    self.failed_tests.append("Binaries do not match slaves in {}. Missing binaries: {}"
-                                             " Missing slaves: {}".format(subpackage, diff(slaves, binaries),
+                    log_failed_test(self, "Binaries do not match slaves in {}. Missing binaries: {}"
+                                    " Missing slaves: {}".format(subpackage, diff(slaves, binaries),
                                                                           diff(binaries, slaves)))
                 self._check_binaries_against_hardcoded_list(binaries, subpackage)
 
         except KeyError as err:
-            self.failed_tests.append(err)
+            log_failed_test(self, err)
         return
 
     # main check, that includes all small checks and at the end compares the binaries with slaves
@@ -162,12 +164,9 @@ class BinarySlaveTestMethods(GetAllBinariesAndSlaves):
 
         for subpkg in installed_binaries.keys():
                     self.binaries_test.log("Presented binaries for {}: ".format(subpkg) +
-                                           str(sorted(installed_binaries[subpkg])))
+                                           str(sorted(installed_binaries[subpkg])), la.Verbosity.TEST)
                     self.binaries_test.log("Presented slaves for {}: ".format(subpkg) +
-                                           str(sorted(installed_slaves[subpkg])))
+                                           str(sorted(installed_slaves[subpkg])), la.Verbosity.TEST)
 
-        self.binaries_test.log("Failed tests: " + ", ".join(self.failed_tests))
-        print(installed_binaries)
-        print(installed_slaves)
-        print(self.failed_tests)
+        self.binaries_test.log("Failed tests: " + "\n ".join(self.failed_tests), la.Verbosity.ERROR)
         assert len(self.failed_tests) == 0

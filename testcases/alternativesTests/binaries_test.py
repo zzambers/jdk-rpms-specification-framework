@@ -20,7 +20,7 @@ class BinariesTest(bt.BaseTest):
     def setCSCH(self):
         BinariesTest.instance = self
         rpms = rc.RuntimeConfig().getRpmList()
-        self.log("Checking binaries and slaves for " + rpms.getMajorPackage())
+        self.log("Checking binaries and slaves for " + rpms.getMajorPackage(), la.Verbosity.TEST)
 
         if rpms.getVendor() == gc.OPENJDK:
             if rpms.getMajorVersionSimplified() == "6":

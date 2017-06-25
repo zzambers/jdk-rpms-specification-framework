@@ -2,11 +2,12 @@ from utils.core.configuration_specific import JdkConfiguration
 from utils.mock.mock_executor import DefaultMock
 import utils.pkg_name_split as pkgsplit
 from utils.mock.mock_execution_exception import MockExecutionException
-from utils.test_utils import rename_default_subpkg
+from utils.test_utils import rename_default_subpkg, log_failed_test
 from config.global_config import get_32b_arch_identifiers_in_scriptlets as get_id
 import os
 from utils.test_constants import *
 from utils.test_utils import get_32bit_id_in_nvra
+from outputControl import logging_access as la
 
 
 class BaseTest(JdkConfiguration):
@@ -79,7 +80,7 @@ class BaseTest(JdkConfiguration):
             try:
                 installed_binaries[subpackage].remove(JAVA_RMI_CGI)
             except ValueError:
-                self.failed_tests.append("Missing {} in {}.".format(JAVA_RMI_CGI, DEVEL))
+                log_failed_test(self, "Missing {} in {}.".format(JAVA_RMI_CGI, DEVEL))
         return installed_binaries
 
     def _get_32bit_id_in_nvra(self, nvra):
@@ -103,7 +104,7 @@ class PathTest(BaseTest):
             if not DefaultMock().postinstall_exception_checked(pkg):
                 continue
             paths = self._get_paths()
-            self.binaries_test.log("Given paths: " + ", ".join(paths))
+            self.binaries_test.log("Given paths: " + ", ".join(paths), la.Verbosity.TEST)
 
             for path in paths:
                 content = self._get_path_contents(path)
@@ -113,15 +114,15 @@ class PathTest(BaseTest):
                     content = content[0].split("\n")
                 path_contents[path] = content
 
-            self.binaries_test.log("Validating binaries paths for {} subpackage: ".format(_subpkg))
+            self.binaries_test.log("Validating binaries paths for {} subpackage: ".format(_subpkg), la.Verbosity.TEST)
             for binary in binaries[_subpkg]:
                 found_paths = self._binary_in_path_contents(path_contents, binary)
                 if found_paths is None:
-                    self.failed_tests.append(binary + " not found in any path given for " + _subpkg)
+                    log_failed_test(self, binary + " not found in any path given for " + _subpkg)
                 else:
                     self.binaries_test.log("Binary {} found in {} for "
-                                               "{}".format(binary, ", ".join(found_paths), _subpkg))
-        self.binaries_test.log("Path test finished.")
+                                               "{}".format(binary, ", ".join(found_paths), _subpkg), la.Verbosity.TEST)
+        self.binaries_test.log("Path test finished.", la.Verbosity.TEST)
         return
 
     def _get_paths(self):
@@ -149,11 +150,11 @@ class PathTest(BaseTest):
             if res[1] == 0:
                 result.add(res)
             else:
-                self.failed_tests.append("Command readlink " + p + "/" + binary + " failed.")
+                log_failed_test(self, "Command readlink " + p + "/" + binary + " failed.")
         if len(result) != 1:
             if len(result) > 1:
-                self.failed_tests.append("Links of one binary do not point on same target: " + ",".join(result))
+                log_failed_test(self, "Links of one binary do not point on same target: " + ",".join(result))
             else:
-                self.failed_tests.append("Links do not point on any target.")
+                log_failed_test(self, "Links do not point on any target.")
         return paths
 
