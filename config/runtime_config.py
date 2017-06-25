@@ -1,6 +1,7 @@
 import config.global_config
 import utils.build_downloader
 from outputControl import logging_access as la
+from utils import rpm_list
 
 VERSION_STRING = "jdks_specification_framework, version 0.1"
 
@@ -27,8 +28,8 @@ class RuntimeConfig(metaclass=Singleton):
         self.verbosity = la.Verbosity.TEST
 
     def getRpmList(self):
-        if self.rpmList == None:
-            self.rpmList = utils.rpm_list.RpmList(self.getPkgsDir())
+        if self.rpmList is None:
+            self.rpmList = rpm_list.RpmList(self.getPkgsDir())
         return self.rpmList
 
     def setLogsFile(self, nwFile):
@@ -99,7 +100,7 @@ class RuntimeConfig(metaclass=Singleton):
             try:
                 verbosity = la.Verbosity(int(args.verbosity))
             except Exception:
-                raise AttributeError("Invalid verbosity argument, expected 1, 2 or 3, but got {}.".format(args.verbosity))
-
+                raise AttributeError("Invalid verbosity argument, expected 1, 2 or 3, "
+                                     "but got {}.".format(args.verbosity))
             self.set_verbosity(verbosity)
         return True
