@@ -32,6 +32,7 @@ Handling special version/vendor/arch cases
 	- [1] this object must do only thing - to extend configuration_specific.JdkConfiguration, so it have access to _document method
 		- public methods in this object should be used to point to special corner case of the test
 		- all public methods MUST have all parameters with defaults
+		- all public methods must have at least one parameter other than self
 		- all public methods should have first line of self._document("description of special case")
 		- see example [2]
 
