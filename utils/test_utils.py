@@ -14,11 +14,12 @@ def closeTestSuite(passed, failed, mtc):
         raise Exception(str(failed) + " tests failed")
 
 
+# ignored must be taken as a passed test case, since docs are also csch
 def closeDocSuite(documented, ignored, failed):
     la.LoggingAccess().log("done - Documented: " + str(documented) + " from total: " + str(documented+ignored+failed),
                            la.Verbosity.TEST)
-    if (failed+ignored) != 0:
-        raise Exception(str(failed+ignored) + " docs failed")
+    if failed != 0:
+        raise Exception(str(failed) + " docs failed")
 
 
 def result(boolval):
@@ -121,6 +122,7 @@ def rename_default_subpkg(subpkg):
     elif subpkg == "debug":
         subpkg = "default-debug"
     return subpkg
+
 
 # expects a list, not a string, othervise, strange behaviour appears
 def replace_archs_with_general_arch(names, arch):
