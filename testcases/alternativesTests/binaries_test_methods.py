@@ -29,14 +29,14 @@ class GetAllBinariesAndSlaves(PathTest):
                 try:
                     installed_slaves[jsubpkg].remove(jslave)
                 except ValueError:
-                    self.failed_tests.append(jslave + " export slave missing in " + jsubpkg)
+                    self.failed.append(jslave + " export slave missing in " + jsubpkg)
 
         for ssubpkg in sdk_subpackages:
             for sslave in sdk_slaves:
                 try:
                     installed_slaves[ssubpkg].remove(sslave)
                 except ValueError:
-                    self.failed_tests.append(sslave + " export slave missing in " + ssubpkg)
+                    self.failed.append(sslave + " export slave missing in " + ssubpkg)
         return installed_slaves
 
     def get_slaves(self, _subpkg):
@@ -168,5 +168,5 @@ class BinarySlaveTestMethods(GetAllBinariesAndSlaves):
                     self.binaries_test.log("Presented slaves for {}: ".format(subpkg) +
                                            str(sorted(installed_slaves[subpkg])), la.Verbosity.TEST)
 
-        self.binaries_test.log("Failed tests: " + "\n ".join(self.failed_tests), la.Verbosity.ERROR)
-        assert len(self.failed_tests) == 0
+        self.binaries_test.log("Failed tests: " + "\n ".join(self.failed), la.Verbosity.ERROR)
+        assert len(self.failed) == 0

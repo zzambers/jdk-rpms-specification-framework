@@ -15,7 +15,7 @@ class BaseTest(JdkConfiguration):
         super(BaseTest, self).__init__()
         self.binaries_test = binariesTest
         self.skipped = []
-        self.failed_tests = []
+        self.failed = []
 
 
     def remove_binaries_without_slaves(self, installed_binaries):
