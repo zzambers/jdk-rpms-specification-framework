@@ -26,6 +26,7 @@ class RuntimeConfig(metaclass=Singleton):
         self.header = True
         self.archs = None
         self.verbosity = la.Verbosity.TEST
+        self.diewith = 0
 
     def getRpmList(self):
         if self.rpmList is None:
@@ -103,4 +104,10 @@ class RuntimeConfig(metaclass=Singleton):
                 raise AttributeError("Invalid verbosity argument, expected 1, 2 or 3, "
                                      "but got {}.".format(args.verbosity))
             self.set_verbosity(verbosity)
+        if args.diewith:
+            try:
+                val = int(args.diewith)
+            except Exception:
+                raise AttributeError("diewith argument must be integer")
+            self.diewith = val
         return True
