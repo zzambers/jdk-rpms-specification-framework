@@ -11,7 +11,10 @@ def closeTestSuite(passed, failed, mtc):
     la.LoggingAccess().stdout("Arch-independet mehtods counted: " + str(mtc))
     la.LoggingAccess().stdout("done - Passed: " + str(passed) + " from total: " + str(passed + failed))
     if failed != 0:
-        raise Exception(str(failed) + " tests failed")
+        if config.runtime_config.RuntimeConfig().diewith:
+            return config.runtime_config.RuntimeConfig().diewith
+        else:
+            raise Exception(str(failed) + " tests failed")
 
 
 # ignored must be taken as a passed test case, since docs are also csch
@@ -19,7 +22,10 @@ def closeDocSuite(documented, ignored, failed):
     la.LoggingAccess().log("done - Documented: " + str(documented) + " from total: " + str(documented+ignored+failed),
                            la.Verbosity.TEST)
     if failed != 0:
-        raise Exception(str(failed) + " docs failed")
+        if config.runtime_config.RuntimeConfig().diewith:
+            return config.runtime_config.RuntimeConfig().diewith
+        else:
+            raise Exception(str(failed) + " docs failed")
 
 
 def result(boolval):
