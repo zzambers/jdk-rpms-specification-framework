@@ -1,6 +1,7 @@
 import os
 import tempfile
 import errno
+import sys
 
 import config.global_config
 from outputControl import logging_access as la
@@ -12,7 +13,7 @@ def closeTestSuite(passed, failed, mtc):
     la.LoggingAccess().stdout("done - Passed: " + str(passed) + " from total: " + str(passed + failed))
     if failed != 0:
         if config.runtime_config.RuntimeConfig().diewith:
-            return config.runtime_config.RuntimeConfig().diewith
+            sys.exit(config.runtime_config.RuntimeConfig().diewith)
         else:
             raise Exception(str(failed) + " tests failed")
 
@@ -23,7 +24,7 @@ def closeDocSuite(documented, ignored, failed):
                            la.Verbosity.TEST)
     if failed != 0:
         if config.runtime_config.RuntimeConfig().diewith:
-            return config.runtime_config.RuntimeConfig().diewith
+            sys.exit(config.runtime_config.RuntimeConfig().diewith)
         else:
             raise Exception(str(failed) + " docs failed")
 
