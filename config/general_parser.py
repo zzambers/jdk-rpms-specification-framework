@@ -37,6 +37,9 @@ def _createParser():
     lparser.add_argument("--verbosity",
                          help="verbosity of logfile, 3 - most verbose, "
                               "2 - only test output, 1 - only fail output, default is 2")
+
+    lparser.add_argument("--diewith",
+                         help="specify, how is the framework supposed to fail, int only")
     return lparser
 
 
