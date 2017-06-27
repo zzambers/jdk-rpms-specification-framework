@@ -128,9 +128,9 @@ class BaseTestRunner:
                             inspect.stack()[1][1]
                         la.LoggingAccess().stdout(m)
                         failed += 1
-                        print(m, file=sys.stderr)
-                        traceback.print_exc()
-                    methodEnd= time.clock()
+                        #print(m, file=sys.stderr)
+                        #traceback.print_exc()
+                    methodEnd = time.clock()
                     ms = (methodEnd)*1000-(methodStart*1000)
                     self.indent = "    "
                     self.log("finished: " + a + "[" + self.current_arch + "] " + str(i + 1) + "/" + str(len(archs)) + " in "+str(round(ms,3))+"ms")
