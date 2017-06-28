@@ -26,7 +26,7 @@ class RuntimeConfig(metaclass=Singleton):
         self.header = True
         self.archs = None
         self.verbosity = la.Verbosity.TEST
-        self.diewith = 0
+        self.diewith = None
 
     def getRpmList(self):
         if self.rpmList is None:
