@@ -76,13 +76,13 @@ class CheckPostinstallScript(BasePackages):
         for pkg in pkgs:
             _subpackage = rename_default_subpkg(utils.pkg_name_split.get_subpackage_only(os.path.basename(pkg)))
 
-            PostinstallScriptTest.instance.log("Searching for " + rbu.POSTINSTALL + " in " + os.path.basename(pkg))
-            PostinstallScriptTest.instance.log("Checking master for " + os.path.basename(pkg))
+            PostinstallScriptTest.instance.log("Searching for " + rbu.POSTINSTALL + " in " + os.path.basename(pkg),
+                                               la.Verbosity.TEST)
+            PostinstallScriptTest.instance.log("Checking master for " + os.path.basename(pkg), la.Verbosity.TEST)
 
             if not DefaultMock().postinstall_exception_checked(pkg):
                 skipped.append(_subpackage)
                 continue
-
             pkg_masters = DefaultMock().get_masters()
 
             for m in _default_masters:
@@ -90,19 +90,20 @@ class CheckPostinstallScript(BasePackages):
 
             actual_masters[_subpackage] = pkg_masters
 
-        PostinstallScriptTest.instance.log("Postinstall not present in packages: " + str(skipped) + ".")
+        PostinstallScriptTest.instance.log("Postinstall script does not exist for: " + str(skipped) + ".",
+                                           la.Verbosity.TEST)
         PostinstallScriptTest.instance.log("Postinstall expected in " + str(len(expected_masters)) +
-                                           " : " + ", ".join(expected_masters))
+                                           " : " + ", ".join(expected_masters), la.Verbosity.TEST)
         PostinstallScriptTest.instance.log("Postinstall present in " + str(len(actual_masters)) + " : " +
-                                           ", ".join(actual_masters))
+                                           ", ".join(actual_masters), la.Verbosity.TEST)
 
         assert set(expected_masters.keys()) == set(actual_masters.keys())
 
         for subpkg in expected_masters.keys():
             PostinstallScriptTest.instance.log("Expected masters for " + subpkg + " : " +
-                                               ", ".join(sorted(expected_masters[subpkg])))
+                                               ", ".join(sorted(expected_masters[subpkg])), la.Verbosity.TEST)
             PostinstallScriptTest.instance.log("Presented masters for " + subpkg + " : " +
-                                               ", ".join(sorted(actual_masters[subpkg])))
+                                               ", ".join(sorted(actual_masters[subpkg])), la.Verbosity.TEST)
 
         for e in expected_masters.keys():
             if sorted(expected_masters[e]) == sorted(actual_masters[e]):
@@ -110,8 +111,8 @@ class CheckPostinstallScript(BasePackages):
             else:
                 failed.append(e)
 
-        PostinstallScriptTest.instance.log("Master test was successful for: " + ", ".join(passed))
-        PostinstallScriptTest.instance.log("Master test failed for: " + ", ".join(failed))
+        PostinstallScriptTest.instance.log("Master test was successful for: " + ", ".join(passed), la.Verbosity.TEST)
+        PostinstallScriptTest.instance.log("Master test failed for: " + "\n ".join(failed), la.Verbosity.ERROR)
 
         assert(len(failed) == 0)
 
@@ -174,6 +175,7 @@ class ProprietaryJava6(OpenJdk6):
     def _add_local_policy(self):
         return "jce_" + self._get_version() + "_" + self._get_vendor() + "_local_policy"
 
+
 # s390x, x86, ppc64
 class ProprietaryJava6WithArch(ProprietaryJava6):
     def _add_local_policy(self):
@@ -215,9 +217,9 @@ class Ibm7WithoutPlugin(Ibm7):
         return masters
 
 
-class Oracle7(ProprietaryJava7and8Base):
+class Oracle7a8(ProprietaryJava7and8Base):
     def _generate_masters(self):
-        masters = super(Oracle7, self)._generate_masters()
+        masters = super(Oracle7a8, self)._generate_masters()
         masters[JAVAFX] = [JAVAFXPACKAGER]
         return masters
 
@@ -234,7 +236,7 @@ class Ibm8WithoutPlugin(Ibm8):
         return masters
 
 
-class Oracle8x86(Oracle7):
+class Oracle7a8x86(Oracle7a8):
     def _add_plugin(self):
         return [self._get_masters_arch_copy(LIBJAVAPLUGIN)]
 
@@ -249,7 +251,7 @@ class PostinstallScriptTest(bt.BaseTest):
     def setCSCH(self):
         PostinstallScriptTest.instance = self
         rpms = rc.RuntimeConfig().getRpmList()
-        self.log("Checking post_script and master for " + rpms.getVendor())
+        self.log("Checking post_script and master for " + rpms.getVendor(), la.Verbosity.TEST)
 
         if rpms.getVendor() == gc.OPENJDK:
             if rpms.getMajorVersionSimplified() == "6":
@@ -303,15 +305,12 @@ class PostinstallScriptTest(bt.BaseTest):
                 else:
                     self.csch = Oracle6()
                     return
-            elif rpms.getMajorVersionSimplified() == "7":
-                self.csch = Oracle7()
-                return
-            elif rpms.getMajorVersionSimplified() == "8":
+            elif rpms.getMajorVersionSimplified() == "7" or rpms.getMajorVersionSimplified() == "8":
                 if self.getCurrentArch() in gc.getX86_64Arch():
-                    self.csch = Oracle8x86()
+                    self.csch = Oracle7a8x86()
                     return
                 else:
-                    self.csch = Oracle7()
+                    self.csch = Oracle7a8()
                     return
             else:
                 raise ex.UnknownJavaVersionException("Unknown Oracle java version.")
