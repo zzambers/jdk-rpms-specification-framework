@@ -117,7 +117,10 @@ class Mock:
         return e, o, r
 
     def _scrubLvmCommand(self):
-        o, e = exxec.processToStrings(self.mainCommand() + ["--scrub", "lvm"])
+        o, e, r = exxec.processToStringsWithResult(self.mainCommand() + ["--scrub", "lvm"])
+        if r == 60:
+            raise utils.mock.mock_execution_exception.MockExecutionException("Build chroot is locked, please restart "
+                                                                             "the testsuite.")
         outputControl.logging_access.LoggingAccess().log(e, la.Verbosity.MOCK)
         outputControl.logging_access.LoggingAccess().log(o, la.Verbosity.MOCK)
         outputControl.logging_access.LoggingAccess().log(str(self.listSnapshots()), la.Verbosity.MOCK)
