@@ -1,14 +1,15 @@
 import ntpath
 import sys
 
-import utils.pkg_name_split as split
 from utils.core.configuration_specific import JdkConfiguration
-
 import config.global_config as gc
 import config.runtime_config
 import outputControl.logging_access
 import utils.core.base_xtest
 import utils.core.unknown_java_exception as ex
+from utils.test_constants import *
+from outputControl import logging_access as la
+from utils import pkg_name_split as split
 
 
 class MainPackagePresent(JdkConfiguration):
@@ -19,13 +20,15 @@ class MainPackagePresent(JdkConfiguration):
         expectedList = self._getSubPackages()
         subpkgSetExpected= sorted(set(expectedList))
         ssGiven = sorted(set(subpkgs))
-        SubpackagesTest.hack.log("Checking number of subpackages " + str(len(ssGiven)) + " of " + SubpackagesTest.hack.current_arch + " against " + str(len(subpkgSetExpected)))
-        SubpackagesTest.hack.log("Presented: " + str(ssGiven))
-        SubpackagesTest.hack.log("Expected:  " + str(subpkgSetExpected))
+        SubpackagesTest.instance.log("Checking number of subpackages " + str(len(ssGiven)) +
+                                     " of " + SubpackagesTest.instance.current_arch + " against "
+                                     + str(len(subpkgSetExpected)), la.Verbosity.TEST)
+        SubpackagesTest.instance.log("Presented: " + str(ssGiven), la.Verbosity.TEST)
+        SubpackagesTest.instance.log("Expected:  " + str(subpkgSetExpected), la.Verbosity.TEST)
         assert len(ssGiven) == len(subpkgSetExpected)
         for subpkg in subpkgSetExpected:
-            SubpackagesTest.hack.log(
-                "Checking `" + subpkg + "` of " + SubpackagesTest.hack.current_arch)
+            SubpackagesTest.instance.log(
+                "Checking `" + subpkg + "` of " + SubpackagesTest.instance.current_arch, la.Verbosity.TEST)
             assert subpkg in subpkgSetExpected
 
 
@@ -50,10 +53,10 @@ class DebugInfo(BaseSubpackages):
 
 class ItwSubpackages(DebugInfo):
     def _getSubPackages(self):
-        return super(ItwSubpackages, self)._getSubPackages() + ["javadoc"]
+        return super(ItwSubpackages, self)._getSubPackages() + [JAVADOC]
 
     def checkSubpackages(self, subpackages=None):
-        self._document("IcedTea-Web have exactly following subpackages: `" + "`,`".join(
+        self._document("IcedTea-Web has exactly following subpackages: `" + "`,`".join(
             self._getSubPackages()) + "`. Where `` is main package " + gc.ITW)
         self._mainCheck(subpackages)
 
@@ -63,7 +66,7 @@ class Openjdk6(DebugInfo):
         return super(Openjdk6, self)._getSubPackages() + self._getBasePackages()
 
     def _getBasePackages(self):
-        return ['demo', 'devel', 'javadoc', 'src']
+        return ['demo', DEVEL, JAVADOC, 'src']
 
 
 class Openjdk7(Openjdk6):
@@ -74,7 +77,7 @@ class Openjdk7(Openjdk6):
         return super(Openjdk7, self)._getBasePackages() + self._getAdditionalPackages()
 
     def _getAdditionalPackages(self):
-        return ['accessibility', 'headless']
+        return ['accessibility', HEADLESS]
 
 
 class Openjdk8NoJit(Openjdk7):
@@ -95,7 +98,7 @@ class Openjdk8BaseJit(Openjdk8NoJit):
     def _getDebugPairs(self):
         r = ["debug"]  # main subpackage
         for base in self._getBasePackages():
-            r.append(base + "-debug")
+            r.append(base + DEBUG_SUFFIX)
         return r
 
 
@@ -109,9 +112,20 @@ class Openjdk8BaseJit25(Openjdk8BaseJit):
         return super(Openjdk8BaseJit25, self)._getBasePackages() + self._getJavadocZipPackage()
 
 
+class OpenJdk9NoJit25(Openjdk8NoJit):
+    def _getBasePackages(self):
+        return super()._getBasePackages() + ["jmods"]
+
+    def _getDebugPairs(self):
+        r = ["debug"]  # main subpackage
+        for base in self._getBasePackages():
+            r.append(base + DEBUG_SUFFIX)
+        return r
+
+
 class IbmBase(BaseSubpackages):
     def _getSubPackages(self):
-        return super(IbmBase, self)._getSubPackages() + ["demo", "devel", "jdbc", "src"]
+        return super(IbmBase, self)._getSubPackages() + ["demo", DEVEL, "jdbc", "src"]
 
     def _getJavacommPkg(self):
         return ["javacomm"]
@@ -119,7 +133,7 @@ class IbmBase(BaseSubpackages):
 
 class IbmAddPlugin(IbmBase):
     def _getSubPackages(self):
-        return super(IbmAddPlugin, self)._getSubPackages() + ["plugin"]
+        return super(IbmAddPlugin, self)._getSubPackages() + [PLUGIN]
 
 
 class IbmAddJavacommWithPlugin(IbmAddPlugin):
@@ -134,7 +148,7 @@ class IbmAddJavacommNoPlugin(IbmBase):
 
 class OracleBase(BaseSubpackages):
     def _getSubPackages(self):
-        return super(OracleBase, self)._getSubPackages() + ['devel', 'jdbc', 'plugin', 'src']
+        return super(OracleBase, self)._getSubPackages() + [DEVEL, 'jdbc', PLUGIN, 'src']
 
 
 class Oracle7and8(OracleBase):
@@ -148,7 +162,7 @@ class Oracle6(OracleBase):
 
 
 class SubpackagesTest(utils.core.base_xtest.BaseTest):
-    hack = None
+    instance = None
 
     def test_checkAllSubpackages(self):
         rpms = self.getBuild()
@@ -160,27 +174,33 @@ class SubpackagesTest(utils.core.base_xtest.BaseTest):
         self.csch.checkSubpackages(subpackages)
 
     def setCSCH(self):
-        SubpackagesTest.hack = self
+        SubpackagesTest.instance = self
         rpms = config.runtime_config.RuntimeConfig().getRpmList()
         if rpms.getJava() == gc.ITW:
             self.csch = ItwSubpackages()
             return
 
         if rpms.getVendor() == gc.OPENJDK and rpms.isFedora():
-            if self.getCurrentArch() in gc.getArm32Achs():
-                if rpms.getOsVersionMajor() > 24:
-                    self.csch = Openjdk8NoJit25()
-                    return
+            if rpms.getMajorVersionSimplified() == "8":
+                if self.getCurrentArch() in gc.getArm32Achs():
+                    if rpms.getOsVersionMajor() > 24:
+                        self.csch = Openjdk8NoJit25()
+                        return
+                    else:
+                        self.csch = Openjdk8NoJit()
+                        return
                 else:
-                    self.csch = Openjdk8NoJit()
-                    return
+                    if rpms.getOsVersionMajor() > 24:
+                        self.csch = Openjdk8BaseJit25()
+                        return
+                    else:
+                        self.csch = Openjdk8BaseJit()
+                        return
+            elif rpms.getMajorVersionSimplified() == "9":
+                self.csch = OpenJdk9NoJit25()
+                return
             else:
-                if rpms.getOsVersionMajor() > 24:
-                    self.csch = Openjdk8BaseJit25()
-                    return
-                else:
-                    self.csch = Openjdk8BaseJit()
-                    return
+                raise ex.UnknownJavaVersionException("Unknown java version.")
 
         if rpms.getVendor() == gc.OPENJDK and rpms.isRhel():
             if rpms.getMajorVersionSimplified() == '6':
@@ -233,7 +253,6 @@ class SubpackagesTest(utils.core.base_xtest.BaseTest):
         if rpms.getVendor() == gc.SUN and rpms.isRhel():
             self.csch = Oracle6()
             return
-
 
         self.csch = None
         raise ex.UnknownJavaVersionException("Java version or OS was not recognized by this framework.")
