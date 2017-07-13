@@ -70,7 +70,7 @@ class Mock:
         return self.getDir() + "/result"
 
     def mainCommand(self):
-        return [self.command, "-r", self.getMockName()]
+        return [self.command, "--yum", "-r", self.getMockName()]
 
     def mainCommandAsString(self):
         s = ""
