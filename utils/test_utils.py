@@ -10,7 +10,10 @@ import config.runtime_config
 
 def closeTestSuite(passed, failed, mtc):
     la.LoggingAccess().stdout("Arch-independet mehtods counted: " + str(mtc))
-    la.LoggingAccess().stdout("done - Passed: " + str(passed) + " from total: " + str(passed + failed))
+    la.LoggingAccess().stdout("Passed: " + str(passed))
+    la.LoggingAccess().stdout("Failed: " + str(failed))
+    la.LoggingAccess().stdout("Total: " + str(failed + passed))
+    la.LoggingAccess().stdout("Test suite finished.")
     if failed != 0:
         if config.runtime_config.RuntimeConfig().diewith:
             sys.exit(config.runtime_config.RuntimeConfig().diewith)
