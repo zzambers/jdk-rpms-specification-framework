@@ -41,7 +41,7 @@ class Mock:
         #            ,"/var"
     ]
 
-    def __init__(self, os="fedora", version="rawhide", arch="x86_64", command="mock"):
+    def __init__(self, os="fedora", version="25", arch="x86_64", command="mock"):
         self.os = os
         self.version = version
         self.arch = arch
