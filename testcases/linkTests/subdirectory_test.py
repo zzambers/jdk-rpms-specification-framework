@@ -12,6 +12,7 @@ import utils.pkg_name_split as pkgsplit
 from utils.test_utils import get_32bit_id_in_nvra, log_failed_test
 from config.global_config import get_32b_arch_identifiers_in_scriptlets as get_id
 from utils.test_constants import *
+from utils.core.unknown_java_exception import UnknownJavaVersionException
 
 
 class BaseMethods(JdkConfiguration):
@@ -48,6 +49,9 @@ class BaseMethods(JdkConfiguration):
 
         self._document(docs)
 
+    def _remove_fake_subdirectories(self, subdirectories):
+        return subdirectories
+
     def _test_subdirectories_equals(self, subdirectories, expected_subdirectories, _subpkg, name):
         if sorted(subdirectories) != sorted(expected_subdirectories):
             for subdirectory in expected_subdirectories:
@@ -60,10 +64,15 @@ class BaseMethods(JdkConfiguration):
         else:
                 SubdirectoryTest.instance.log("Subdirectory test for {} finished, no fails occured.".format(name))
 
-    def _test_links_are_correct(self, expected_subdirectories, name, _subpkg):
+    def _test_links_are_correct(self, subdirectories, name, _subpkg):
         SubdirectoryTest.instance.log("Testing subdirectory links: ")
-        for subdirectory in expected_subdirectories:
+        for subdirectory in subdirectories:
             expected_link = JVM_DIR + "/" + self._get_nvra_suffix(name)
+            #if "jce" in subdirectory:
+             #   SubdirectoryTest.instance.log(subdirectory + " is a directory manually added to the filesystem, "
+              #                                               "skipping link check.")
+               # continue
+
             if "jre" in subdirectory:
                 expected_link = self._get_jre_link(expected_link)
 
@@ -90,11 +99,12 @@ class BaseMethods(JdkConfiguration):
 
             subdirectories = DefaultMock().execute_ls(JVM_DIR)
             if subdirectories[1] != 0:
-                SubdirectoryTest.instance.log("Warning: " + JVM_DIR + " does not exist, skipping subdirectory test for"
-                                                                      " given subpackage {}".format(_subpkg),
-                                              la.Verbosity.TEST)
+                log_failed_test(self, "Warning: " + JVM_DIR + " does not exist, skipping subdirectory test for"
+                                " given subpackage {}".format(_subpkg))
+
                 continue
             subdirectories = subdirectories[0].split("\n")
+            subdirectories = self._remove_fake_subdirectories(subdirectories)
             expected_subdirectories = self._get_expected_subdirectories(name)[_subpkg]
             expected_subdirectories.append(self._get_nvra_suffix(name))
             expected_subdirectories = set(expected_subdirectories)
@@ -103,7 +113,7 @@ class BaseMethods(JdkConfiguration):
                                           la.Verbosity.TEST)
             SubdirectoryTest.instance.log("Presented: " + str(sorted(subdirectories)), la.Verbosity.TEST)
             self._test_subdirectories_equals(subdirectories, expected_subdirectories, _subpkg, name)
-            self._test_links_are_correct(expected_subdirectories, name, _subpkg)
+            self._test_links_are_correct(subdirectories, name, _subpkg)
 
         if len(self.failed) != 0:
             SubdirectoryTest.instance.log("Summary of failed tests: " + "\n        ".join(self.failed),
@@ -156,6 +166,27 @@ class OpenJdk7(OpenJdk6):
         subdirs[HEADLESS] = subdirs[DEFAULT]
         subdirs[HEADLESS].append(self._get_nvra_suffix(name).replace("java", "jre", 1))
         subdirs[DEFAULT] = []
+        return subdirs
+
+
+class Oracle7(OpenJdk6):
+    def _get_nvra_suffix(self, name):
+        nvra = super(OpenJdk6, self)._get_nvra_suffix(name)
+        return nvra
+
+    def _get_expected_subdirectories(self, name):
+        subdirs = super()._get_expected_subdirectories(name)
+        subdirs[DEFAULT].append(self._get_nvra_suffix(name).replace("java", "jre", 1))
+        return subdirs
+
+    def _remove_fake_subdirectories(self, subdirectories):
+        subdirs = copy.copy(subdirectories)
+        fake_subs = ['jce-1.7.0-oracle', 'jce-1.8.0-oracle']
+        for fs in fake_subs:
+            try:
+                subdirs.remove(fs)
+            except ValueError:
+                SubdirectoryTest.instance.log(fs + " should be created in /usr/lib/jvm for plugin package purpose.")
         return subdirs
 
 
@@ -222,6 +253,25 @@ class SubdirectoryTest(bt.BaseTest):
                 else:
                     self.csch = OpenJdk9()
                     return
+            else:
+                raise UnknownJavaVersionException("Unknown OpenJDK version.")
+        elif rpms.getVendor() == gc.SUN:
+            if self.getCurrentArch() in gc.getX86_64Arch():
+                self.csch = OpenJdk6PowerBeArchAndX86()
+                return
+            else:
+                self.csch = OpenJdk6()
+                return
+        elif rpms.getVendor() == gc.ORACLE:
+            if rpms.getMajorVersionSimplified() == "7":
+                self.csch = Oracle7()
+                return
+            elif rpms.getMajorVersionSimplified() == "8":
+                self.csch = Oracle7()
+                return
+            else:
+                raise UnknownJavaVersionException("Unknown Oracle java version")
+
         return
 
 
