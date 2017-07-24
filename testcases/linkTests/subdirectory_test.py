@@ -25,6 +25,9 @@ class BaseMethods(JdkConfiguration):
     def _get_arch(self):
         return get_id(SubdirectoryTest.instance.getCurrentArch())
 
+    def _get_major_version(self):
+        return self.rpms.getMajorVersion()
+
     # this is the only directory
     def _get_nvra_suffix(self, name):
         return get_32bit_id_in_nvra(pkgsplit.get_nvra(name))
@@ -68,10 +71,9 @@ class BaseMethods(JdkConfiguration):
         SubdirectoryTest.instance.log("Testing subdirectory links: ")
         for subdirectory in subdirectories:
             expected_link = JVM_DIR + "/" + self._get_nvra_suffix(name)
-            #if "jce" in subdirectory:
-             #   SubdirectoryTest.instance.log(subdirectory + " is a directory manually added to the filesystem, "
-              #                                               "skipping link check.")
-               # continue
+            if "jce" in subdirectory:
+                SubdirectoryTest.instance.log(subdirectory + " is a directory.")
+                continue
 
             if "jre" in subdirectory:
                 expected_link = self._get_jre_link(expected_link)
@@ -124,14 +126,14 @@ class BaseMethods(JdkConfiguration):
 class OpenJdk6(BaseMethods):
     def _get_expected_subdirectories(self, name):
         return {DEFAULT: ["jre",
-                          "jre" + "-" + self.rpms.getMajorVersion(),
+                          "jre" + "-" + self._get_major_version(),
                           "jre" + "-" + self.rpms.getVendor(),
-                          "jre" + "-" + self.rpms.getMajorVersion() + "-" + self.rpms.getVendor(),
+                          "jre" + "-" + self._get_major_version() + "-" + self.rpms.getVendor(),
                           ],
                 DEVEL: ["java",
-                        "java" + "-" + self.rpms.getMajorVersion(),
+                        "java" + "-" + self._get_major_version(),
                         "java" + "-" + self.rpms.getVendor(),
-                        "java" + "-" + self.rpms.getMajorVersion() + "-" + self.rpms.getVendor(),
+                        "java" + "-" + self._get_major_version() + "-" + self.rpms.getVendor(),
                         ]}
 
     def _get_nvra_suffix(self, name):
@@ -147,11 +149,11 @@ class OpenJdk6PowerBeArchAndX86(OpenJdk6):
 
     def _get_expected_subdirectories(self, name):
         subdirs = super()._get_expected_subdirectories(name)
-        subdirs[DEFAULT].remove("jre" + "-" + self.rpms.getMajorVersion() + "-" + self.rpms.getVendor())
-        subdirs[DEFAULT].append("jre" + "-" + self.rpms.getMajorVersion() + "-" + self.rpms.getVendor() + "." +
+        subdirs[DEFAULT].remove("jre" + "-" + self._get_major_version() + "-" + self.rpms.getVendor())
+        subdirs[DEFAULT].append("jre" + "-" + self._get_major_version() + "-" + self.rpms.getVendor() + "." +
                                 self._get_arch())
-        subdirs[DEVEL].remove("java" + "-" + self.rpms.getMajorVersion() + "-" + self.rpms.getVendor())
-        subdirs[DEVEL].append("java" + "-" + self.rpms.getMajorVersion() + "-" + self.rpms.getVendor() + "." +
+        subdirs[DEVEL].remove("java" + "-" + self._get_major_version() + "-" + self.rpms.getVendor())
+        subdirs[DEVEL].append("java" + "-" + self._get_major_version() + "-" + self.rpms.getVendor() + "." +
                               self._get_arch())
         return subdirs
 
@@ -188,6 +190,24 @@ class Oracle7(OpenJdk6):
             except ValueError:
                 SubdirectoryTest.instance.log(fs + " should be created in /usr/lib/jvm for plugin package purpose.")
         return subdirs
+
+
+class Ibm7(Oracle7):
+    def _remove_fake_subdirectories(self, subdirectories):
+        return subdirectories
+
+    def _get_major_version(self):
+        return "1.7.0"
+
+    def _get_expected_subdirectories(self, name):
+        subdirs = super()._get_expected_subdirectories(name)
+        subdirs[DEFAULT].append("jce" + "-" + self._get_major_version() + "-" + self.rpms.getVendor())
+        return subdirs
+
+
+class Ibm8(Ibm7):
+    def _get_major_version(self):
+        return self.rpms.getMajorVersion()
 
 
 class OpenJdk8Debug(OpenJdk7):
@@ -270,9 +290,22 @@ class SubdirectoryTest(bt.BaseTest):
                 self.csch = Oracle7()
                 return
             else:
-                raise UnknownJavaVersionException("Unknown Oracle java version")
+                raise UnknownJavaVersionException("Unknown Oracle java version.")
+        elif rpms.getVendor() == gc.IBM:
+            if rpms.getMajorVersionSimplified() == "7":
+                self.csch = Ibm7()
+                return
+            elif rpms.getMajorVersionSimplified() == "8":
+                self.csch = Ibm8()
+                return
+            else:
+                raise UnknownJavaVersionException("Unknown IBM java version.")
 
-        return
+        elif rpms.getVendor() == gc.ITW:
+            pass
+
+        else:
+            raise UnknownJavaVersionException("Unknown vendor, configuration specific check could not be set.")
 
 
 def testAll():
