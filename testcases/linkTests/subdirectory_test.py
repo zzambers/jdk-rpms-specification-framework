@@ -235,6 +235,16 @@ class OpenJdk9(OpenJdk7):
         return expected_link
 
 
+class ITW(BaseMethods):
+    def _subdirectory_test(self, pkgs):
+        SubdirectoryTest.instance.log("Iced Tea web binaries are in /usr/bin, no subdirectories with n-v-r-a are "
+                                      "created. This test is skipped for icedtea-web packages.", la.Verbosity.TEST)
+        return
+
+    def document_subdirs(self, args):
+        self._document("IcedTea-web has no subdirectories in " + JVM_DIR)
+
+
 class SubdirectoryTest(bt.BaseTest):
     instance = None
 
@@ -302,7 +312,8 @@ class SubdirectoryTest(bt.BaseTest):
                 raise UnknownJavaVersionException("Unknown IBM java version.")
 
         elif rpms.getVendor() == gc.ITW:
-            pass
+            self.csch = ITW()
+            return
 
         else:
             raise UnknownJavaVersionException("Unknown vendor, configuration specific check could not be set.")
