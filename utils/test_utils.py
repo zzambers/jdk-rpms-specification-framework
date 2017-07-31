@@ -162,3 +162,8 @@ def log_failed_test(instance, fail):
     instance.failed.append(fail)
     la.LoggingAccess().log("        " + fail, la.Verbosity.TEST)
     return
+
+
+def get_arch(instance):
+    from config.global_config import get_32b_arch_identifiers_in_scriptlets as get_id
+    return get_id(instance.getCurrentArch())
