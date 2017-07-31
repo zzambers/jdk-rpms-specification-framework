@@ -150,9 +150,9 @@ def two_lists_diff(desired_list, elements_to_remove):
 
 
 def get_32bit_id_in_nvra(nvra):
-    from config.global_config import get_32b_arch_identifiers_in_scriptlets as get_id
+    from config.global_config import get_32b_arch_identifiers_in_scriptlets
     parts = nvra.split(".")
-    parts[-1] = get_id(parts[-1])
+    parts[-1] = get_32b_arch_identifiers_in_scriptlets(parts[-1])
     nvra = ".".join(parts)
     return nvra
 
@@ -165,5 +165,5 @@ def log_failed_test(instance, fail):
 
 
 def get_arch(instance):
-    from config.global_config import get_32b_arch_identifiers_in_scriptlets as get_id
-    return get_id(instance.getCurrentArch())
+    from config.global_config import get_32b_arch_identifiers_in_scriptlets
+    return get_32b_arch_identifiers_in_scriptlets(instance.getCurrentArch())
