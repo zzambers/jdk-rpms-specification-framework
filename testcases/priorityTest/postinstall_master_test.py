@@ -205,6 +205,7 @@ class Ibm7(ProprietaryJava7and8Base):
     def _get_version(self):
         return "1.7.0"
 
+
 class Ibm7x86(Ibm7):
     def _add_plugin(self):
         return [self._get_masters_arch_copy(LIBJAVAPLUGIN)]
@@ -266,6 +267,13 @@ class PostinstallScriptTest(bt.BaseTest):
                     return
                 else:
                     self.csch = OpenJdk8OtherArchs()
+                    return
+            elif rpms.getMajorVersionSimplified() == "9":
+                if self.getCurrentArch() in gc.getArm32Achs():
+                    self.csch = OpenJdk8OtherArchs()
+                    return
+                else:
+                    self.csch = OpenJdk8Intel()
                     return
             else:
                 raise ex.UnknownJavaVersionException("Unknown JDK version.")
