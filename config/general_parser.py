@@ -23,9 +23,11 @@ def _createParser():
                          action="store_true")
     lparser.add_argument("-d", "--dir",
                          help="set directory where to search for rpms. Dir with rpm files only, "
-                              "or subdirs - architectures, which each have its builds. Default: " + config.runtime_config.RuntimeConfig().getPkgsDir())
+                              "or subdirs - architectures, which each have its builds. Default: " +
+                              config.runtime_config.RuntimeConfig().getPkgsDir())
     lparser.add_argument("-l", "--logfile",
-                         help="target file for verbose output. Default: " + config.runtime_config.RuntimeConfig().getLogsFile())
+                         help="target file for verbose output. Default: " +
+                              config.runtime_config.RuntimeConfig().getLogsFile())
     lparser.add_argument("-b", "--build",
                          help="Will download the build specified by NVR from koji/brew to (empty) --dir")
     lparser.add_argument("-a", "--archs",
