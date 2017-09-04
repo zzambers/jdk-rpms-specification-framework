@@ -16,6 +16,7 @@ from utils.test_utils import log_failed_test, rename_default_subpkg
 PREFIX_160 = "160"
 PREFIX_170 = "170"
 PREFIX_180 = "180"
+PREFIX_190 = "190"
 LEN_5 = 5
 LEN_6 = 6
 LEN_7 = 7
@@ -100,6 +101,11 @@ class MajorCheck(CommonMethods):
         _pkgPriorities = {}
 
         for pkg in pkgs:
+            # TODO feature not yet implemented, can be enabled later as an execution speedup
+            # if pkg in subpackages_without_alternatives():
+            #     PriorityCheck.instance.log(pkg + " is not expected to contain postscript, skipping check.")
+            #     continue
+
             if not DefaultMock().postinstall_exception_checked(pkg):
                 continue
 
@@ -113,6 +119,7 @@ class MajorCheck(CommonMethods):
 
                 priority = self._get_priority(m)
                 if priority is None:
+                    PriorityCheck.instance.log("Failed to get priority, skipping check for " + pkg_name)
                     continue
 
                 if (self.check_length(priority) and
@@ -151,6 +158,11 @@ class OpenJdk7(MajorCheck):
 class OpenJdk8(MajorCheck):
     def __init__(self):
         super().__init__(LEN_7, PREFIX_180)
+
+
+class OpenJdk9(MajorCheck):
+    def __init__(self):
+        super().__init__(LEN_7, PREFIX_190)
 
 
 class ProprietaryJava6(MajorCheck):
@@ -195,13 +207,17 @@ class PriorityCheck(utils.core.base_xtest.BaseTest):
             elif rpms.getMajorVersionSimplified() == "8":
                 self.csch = OpenJdk8()
                 return
+            elif rpms.getMajorVersionSimplified() == "9":
+                self.csch = OpenJdk9()
+                return
             else:
                 raise ex.UnknownJavaVersionException("Unknown JDK version.")
-        elif rpms.getVendor() == gc.IBM or rpms.getVendor() == gc.ORACLE or rpms.getVendor() == gc.SUN:
+        elif rpms.getVendor() == gc.SUN:
             if rpms.getMajorVersionSimplified() == "6":
                 self.csch = ProprietaryJava6()
                 return
-            elif rpms.getMajorVersionSimplified() == "7":
+        elif rpms.getVendor() == gc.IBM or rpms.getVendor() == gc.ORACLE:
+            if rpms.getMajorVersionSimplified() == "7":
                 self.csch = ProprietaryJava7()
                 return
             elif rpms.getMajorVersionSimplified() == "8":
