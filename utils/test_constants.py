@@ -24,6 +24,11 @@ JCONTROL = "jcontrol"
 JAVAWS = "javaws"
 ITWEB_SETTINGS = "itweb-settings"
 USR_BIN = "/usr/bin"
+JRE = "jre"
+SDK = "java_sdk"
+OJDK8 = "ojdk8"
+OJDK8JFX = "ojdk8JFX"
+OJDK8DEBUG = "ojdk8debug"
 
 
 # exports jre binaries
@@ -76,3 +81,14 @@ def get_binaries_as_dict():
             DEVEL + DEBUG_SUFFIX: DEVEL_BINARIES,
             HEADLESS + DEBUG_SUFFIX: HEADLESS_BINARIES
             }
+
+
+def get_openjfx_binaries():
+    return ["javapackager", "javafxpackager"]
+
+
+def subpackages_without_alternatives():
+    return ["accessibility", "debuginfo", "demo", "src", "accessibility-debug",
+            "src-debug", "demo-debug", "headless-debuginfo", "devel-debuginfo", "demo-debuginfo",
+            "debug-debuginfo", "devel-debug-debuginfo", "debugsource", "headless-debug-debuginfo",
+            "demo-debug-debuginfo"]
