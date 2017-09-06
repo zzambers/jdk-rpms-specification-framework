@@ -23,7 +23,7 @@ class TestTest(utils.core.base_xtest.BaseTest):
                     self.log("is " + str(len(content)) + " lines long")
                     # todo add asserts
 
-    def test_allScripletsPReturnsZero(self):
+    def allScripletsPReturnsZero(self):
         pkgs = self.getBuild()
         failures=[]
         passes=[]
