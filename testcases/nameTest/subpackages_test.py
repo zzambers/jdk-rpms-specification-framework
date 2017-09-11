@@ -45,13 +45,16 @@ class BaseSubpackages(MainPackagePresent):
                 len(set(self._getSubPackages()))) + " subpackages: " + self._subpkgsToString())
         self._mainCheck(subpackages)
 
-
-class DebugInfo(BaseSubpackages):
     def _getSubPackages(self):
-        return super(DebugInfo, self)._getSubPackages() + ["debuginfo"]
+        return super()._getSubPackages() + ["debuginfo"]
 
 
-class ItwSubpackages(DebugInfo):
+class JDKBase(BaseSubpackages):
+    def _getSubPackages(self):
+        return super()._getSubPackages() + [DEVEL, "demo", "src"]
+
+
+class ItwSubpackages(BaseSubpackages):
     def _getSubPackages(self):
         return super(ItwSubpackages, self)._getSubPackages() + [JAVADOC]
 
@@ -61,104 +64,109 @@ class ItwSubpackages(DebugInfo):
         self._mainCheck(subpackages)
 
 
-class Openjdk6(DebugInfo):
+class OpenJdk6(JDKBase):
     def _getSubPackages(self):
-        return super(Openjdk6, self)._getSubPackages() + self._getBasePackages()
-
-    def _getBasePackages(self):
-        return ['demo', DEVEL, JAVADOC, 'src']
+        return super()._getSubPackages() + [JAVADOC]
 
 
-class Openjdk7(Openjdk6):
+class OpenJdk7(OpenJdk6):
     def _getSubPackages(self):
-        return super(Openjdk7, self)._getSubPackages() + self._getAdditionalPackages()
-
-    def _getBasePackages(self):
-        return super(Openjdk7, self)._getBasePackages() + self._getAdditionalPackages()
-
-    def _getAdditionalPackages(self):
-        return ['accessibility', HEADLESS]
+        return super()._getSubPackages() + ["accessibility", HEADLESS]
 
 
-class Openjdk8NoJit(Openjdk7):
-    def _getBasePackages(self):
-        return super(Openjdk8NoJit, self)._getBasePackages() + self._getJavadocZipPackage()
-
-    def _getDebugPairs(self):
-        return ["javadoc-debug", "javadoc-zip-debug"]  # this looks like error in engine
-
+class OpenJdk8(OpenJdk7):
     def _getSubPackages(self):
-        return super(Openjdk8NoJit, self)._getSubPackages() + self._getDebugPairs() + self._getJavadocZipPackage()
+        subpackages = super()._getSubPackages() + ["javadoc-zip", "javadoc-debug", "javadoc-zip-debug"]
 
-    def _getJavadocZipPackage(self):
-        return ["javadoc-zip"]
+        return subpackages
 
+    def _get_debuginfo(self):
+        return ["demo-debuginfo",
+                "devel-debuginfo",
+                "headless-debuginfo"]
 
-class Openjdk8BaseJit(Openjdk8NoJit):
-    def _getDebugPairs(self):
-        r = ["debug"]  # main subpackage
-        for base in self._getBasePackages():
-            r.append(base + DEBUG_SUFFIX)
-        return r
+    def _get_debug_debuginfo(self):
+        return ["debug-debuginfo",
+                "demo-debug-debuginfo",
+                "devel-debug-debuginfo",
+                "headless-debug-debuginfo"]
 
-
-class Openjdk8NoJit25(Openjdk8NoJit):
-    def _getBasePackages(self):
-        return super(Openjdk8NoJit25, self)._getBasePackages() + self._getJavadocZipPackage()
-
-
-class Openjdk8BaseJit25(Openjdk8BaseJit):
-    def _getBasePackages(self):
-        return super(Openjdk8BaseJit25, self)._getBasePackages() + self._getJavadocZipPackage()
-
-
-class OpenJdk9NoJit25(Openjdk8NoJit):
-    def _getBasePackages(self):
-        return super()._getBasePackages() + ["jmods"]
-
-    def _getDebugPairs(self):
-        r = ["debug"]  # main subpackage
-        for base in self._getBasePackages():
-            r.append(base + DEBUG_SUFFIX)
-        return r
+    def _get_debug_subpackages(self):
+        return ["accessibility-debug",
+                "debug",
+                "demo-debug",
+                "devel-debug",
+                "headless-debug",
+                "src-debug"]
 
 
-class IbmBase(BaseSubpackages):
+class OpenJdk8Debug(OpenJdk8):
     def _getSubPackages(self):
-        return super(IbmBase, self)._getSubPackages() + ["demo", DEVEL, "jdbc", "src"]
-
-    def _getJavacommPkg(self):
-        return ["javacomm"]
+        subpackages = super()._getSubPackages() + self._get_debug_subpackages()
+        return subpackages
 
 
-class IbmAddPlugin(IbmBase):
+class OpenJdk8JFX(OpenJdk8Debug):
     def _getSubPackages(self):
-        return super(IbmAddPlugin, self)._getSubPackages() + [PLUGIN]
+        return super()._getSubPackages() + ["openjfx",
+                                            "openjfx-debug",
+                                            "openjfx-devel",
+                                            "openjfx-devel-debug"]
 
 
-class IbmAddJavacommWithPlugin(IbmAddPlugin):
+class OpenJdk8DebugDebuginfo(OpenJdk8Debug):
     def _getSubPackages(self):
-        return super(IbmAddJavacommWithPlugin, self)._getSubPackages() + self._getJavacommPkg()
+        return super()._getSubPackages() + self._get_debuginfo() + self._get_debug_debuginfo() + ["debugsource"]
 
 
-class IbmAddJavacommNoPlugin(IbmBase):
+class OpenJdk8Debuginfo(OpenJdk8):
     def _getSubPackages(self):
-        return super(IbmAddJavacommNoPlugin, self)._getSubPackages() + self._getJavacommPkg()
+        return super()._getSubPackages() + self._get_debuginfo() + ["debugsource"]
 
 
-class OracleBase(BaseSubpackages):
+class OpenJdk8JFXDebuginfo(OpenJdk8JFX):
     def _getSubPackages(self):
-        return super(OracleBase, self)._getSubPackages() + [DEVEL, 'jdbc', PLUGIN, 'src']
+        return super()._getSubPackages() + self._get_debuginfo() + self._get_debug_debuginfo() + ["debugsource"]
 
 
-class Oracle7and8(OracleBase):
+class OpenJdk9Debuginfo(OpenJdk8Debuginfo):
     def _getSubPackages(self):
-        return super(Oracle7and8, self)._getSubPackages() + ['javafx']
+        return super()._getSubPackages() + ["jmods"]
 
 
-class Oracle6(OracleBase):
+class OpenJdk9(OpenJdk8):
     def _getSubPackages(self):
-        return super(Oracle6, self)._getSubPackages() + ['demo']
+        return super()._getSubPackages() + ["jmods"]
+
+
+class OpenJdk9DebugDebuginfo(OpenJdk8DebugDebuginfo):
+    def _getSubPackages(self):
+        return super()._getSubPackages() + ["jmods", "jmods-debug"]
+
+
+class OpenJdk9Debug(OpenJdk8Debug):
+    def _getSubPackages(self):
+        return super()._getSubPackages() + ["jmods", "jmods-debug"]
+
+
+class OracleAndIbmBase(JDKBase):
+    def _getSubPackages(self):
+        subpackages = super()._getSubPackages() + ["jdbc"]
+        subpackages.remove("debuginfo")
+        return subpackages
+
+
+class OracleAndIbmAddPlugin(OracleAndIbmBase):
+    def _getSubPackages(self):
+        return super()._getSubPackages() + [PLUGIN]
+
+
+class Oracle7and8(OracleAndIbmAddPlugin):
+    def _getSubPackages(self):
+        subpackages = super()._getSubPackages()
+        subpackages.remove("demo")
+        subpackages.append(JAVAFX)
+        return subpackages
 
 
 class SubpackagesTest(utils.core.base_xtest.BaseTest):
@@ -180,81 +188,108 @@ class SubpackagesTest(utils.core.base_xtest.BaseTest):
             self.csch = ItwSubpackages()
             return
 
-        if rpms.getVendor() == gc.OPENJDK and rpms.isFedora():
-            if rpms.getMajorVersionSimplified() == "8":
-                if self.getCurrentArch() in gc.getArm32Achs():
-                    if rpms.getOsVersionMajor() > 24:
-                        self.csch = Openjdk8NoJit25()
-                        return
-                    else:
-                        self.csch = Openjdk8NoJit()
-                        return
-                else:
-                    if rpms.getOsVersionMajor() > 24:
-                        self.csch = Openjdk8BaseJit25()
-                        return
-                    else:
-                        self.csch = Openjdk8BaseJit()
-                        return
-            elif rpms.getMajorVersionSimplified() == "9":
-                self.csch = OpenJdk9NoJit25()
-                return
-            else:
-                raise ex.UnknownJavaVersionException("Unknown java version.")
-
-        if rpms.getVendor() == gc.OPENJDK and rpms.isRhel():
+        if rpms.getVendor() == gc.OPENJDK:
             if rpms.getMajorVersionSimplified() == '6':
-                self.csch = Openjdk6()
+                self.csch = OpenJdk6()
                 return
             elif rpms.getMajorVersionSimplified() == '7':
-                self.csch = Openjdk7()
+                self.csch = OpenJdk7()
                 return
+            elif rpms.getMajorVersionSimplified() == "8":
+                if rpms.isRhel():
+                    if self.getCurrentArch() in gc.getPpc32Arch() + gc.getS390Arch() + gc.getS390xArch():
+                        self.csch = OpenJdk8()
+                        return
+                    else:
+                        self.csch = OpenJdk8Debug()
+                        return
+                elif rpms.isFedora():
+                    if int(rpms.getOsVersion()) < 27:
+                        if self.getCurrentArch() in gc.getArm32Achs():
+                            self.csch = OpenJdk8()
+                            return
+                        elif self.getCurrentArch() in gc.getAarch64Arch() + gc.getPower64Achs():
+                            self.csch = OpenJdk8Debug()
+                            return
+                        elif self.getCurrentArch() in gc.getIx86archs() + gc.getX86_64Arch():
+                            self.csch = OpenJdk8JFX()
+                            return
+                        else:
+                            raise ex.UnknownJavaVersionException("Check for this arch is not implemented for given OS.")
+                    if int(rpms.getOsVersion()) > 26:
+                        if self.getCurrentArch() in gc.getIx86archs() + gc.getX86_64Arch():
+                            self.csch = OpenJdk8JFXDebuginfo()
+                            return
+                        elif self.getCurrentArch() in gc.getArm32Achs() + gc.getS390xArch():
+                            self.csch = OpenJdk8Debuginfo()
+                            return
+                        elif self.getCurrentArch() in gc.getAarch64Arch() + gc.getPower64Achs():
+                            self.csch = OpenJdk8DebugDebuginfo()
+                            return
+                        else:
+                            raise ex.UnknownJavaVersionException("Check for this arch is not implemented for given OS.")
+
+                else:
+                    raise ex.UnknownJavaVersionException("Unrecognized OS.")
+            elif rpms.getMajorVersionSimplified() == "9":
+                if rpms.isFedora():
+                    if int(rpms.getOsVersion()) < 27:
+                        if self.getCurrentArch() in gc.getArm32Achs():
+                            self.csch = OpenJdk9()
+                            return
+                        elif self.getCurrentArch() in gc.getAarch64Arch() + gc.getPower64Achs():
+                            self.csch = OpenJdk9Debug()
+                            return
+                        # jfx in the future?
+                        elif self.getCurrentArch() in gc.getIx86archs() + gc.getX86_64Arch():
+                            self.csch = OpenJdk9Debug()
+                            return
+                        else:
+                            raise ex.UnknownJavaVersionException("Check for this arch is not implemented for given OS.")
+                    if int(rpms.getOsVersion()) > 26:
+                        # jfx in the future?
+                        if self.getCurrentArch() in gc.getIx86archs() + gc.getX86_64Arch():
+                            self.csch = OpenJdk9DebugDebuginfo()
+                            return
+                        elif self.getCurrentArch() in gc.getArm32Achs():
+                            self.csch = OpenJdk9Debuginfo()
+                            return
+                        elif self.getCurrentArch() in gc.getAarch64Arch() + gc.getPower64Achs() + gc.getS390xArch():
+                            self.csch = OpenJdk9DebugDebuginfo()
+                            return
+                        else:
+                            raise ex.UnknownJavaVersionException("Check for this arch is not implemented for given OS.")
+                else:
+                    raise ex.UnknownJavaVersionException("Unrecognized OS.")
+
             else:
-                if self.getCurrentArch() in (gc.getIx86archs() + gc.getX86_64Arch()):
-                    self.csch = Openjdk8BaseJit()
-                    return
-                else:
-                    self.csch = Openjdk8NoJit()
-                    return
+                raise ex.UnknownJavaVersionException("Unknown OpenJDK version.")
 
-        if rpms.getVendor() == gc.IBM and rpms.isRhel():
-            if rpms.getMajorVersionSimplified() == '6':
-                if self.getCurrentArch() in (gc.getX86_64Arch() + gc.getIx86archs() + gc.getPpc32Arch()):
-                    self.csch = IbmAddJavacommWithPlugin()
-                    return
-                elif self.getCurrentArch() in gc.getPower64Achs():
-                    self.csch = IbmAddJavacommNoPlugin()
-                    return
-                else:
-                    self.csch = IbmBase()
-                    return
-
-            elif rpms.getMajorVersionSimplified() =='7':
-                if self.getCurrentArch() in (gc.getX86_64Arch() + gc.getIx86archs()) + gc.getPpc32Arch():
-                    self.csch = IbmAddPlugin()
-                    return
-                else:
-                    self.csch = IbmBase()
-                    return
-
-            else:
-                if self.getCurrentArch() in (gc.getX86_64Arch() + gc.getIx86archs()) \
-                        + gc.getPpc32Arch() + gc.getPower64BeAchs():
-                    self.csch = IbmAddPlugin()
-                    return
-                else:
-                    self.csch = IbmBase()
-                    return
-
-        if rpms.getVendor() == gc.ORACLE and rpms.isRhel():
+        if rpms.getVendor() == gc.SUN:
+            self.csch = OracleAndIbmAddPlugin()
+            return
+        if rpms.getVendor() == gc.ORACLE:
             self.csch = Oracle7and8()
             return
+        if rpms.getVendor() == gc.IBM:
+            if rpms.getMajorVersionSimplified() == "7":
+                if self.getCurrentArch() in gc.getPpc32Arch() + gc.getIx86archs() + gc.getX86_64Arch():
+                    self.csch = OracleAndIbmAddPlugin()
+                    return
+                else:
+                    self.csch = OracleAndIbmBase()
+                    return
+            elif rpms.getMajorVersionSimplified() == "8":
+                if self.getCurrentArch() in gc.getPpc32Arch() + gc.getIx86archs() + gc.getX86_64Arch() +\
+                                            gc.getPower64BeAchs():
+                    self.csch = OracleAndIbmAddPlugin()
+                    return
+                else:
+                    self.csch = OracleAndIbmBase()
+                    return
+            else:
+                raise ex.UnknownJavaVersionException("Ibm java version unknown.")
 
-        if rpms.getVendor() == gc.SUN and rpms.isRhel():
-            self.csch = Oracle6()
-            return
-
-        self.csch = None
         raise ex.UnknownJavaVersionException("Java version or OS was not recognized by this framework.")
 
 
