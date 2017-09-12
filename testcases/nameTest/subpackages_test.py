@@ -76,7 +76,7 @@ class OpenJdk7(OpenJdk6):
 
 class OpenJdk8(OpenJdk7):
     def _getSubPackages(self):
-        subpackages = super()._getSubPackages() + ["javadoc-zip", "javadoc-debug", "javadoc-zip-debug"]
+        subpackages = super()._getSubPackages() + ["javadoc-zip"] + self._get_javadoc_debug()
 
         return subpackages
 
@@ -98,6 +98,9 @@ class OpenJdk8(OpenJdk7):
                 "devel-debug",
                 "headless-debug",
                 "src-debug"]
+
+    def _get_javadoc_debug(self):
+        return ["javadoc-debug", "javadoc-zip-debug"]
 
 
 class OpenJdk8Debug(OpenJdk8):
@@ -133,15 +136,29 @@ class OpenJdk9Debuginfo(OpenJdk8Debuginfo):
     def _getSubPackages(self):
         return super()._getSubPackages() + ["jmods"]
 
+    def _get_javadoc_debug(self):
+        return []
+
+    def _get_debuginfo(self):
+        return ["devel-debuginfo",
+                "headless-debuginfo"]
+
 
 class OpenJdk9(OpenJdk8):
     def _getSubPackages(self):
         return super()._getSubPackages() + ["jmods"]
 
+    def _get_javadoc_debug(self):
+        return []
+
 
 class OpenJdk9DebugDebuginfo(OpenJdk8DebugDebuginfo):
     def _getSubPackages(self):
         return super()._getSubPackages() + ["jmods", "jmods-debug"]
+
+    def _get_debug_debuginfo(self):
+        return ["devel-debug-debuginfo",
+                "headless-debug-debuginfo"]
 
 
 class OpenJdk9Debug(OpenJdk8Debug):
