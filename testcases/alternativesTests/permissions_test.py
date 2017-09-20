@@ -53,19 +53,19 @@ class BaseTest(JdkConfiguration):
             if result == 2:
                 log_failed_test(self, "Java directory not found for " + subpackage)
                 continue
-            valid_targets = self._parse_output(out)
-            self.sort_and_test(valid_targets, subpackage)
+            valid_targets = self._parse_output(out, subpackage)
+            self.sort_and_test(valid_targets, subpackage, name)
 
             manpages = two_lists_diff(DefaultMock().execute_ls(MAN_DIR)[0].split("\n"), default_manpages)
             for manpage in manpages:
-                self.sort_and_test([MAN_DIR + "/" + manpage])
+                self.sort_and_test([MAN_DIR + "/" + manpage], subpackage, name)
 
-        PermissionTest.instance.log("Failed permissions tests: " + " \n ".join(self.failed), la.Verbosity.ERROR)
-        PermissionTest.instance.log("Unexpected files, filetypes or errors occured: " +
-                                    ", ".join(self.invalid_file_candidates))
+        PermissionTest.instance.log("Failed permissions tests: " + "\n    ".join(self.failed), la.Verbosity.ERROR)
+        PermissionTest.instance.log("Unexpected files, filetypes or errors occured, requires sanity check, these are "
+                                    "treated as fails: " + "\n    ".join(self.invalid_file_candidates))
         assert len(self.failed) == 0
 
-    def _parse_output(self, out):
+    def _parse_output(self, out, subpackage):
         output_parts = out.split("\n")
         return_targets = []
         header = re.compile("/[^:]*:")
@@ -74,7 +74,15 @@ class BaseTest(JdkConfiguration):
             if line == "":
                 continue
             elif "cannot access" in line:
-                self.invalid_file_candidates.append(line)
+                if subpackage == DEVEL and "/bin/" in line:
+                    self.invalid_file_candidates.append(line)
+                    PermissionTest.instance.log("In subpackage {} following was found: ".format(subpackage) + line)
+                    PermissionTest.instance.log("This might be expected behaviour and should be only sanity checked.")
+                    continue
+                else:
+                    self.invalid_file_candidates.append(line)
+                    PermissionTest.instance.log("Unexpected filetype. Needs manual inspection.")
+                    log_failed_test(self, "In subpackage {} following was found: ".format(subpackage) + line)
                 continue
             elif header.search(line):
                 current_header = header.match(line)
@@ -84,7 +92,7 @@ class BaseTest(JdkConfiguration):
                 return_targets.append(current_header + "/" + line)
         return return_targets
 
-    def sort_and_test(self, valid_targets, subpackage=None):
+    def sort_and_test(self, valid_targets, subpackage, name):
         self._document("\n - ".join(["Directories should have 755 permissions.",
                                      "Content of bin directory should have 755 permissions",
                                      "Regular files should have 644 permissions",
@@ -104,14 +112,29 @@ class BaseTest(JdkConfiguration):
                 out, res = DefaultMock().executeCommand(["readlink " + target])
                 if res != 0:
                     log_failed_test(self, "Target of symbolic link {} does not exist.".format(target) + " Error " + out)
-                self.sort_and_test([out])
+                elif "../" in out:
+                    parts = target.split("/")
+                    for i in range(2):
+                        parts = parts[:-1]
+                    replace_dots = "/".join(parts)
+                    out = out.replace("../", replace_dots + "/")
+
+                self.sort_and_test([out], subpackage, name)
             else:
                 if res != 0:
-                    PermissionTest.instance.log("Command stat -c '%F' {} finished with {} exit code".format(target, res))
+                    PermissionTest.instance.log("Command stat -c '%F' {} finished with {} exit"
+                                                " code".format(target, res))
+                    if subpackage == DEVEL and (self._get_target_java_directory(name) + "/jre/bin/") in target:
+                        PermissionTest.instance.log("This is expected behaviour in devel subpackage, since this is "
+                                                    "consciously broken "
+                                                    "symlink to default subpackage binaries. Not treated as fail.")
+                        return
+
                 else:
                     PermissionTest.instance.log("Unexpected filetype. Needs manual inspection.")
                 log_failed_test(self, "In subpackage {} following was found: Command stat -c '%F' {} finished"
                                       " with message: {}. ".format(subpackage, target, res, out))
+
                 self.invalid_file_candidates.append(target)
 
     def _test_fill_in(self, file, filetype, expected_permission):
@@ -163,6 +186,14 @@ class OpenJdk8(OpenJdk7):
                                                  JAVADOC + "-zip", JAVADOC + "-zip" + DEBUG_SUFFIX]
 
 
+class OpenJdk9(OpenJdk8):
+    pass
+
+
+class Oracle(BaseTest):
+    pass
+
+
 class PermissionTest(bt.BaseTest):
     instance = None
 
@@ -189,9 +220,27 @@ class PermissionTest(bt.BaseTest):
                 self.csch = OpenJdk8()
                 return
             elif rpms.getMajorVersionSimplified() == "9":
-                pass
+                self.csch = OpenJdk8()
+                return
             else:
                 raise UnknownJavaVersionException("Unknown version of OpenJDK.")
+
+        if rpms.getVendor() == gc.SUN:
+            if self.getCurrentArch() in (gc.getX86_64Arch() + gc.getPower64BeAchs()):
+                self.csch = OpenJdk6PowBeArchAndX86()
+                return
+            else:
+                self.csch = OpenJdk6()
+                return
+        if rpms.getVendor() == gc.ORACLE:
+            self.csch = Oracle()
+            return
+
+        if rpms.getVendor() == gc.IBM:
+            self.csch = BaseTest()
+            return
+
+        raise UnknownJavaVersionException("Unknown JDK version!!!")
 
 
 def testAll():
