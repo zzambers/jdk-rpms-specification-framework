@@ -92,7 +92,7 @@ class BaseTest(JdkConfiguration):
                 return_targets.append(current_header + "/" + line)
         return return_targets
 
-    def sort_and_test(self, valid_targets, subpackage, name):
+    def sort_and_test(self, valid_targets, subpackage=None, name=None):
         self._document("\n - ".join(["Directories should have 755 permissions.",
                                      "Content of bin directory should have 755 permissions",
                                      "Regular files should have 644 permissions",
