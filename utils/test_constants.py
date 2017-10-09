@@ -91,4 +91,8 @@ def subpackages_without_alternatives():
     return ["accessibility", "debuginfo", "demo", "src", "accessibility-debug",
             "src-debug", "demo-debug", "headless-debuginfo", "devel-debuginfo", "demo-debuginfo",
             "debug-debuginfo", "devel-debug-debuginfo", "debugsource", "headless-debug-debuginfo",
-            "demo-debug-debuginfo"]
+            "demo-debug-debuginfo", "jdbc"]
+
+
+def get_javadoc_dirs():
+    return [JAVADOC, JAVADOC + DEBUG_SUFFIX, "javadoc-zip-debug", "javadoc-zip"]
