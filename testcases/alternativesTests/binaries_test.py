@@ -5,19 +5,22 @@ import config.global_config as gc
 import config.runtime_config as rc
 import utils.core.unknown_java_exception as ex
 import utils
-from testcases.alternativesTests.binaries_test_config_classes import OpenJdk8, OpenJdk7, OpenJdk6, OpenJdk9, \
-    OpenJdk6PowBeArchAndX86, OpenJdk8Debug, Itw, OpenJdk9Debug, Ibm, IbmWithPluginSubpackage, IbmArchMasterPlugin, \
-    Ibm390Architectures, Oracle6ArchPlugin, Oracle7and8, OracleNoArchPlugin
+from utils.test_constants import *
 
 
 class BinariesTest(bt.BaseTest):
     instance = None
+    var = None
 
     def test_alternatives_binary_files(self):
         pkgs = self.getBuild()
         self.csch.check_binaries_with_slaves(pkgs)
 
     def setCSCH(self):
+        from testcases.alternativesTests.binaries_test_config_classes import OpenJdk8, OpenJdk7, OpenJdk6, OpenJdk9, \
+            OpenJdk6PowBeArchAndX86, OpenJdk8Debug, Itw, OpenJdk9Debug, Ibm, IbmWithPluginSubpackage, \
+            IbmArchMasterPlugin, Ibm390Architectures, Oracle6ArchPlugin, Oracle7and8, OracleNoArchPlugin,\
+            OpenJdk8NoExports, OpenJDK8JFX, OpenJdk8NoExportsDebugJFX, OpenJdk8NoExportsDebug
         BinariesTest.instance = self
         rpms = rc.RuntimeConfig().getRpmList()
         self.log("Checking binaries and slaves for " + rpms.getMajorPackage(), la.Verbosity.TEST)
@@ -36,12 +39,40 @@ class BinariesTest(bt.BaseTest):
                 return
 
             elif rpms.getMajorVersionSimplified() == "8":
-                if self.getCurrentArch() in gc.getIx86archs() + gc.getX86_64Arch():
-                    self.csch = OpenJdk8Debug(BinariesTest.instance)
-                    return
+                if rpms.isFedora():
+                    if int(rpms.getOsVersion()) > 26:
+                        if self.getCurrentArch() in gc.getAarch64Arch() + gc.getPower64LeAchs() + gc.getPower64BeAchs():
+                            # BinariesTest.var = OJDK8DEBUG
+                            self.csch = OpenJdk8NoExportsDebug(BinariesTest.instance)
+                            return
+                        elif self.getCurrentArch() in gc.getIx86archs() + gc.getX86_64Arch():
+                            # BinariesTest.var = OJDK8JFX
+                            self.csch = OpenJdk8NoExportsDebugJFX(BinariesTest.instance)
+                            return
+                        else:
+                            # BinariesTest.var = OJDK8
+                            self.csch = OpenJdk8NoExports(BinariesTest.instance)
+                    elif int(rpms.getOsVersion()) > 24:
+                        if self.getCurrentArch() in gc.getAarch64Arch()+ gc.getPower64LeAchs() + gc.getPower64BeAchs():
+                            self.csch = OpenJdk8Debug(BinariesTest.instance)
+                            return
+                        elif self.getCurrentArch() in gc.getIx86archs() + gc.getX86_64Arch():
+                            self.csch = OpenJDK8JFX(BinariesTest.instance)
+                            return
+                        else:
+                            self.csch = OpenJdk8(BinariesTest.instance)
+                            return
+                    else:
+                        raise ex.UnknownJavaVersionException("Outdated version of fedora OpenJDK.")
+
                 else:
-                    self.csch = OpenJdk8(BinariesTest.instance)
-                    return
+                    if self.getCurrentArch() in gc.getIx86archs() + gc.getX86_64Arch() + gc.getAarch64Arch() + \
+                            gc.getPower64Achs():
+                        self.csch = OpenJdk8Debug(BinariesTest.instance)
+                        return
+                    else:
+                        self.csch = OpenJdk8(BinariesTest.instance)
+                        return
 
             elif rpms.getMajorVersionSimplified() == "9":
                 if self.getCurrentArch() in gc.getIx86archs() + gc.getX86_64Arch() + gc.getPower64LeAchs():
@@ -107,6 +138,11 @@ class BinariesTest(bt.BaseTest):
                 raise ex.UnknownJavaVersionException("Unknown Oracle java version")
         else:
             raise ex.UnknownJavaVersionException("Unknown platform, java was not identified.")
+
+
+def get_var():
+    a = BinariesTest.var
+    return a
 
 
 def testAll():

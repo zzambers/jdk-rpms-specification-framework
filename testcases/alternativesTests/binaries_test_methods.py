@@ -13,31 +13,31 @@ from outputControl import logging_access as la
 class GetAllBinariesAndSlaves(PathTest):
     rpms = rc.RuntimeConfig().getRpmList()
 
-    def document_subpackages(self, args):
+    def document_subpackages(self, args=None):
         self._document("Binaries and slaves are present in following subpackages: " +
                        ", ".join(self._get_subpackages_with_binaries()))
 
-    def check_exports_slaves(self, installed_slaves):
+    def check_exports_slaves(self, args=None):
         jre_slaves = get_exports_slaves_jre()
         sdk_slaves = get_exports_slaves_sdk()
         jre_subpackages = self._get_jre_subpackage()
         sdk_subpackages = self._get_sdk_subpackage()
         self._document(" and ".join(jre_slaves + sdk_slaves) + " are slaves, that point at export "
-                                                               "directories and jre/sdk binarys directories.")
+                                                               "directories and jre/sdk binary directories.")
         for jsubpkg in jre_subpackages:
             for jslave in jre_slaves:
                 try:
-                    installed_slaves[jsubpkg].remove(jslave)
+                    self.installed_slaves[jsubpkg].remove(jslave)
                 except ValueError:
                     self.failed.append(jslave + " export slave missing in " + jsubpkg)
 
         for ssubpkg in sdk_subpackages:
             for sslave in sdk_slaves:
                 try:
-                    installed_slaves[ssubpkg].remove(sslave)
+                    self.installed_slaves[ssubpkg].remove(sslave)
                 except ValueError:
                     self.failed.append(sslave + " export slave missing in " + ssubpkg)
-        return installed_slaves
+        return
 
     def get_slaves(self, _subpkg):
         checked_masters = self._get_checked_masters()
@@ -54,6 +54,7 @@ class GetAllBinariesAndSlaves(PathTest):
             except MockExecutionException:
                 self.binaries_test.log("No relevant slaves were present for " + _subpkg + ".", la.Verbosity.TEST)
                 continue
+            self.binaries_test.log("Found slaves for {}: {}".format(_subpkg, str(slaves)), la.Verbosity.TEST)
 
             if m in [JAVA, JAVAC]:
                 clean_slaves.append(m)
@@ -67,38 +68,38 @@ class GetAllBinariesAndSlaves(PathTest):
 
     def _get_all_binaries_and_slaves(self, pkgs):
 
-        # map of binaries, where key = subpackage, value = binaries
-        installed_binaries = {}
-        # map of slaves, where key = subpackage, value = slaves
-        installed_slaves = {}
-
         for pkg in pkgs:
             name = os.path.basename(pkg)
             _subpkg = rename_default_subpkg(pkgsplit.get_subpackage_only(name))
-            a = self._get_subpackages_with_binaries()
-            if _subpkg not in a:
-                continue
-            if not DefaultMock().postinstall_exception_checked(pkg):
+            if _subpkg in subpackages_without_alternatives() + get_javadoc_dirs():
+                self.binaries_test.log("Skipping binaries extraction for " + _subpkg)
                 self.skipped.append(_subpkg)
                 continue
+            if not DefaultMock().postinstall_exception_checked(pkg):
+                self.binaries_test.log("Failed to execute postinstall. Slaves will not be found for " + _subpkg)
             binary_directory_path = self._get_binary_directory_path(name)
             binaries = DefaultMock().execute_ls(binary_directory_path)
 
             if binaries[1] != 0:
                 self.binaries_test.log("Location {} does not exist, binaries test skipped "
                                        "for ".format(binary_directory_path) + name, la.Verbosity.TEST)
+
                 continue
+            else:
+                self.binaries_test.log("Binaries found at {}: {}".format(binary_directory_path,
+                                                                         ", ".join(binaries[0].split("\n"))), la.Verbosity.TEST)
+
             slaves = self.get_slaves(_subpkg)
 
-            installed_slaves[_subpkg] = slaves
-            installed_binaries[_subpkg] = binaries[0].split("\n")
+            self.installed_slaves[_subpkg] = slaves
+            self.installed_binaries[_subpkg] = binaries[0].split("\n")
 
-        return installed_binaries, installed_slaves
+        return self.installed_binaries, self.installed_slaves
 
 
 class BinarySlaveTestMethods(GetAllBinariesAndSlaves):
     # checks if all jre binaries are in sdk and deletes them from there
-    def all_jre_in_sdk_check(self, installed_binaries):
+    def all_jre_in_sdk_check(self, args=None):
         jre_subpackages = self._get_jre_subpackage()
         sdk_subpackages = self._get_sdk_subpackage()
         self._document("Jre binaries must be present in {} subpackages. Jre slaves are in {} subpackages. "
@@ -111,11 +112,11 @@ class BinarySlaveTestMethods(GetAllBinariesAndSlaves):
         for subpkg in jre_subpackages:
             for sdk_subpkg in sdk_subpackages:
                 if DEBUG_SUFFIX in subpkg and DEBUG_SUFFIX in sdk_subpkg:
-                    jre = installed_binaries[subpkg]
-                    sdk = installed_binaries[sdk_subpkg]
+                    jre = self.installed_binaries[subpkg]
+                    sdk = self.installed_binaries[sdk_subpkg]
                 elif DEBUG_SUFFIX not in subpkg and DEBUG_SUFFIX not in sdk_subpkg:
-                    sdk = installed_binaries[sdk_subpkg]
-                    jre = installed_binaries[subpkg]
+                    sdk = self.installed_binaries[sdk_subpkg]
+                    jre = self.installed_binaries[subpkg]
                 else:
                     continue
 
@@ -125,18 +126,18 @@ class BinarySlaveTestMethods(GetAllBinariesAndSlaves):
                     except ValueError:
                         log_failed_test(self, "Binary " + j + " is present in JRE, but is missing in SDK.")
 
-        return installed_binaries
+        return
 
-    def _perform_all_checks(self, installed_slaves, installed_binaries):
-        if sorted(installed_slaves.keys()) != sorted(installed_binaries.keys()):
+    def _perform_all_checks(self):
+        if sorted(self.installed_slaves.keys()) != sorted(self.installed_binaries.keys()):
             log_failed_test(self, "Subpackages that contain binaries and slaves do not match. Subpackages with"
                             "binaries: {}, Subpackages with slaves: {}".format(
-                                                                sorted(installed_binaries.keys()),
-                                                                sorted(installed_slaves.keys())))
+                                                                sorted(self.installed_binaries.keys()),
+                                                                sorted(self.installed_slaves.keys())))
         try:
             for subpackage in self._get_subpackages_with_binaries():
-                slaves = installed_slaves[subpackage]
-                binaries = installed_binaries[subpackage]
+                slaves = self.installed_slaves[subpackage]
+                binaries = self.installed_binaries[subpackage]
                 if sorted(binaries) != sorted(slaves):
                     log_failed_test(self, "Binaries do not match slaves in {}. Missing binaries: {}"
                                     " Missing slaves: {}".format(subpackage, diff(slaves, binaries),
@@ -150,23 +151,23 @@ class BinarySlaveTestMethods(GetAllBinariesAndSlaves):
     # main check, that includes all small checks and at the end compares the binaries with slaves
     def check_binaries_with_slaves(self, pkgs):
         self._document("Every binary must have a slave in alternatives.")
-        installed_binaries, installed_slaves = self._get_all_binaries_and_slaves(pkgs)
-        installed_binaries = self._remove_excludes(installed_binaries)
-        installed_binaries = self.check_java_cgi(installed_binaries)
-        installed_binaries, installed_slaves = self.handle_policytool(installed_binaries, installed_slaves)
-        installed_binaries = self.remove_binaries_without_slaves(installed_binaries)
-        installed_binaries, installed_slaves = self.handle_plugin_binaries(installed_binaries, installed_slaves)
-        self.all_jre_in_sdk_check(installed_binaries)
-        installed_slaves = self.check_exports_slaves(installed_slaves)
+        self._get_all_binaries_and_slaves(pkgs)
+        self._remove_excludes()
+        self.check_java_cgi()
+        self.handle_policytool()
+        self.remove_binaries_without_slaves()
+        self.handle_plugin_binaries()
+        self.all_jre_in_sdk_check()
+        self.check_exports_slaves()
 
-        self._perform_all_checks(installed_slaves, installed_binaries)
-        self.path_test(installed_binaries, self._get_subpackages_with_binaries())
+        self._perform_all_checks()
+        self.path_test()
 
-        for subpkg in installed_binaries.keys():
+        for subpkg in self.installed_binaries.keys():
                     self.binaries_test.log("Presented binaries for {}: ".format(subpkg) +
-                                           str(sorted(installed_binaries[subpkg])), la.Verbosity.TEST)
+                                           str(sorted(self.installed_binaries[subpkg])), la.Verbosity.TEST)
                     self.binaries_test.log("Presented slaves for {}: ".format(subpkg) +
-                                           str(sorted(installed_slaves[subpkg])), la.Verbosity.TEST)
+                                           str(sorted(self.installed_slaves[subpkg])), la.Verbosity.TEST)
 
         self.binaries_test.log("Failed tests: " + "\n ".join(self.failed), la.Verbosity.ERROR)
         assert len(self.failed) == 0
