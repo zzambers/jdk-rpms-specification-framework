@@ -7,48 +7,58 @@ from utils.core.configuration_specific import JdkConfiguration
 import config.runtime_config
 import utils.core.base_xtest
 from outputControl import logging_access as la
+from utils.test_utils import passed_or_failed
 
 
-class ITW(JdkConfiguration):
-    def checkJreObsolete(self, obsoletes=None):
+class Base(JdkConfiguration):
+    def __init__(self):
+        super().__init__()
+        self.failed = 0
+        self.passed = 0
+
+
+class ITW(Base):
+    def _checkJreObsolete(self, obsoletes=None):
         self._document("Itw obsolete should be aligned to jres' plugins/javawss")
         # todo - do when doing other plugins
-        pass
+        return self.passed, self.failed
 
-class Openjdk8Fedora(JdkConfiguration):
+
+class Openjdk8Fedora(Base):
 
     jreRequiredObsolete=[
         "java-1.7.0-openjdk",
         "java-1.5.0-gcj",
         "sinjdoc"
     ]
-    def checkJreObsolete(self, obsoletes=None):
+    def _checkJreObsolete(self, obsoletes=None):
         self._document("jre OpenJdk8 in Fedora must obsolate: " +",".join(Openjdk8Fedora.jreRequiredObsolete))
         obsoleteJdk7 = 0
         for obsolete in obsoletes:
             if obsolete in Openjdk8Fedora.jreRequiredObsolete:
                 obsoleteJdk7 += 1
-        assert obsoleteJdk7 == len(Openjdk8Fedora.jreRequiredObsolete)
+        passed_or_failed(self, obsoleteJdk7 == len(Openjdk8Fedora.jreRequiredObsolete))
+        return self.passed, self.failed
 
 
-class JdkRhel(JdkConfiguration):
+class JdkRhel(Base):
     jreExceptionsObsolete = [
         "java-1.5.0-gcj",
         "sinjdoc"
     ]
-    def checkJreObsolete(self, obsoletes=None):
+    def _checkJreObsolete(self, obsoletes=None):
         self._document("Jdks in rhel must NOT obsolete anything. Possible exceptions: " +",".join(JdkRhel.jreExceptionsObsolete))
-        assert len(set(obsoletes)-set(JdkRhel.jreExceptionsObsolete)) == 0
+        passed_or_failed(self, len(set(obsoletes)-set(JdkRhel.jreExceptionsObsolete)) == 0)
+        return self.passed, self.failed
 
 
 class ObsolateTest(utils.core.base_xtest.BaseTest):
 
-
     def test_jreobsolete(self):
         rpms = self.getBuild()
         for pkg in rpms:
-            if (split.get_subpackage_only(pkg) == ''):
-                self.csch.checkJreObsolete(rpmuts.listOfVersionlessObsoletes(pkg))
+            if split.get_subpackage_only(pkg) == '':
+                return self.csch._checkJreObsolete(rpmuts.listOfVersionlessObsoletes(pkg))
 
     def setCSCH(self):
         if config.runtime_config.RuntimeConfig().getRpmList().isItw() :

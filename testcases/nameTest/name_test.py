@@ -10,6 +10,7 @@ import config.runtime_config
 import testcases.nameTest.connfigs.nametest_config
 import utils.core.base_xtest
 from outputControl import logging_access as la
+from utils.test_utils import _reinit
 
 def aInB(a, b):
     return a in b
@@ -23,6 +24,13 @@ def justCopy(a):
 
 
 class NameTest(utils.core.base_xtest.BaseTest):
+    """ This class needs the _reinit(self) call, because there are multiple test_* calls in one script,
+    resulting in bad testcase passes/fails counting. It would just add the test case passes/fails for each
+    test_* method, so the output would look like: test_1 = 37, test_2 = 37*2, test3=37*3 tests in total"""
+    def __init__(self):
+        super().__init__()
+        self.failed = 0
+        self.passed = 0
 
     def aMatchesB(self, a, b):
             return self.csch.checkRegex(a)
@@ -37,66 +45,67 @@ class NameTest(utils.core.base_xtest.BaseTest):
         return self.checkFilesAgainstComparator(None, function, aNotNone)
 
     def checkFilesAgainstComparator(self, values, function, comparator):
+        _reinit(self)
         rpms = config.runtime_config.RuntimeConfig().getRpmList().getAllNames()
-        failed = 0
         for file in rpms:
             self.log("checking: " + file)
             val = function(file)
             self.log("have: " + val)
             if comparator(val, values):
                 self.log("... is ok")
+                self.passed += 1
             else:
                 self.log("... is BAD")
-                failed += 1
-        return failed
+                self.failed += 1
+        return self.passed, self.failed
 
     def test_prefix(self):
-        failed = self.checkFilesAgainstValues([gc.JAVA_STRING, gc.ITW], split.get_javaprefix)
-        assert failed == 0
+        passed, failed = self.checkFilesAgainstValues([gc.JAVA_STRING, gc.ITW], split.get_javaprefix)
+        return passed, failed
 
     def test_version(self):
-        failed = self.checkFilesAgainstValues(gc.LIST_OF_POSSIBLE_VERSIONS, split.get_major_ver)
-        assert failed == 0
+        passed, failed = self.checkFilesAgainstValues(gc.LIST_OF_POSSIBLE_VERSIONS, split.get_major_ver)
+        return passed, failed
 
     def test_vendor(self):
-        failed = self.checkFilesAgainstValues(gc.LIST_OF_POSSIBLE_VENDORS, split.get_vendor)
-        assert failed == 0
+        passed, failed = self.checkFilesAgainstValues(gc.LIST_OF_POSSIBLE_VENDORS, split.get_vendor)
+        return passed, failed
 
     def test_majorPackage(self):
-        failed = self.checkFilesAgainstNone(split.get_major_package_name)
-        assert failed == 0
+        passed, failed = self.checkFilesAgainstNone(split.get_major_package_name)
+        return passed, failed
 
     def test_package(self):
-        failed = self.checkFilesAgainstNone(split.get_package_name)
-        assert failed == 0
+        passed, failed = self.checkFilesAgainstNone(split.get_package_name)
+        return passed, failed
 
     def test_minorVersion(self):
-        failed = self.checkFilesAgainstNone(split.get_minor_ver)
-        assert failed == 0
+        passed, failed = self.checkFilesAgainstNone(split.get_minor_ver)
+        return passed, failed
 
     def test_subpackage(self):
-        failed = self.checkFilesAgainstNone(split.get_subpackage_only)
-        assert failed == 0
+        passed, failed = self.checkFilesAgainstNone(split.get_subpackage_only)
+        return passed, failed
 
     def test_release(self):
-        failed = self.checkFilesAgainstNone(split.get_release)
-        assert failed == 0
+        passed, failed = self.checkFilesAgainstNone(split.get_release)
+        return passed, failed
 
     def test_arches(self):
-        failed = self.checkFilesAgainstValues(gc.getAllArchs(), split.get_arch)
-        assert failed == 0
+        passed, failed = self.checkFilesAgainstValues(gc.getAllArchs(), split.get_arch)
+        return passed, failed
 
     def test_dist(self):
-        failed = self.checkFilesAgainstNone(split.get_dist)
-        assert failed == 0
+        passed, failed = self.checkFilesAgainstNone(split.get_dist)
+        return passed, failed
 
     def test_wholeName(self):
         """This is testing whole name by regex. It may sound redundant, but:
         The rest of the test checks validity of individual hunks. Not the order.
         The regex catches at least java->version->dashes->dot->arch->.rpm
         """
-        failed1 = self.checkWholeName()
-        assert failed1 == 0
+        passed, failed = self.checkWholeName()
+        return passed, failed
 
     def setCSCH(self):
         if config.runtime_config.RuntimeConfig().getRpmList().getJava() == gc.ITW:

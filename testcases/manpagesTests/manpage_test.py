@@ -6,7 +6,7 @@ import utils
 from utils.core.configuration_specific import JdkConfiguration
 import os
 import utils.pkg_name_split as pkgsplit
-from utils.test_utils import rename_default_subpkg, replace_archs_with_general_arch, log_failed_test
+from utils.test_utils import rename_default_subpkg, replace_archs_with_general_arch, log_failed_test, passed_or_failed
 import utils.core.unknown_java_exception as ex
 from utils.mock.mock_executor import DefaultMock
 import config.runtime_config as rc
@@ -24,8 +24,14 @@ LINK = 0
 
 # this test expects that binaries are equal to its slaves (checked in binaries_test)
 class ManpageTestMethods(JdkConfiguration):
+    def __init__(self):
+        super().__init__()
+        self.passed = 0
+        self.failed = 0
+        self.list_of_failed_tests = []
+
+
     skipped = []
-    failed = []
     rpms = rc.RuntimeConfig().getRpmList()
 
     def _remove_excludes(self, binaries):
@@ -111,7 +117,7 @@ class ManpageTestMethods(JdkConfiguration):
         # now check that every binary has a man file
         for b in binaries:
             manpage = b + self._get_manpage_suffixes(subpackage)[FILE]
-            if not manpage in manpage_files:
+            if not passed_or_failed(self, manpage in manpage_files):
                 log_failed_test(self, manpage + " man page file not in " + subpackage)
         return manpage_files
 
@@ -123,13 +129,12 @@ class ManpageTestMethods(JdkConfiguration):
 
         for l in links:
             link = l + self._get_manpage_suffixes(subpackage)[LINK]
-            if link not in manpage_links:
+            if not passed_or_failed(self, link in manpage_links):
                 log_failed_test(self, link + " man page link not in " + subpackage)
 
     def man_page_test(self, pkgs):
         self._document("Every binary must have a man page. If binary has a slave, then man page has also its slave."
                        " \n - Man pages are in {} directory.".format(MAN_DIR))
-        self.failed = []
         bins = {}
         manpages_without_postscript = {}
         manpages_with_postscript = {}
@@ -162,7 +167,14 @@ class ManpageTestMethods(JdkConfiguration):
                 binaries = self._clean_up_binaries(binaries, m, usr_bin_content)
                 binaries = self._remove_java_rmi_cgi(binaries)
                 binaries = self._remove_excludes(binaries)
-                plugin_binaries = self._get_extra_bins(plugin_bin_content)
+                try:
+                    plugin_binaries = self._get_extra_bins(plugin_bin_content)
+                except NotADirectoryError:
+                    self.failed += 1
+                    log_failed_test(self, "/usr/bin directory not found, this is unexpected behaviour and the test will"
+                                          " not be executed.")
+                    return
+
                 ManpageTests.instance.log("Binaries found for {}: ".format(tg) + ", ".join(binaries + plugin_binaries))
                 bins[_subpkg] = binaries + plugin_binaries
 
@@ -187,8 +199,8 @@ class ManpageTestMethods(JdkConfiguration):
 
         self.iced_tea_web_check(manpages_with_postscript, manpages_without_postscript)
 
-        ManpageTests.instance.log("Failed tests summary: " + ", ".join(self.failed), la.Verbosity.ERROR)
-        assert(len(self.failed) == 0)
+        ManpageTests.instance.log("Failed tests summary: " + ", ".join(self.list_of_failed_tests), la.Verbosity.ERROR)
+        return self.passed, self.failed
 
         # only doc-used method, does not execute any tests whatsoever
     def manpages_file_debug_subpackages_doc(self, args):
@@ -331,9 +343,9 @@ class ITW(ManpageTestMethods):
         itw_manpage_file = "icedtea-web.1.gz"
         self._document("IcedTea Web has an " + itw_manpage_file + " man page, that has no binary and " +
                        itw_manpage_link + " man page, that has no slave.")
-        if itw_manpage_file not in manpages_without_postscript[DEFAULT]:
+        if not passed_or_failed(self, itw_manpage_file in manpages_without_postscript[DEFAULT]):
             log_failed_test(self, itw_manpage_file + " manpage file missing in " + DEFAULT)
-        if itw_manpage_link not in manpages_with_postcript[DEFAULT]:
+        if not passed_or_failed(self, itw_manpage_link in manpages_with_postcript[DEFAULT]):
             log_failed_test(self, itw_manpage_link + " manpage link missing in " + DEFAULT)
         return
 
@@ -374,7 +386,7 @@ class Oracle6(Oracle):
 class Ibm(ManpageTestMethods):
     def man_page_test(self, pkgs):
         self._document("Ibm binaries do not have manpages.")
-        return
+        return self.passed, self.failed
 
     def manpage_file_check(self, bins, subpackage=None, plugin_bin_content=None, manpages_without_postscript=None):
         return
@@ -388,7 +400,7 @@ class ManpageTests(bt.BaseTest):
 
     def test_manpages(self):
         pkgs = self.getBuild()
-        self.csch.man_page_test(pkgs)
+        return self.csch.man_page_test(pkgs)
 
     def setCSCH(self):
         ManpageTests.instance = self

@@ -14,7 +14,7 @@ class BinariesTest(bt.BaseTest):
 
     def test_alternatives_binary_files(self):
         pkgs = self.getBuild()
-        self.csch.check_binaries_with_slaves(pkgs)
+        return self.csch.check_binaries_with_slaves(pkgs)
 
     def setCSCH(self):
         from testcases.alternativesTests.binaries_test_config_classes import OpenJdk8, OpenJdk7, OpenJdk6, OpenJdk9, \

@@ -11,7 +11,7 @@ import utils.pkg_name_split as pkgsplit
 import utils
 from utils.mock.mock_executor import DefaultMock
 from config.global_config import get_32b_arch_identifiers_in_scriptlets as get_id
-from utils.test_utils import rename_default_subpkg
+from utils.test_utils import rename_default_subpkg, passed_or_failed
 from utils.test_constants import *
 
 JAVADOCZIP = 'javadoczip'
@@ -21,6 +21,11 @@ JAVADOC_ZIP = "javadoc-zip"
 
 class BasePackages(JdkConfiguration):
     rpms = rc.RuntimeConfig().getRpmList()
+
+    def __init__(self):
+        super().__init__()
+        self.passed = 0
+        self.failed = 0
 
     def _get_arch(self):
         return PostinstallScriptTest.instance.getCurrentArch()
@@ -97,7 +102,7 @@ class CheckPostinstallScript(BasePackages):
         PostinstallScriptTest.instance.log("Postinstall present in " + str(len(actual_masters)) + " : " +
                                            ", ".join(actual_masters), la.Verbosity.TEST)
 
-        assert set(expected_masters.keys()) == set(actual_masters.keys())
+        passed_or_failed(self, set(expected_masters.keys()) == set(actual_masters.keys()))
 
         for subpkg in expected_masters.keys():
             PostinstallScriptTest.instance.log("Expected masters for " + subpkg + " : " +
@@ -106,6 +111,7 @@ class CheckPostinstallScript(BasePackages):
                                                ", ".join(sorted(actual_masters[subpkg])), la.Verbosity.TEST)
 
         for e in expected_masters.keys():
+            passed_or_failed(self, sorted(expected_masters[e]) == sorted(actual_masters[e]))
             if sorted(expected_masters[e]) == sorted(actual_masters[e]):
                 passed.append(e)
             else:
@@ -114,8 +120,7 @@ class CheckPostinstallScript(BasePackages):
         PostinstallScriptTest.instance.log("Master test was successful for: " + ", ".join(passed), la.Verbosity.TEST)
         PostinstallScriptTest.instance.log("Master test failed for: " + "\n ".join(failed), la.Verbosity.ERROR)
 
-        assert(len(failed) == 0)
-
+        return self.passed, self.failed
 
 class OpenJdk6(CheckPostinstallScript):
     def _generate_masters(self):
@@ -247,7 +252,8 @@ class PostinstallScriptTest(bt.BaseTest):
 
     def test_contains_postscript(self):
         pkgs = self.getBuild()
-        self.csch._check_post_in_script(pkgs)
+        return self.csch._check_post_in_script(pkgs)
+
 
     def setCSCH(self):
         PostinstallScriptTest.instance = self
@@ -262,7 +268,8 @@ class PostinstallScriptTest(bt.BaseTest):
                 self.csch = OpenJdk7()
                 return
             elif rpms.getMajorVersionSimplified() == "8":
-                if self.getCurrentArch() in gc.getIx86archs() + gc.getX86_64Arch():
+                if self.getCurrentArch() in gc.getIx86archs() + gc.getX86_64Arch() + \
+                        gc.getPower64Achs() + gc.getAarch64Arch():
                     self.csch = OpenJdk8Intel()
                     return
                 else:

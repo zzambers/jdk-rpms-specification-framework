@@ -11,7 +11,7 @@ import utils.rpm_list
 import utils.pkg_name_split
 import utils.mock.mock_execution_exception
 from utils.test_constants import *
-from utils.test_utils import log_failed_test, rename_default_subpkg
+from utils.test_utils import log_failed_test, rename_default_subpkg, passed_or_failed
 
 PREFIX_160 = "160"
 PREFIX_170 = "170"
@@ -33,7 +33,9 @@ class CommonMethods(JdkConfiguration):
         super(CommonMethods, self).__init__()
         self.length = length
         self.prefix = prefix
-        self.failed = []
+        self.list_of_failed_tests = []
+        self.passed = 0
+        self.failed = 0
 
     def _get_priority(self, master):
         priority = DefaultMock().get_priority(master)
@@ -48,7 +50,7 @@ class CommonMethods(JdkConfiguration):
         self._document("Priority for {} should be ".format(self.rpms.getMajorPackage()) + str(self.length) + " digit.")
         PriorityCheck.instance.log("Checking priority length.", la.Verbosity.TEST)
 
-        if len(priority) != self.length:
+        if not passed_or_failed(self, len(priority) == self.length):
             PriorityCheck.instance.log("Priority should be {}-digit, but is {}.".format(self.length, len(priority)),
                                        la.Verbosity.ERROR)
             return False
@@ -59,7 +61,7 @@ class CommonMethods(JdkConfiguration):
         self._document("Prefix is based on major version, in this case it should be " + self.prefix + ".")
         PriorityCheck.instance.log("Checking priority prefix.", la.Verbosity.TEST)
 
-        if not priority.startswith(self.prefix, 0, len(self.prefix)):
+        if not passed_or_failed(self, priority.startswith(self.prefix, 0, len(self.prefix))):
             PriorityCheck.instance.log("Priority prefix not as expected, should be {}.".format(self.prefix),
                                        la.Verbosity.TEST)
             return False
@@ -85,7 +87,7 @@ class CommonMethods(JdkConfiguration):
                 master = master_and_priority.keys()
 
                 for m in master:
-                    if not int(master_and_priority[m]) > int(master_and_priority_debug[m]):
+                    if not passed_or_failed(self, int(master_and_priority[m]) > int(master_and_priority_debug[m])):
                         log_failed_test(self, "Debug subpackage priority check failed for " + name +
                                         ", master " + master + ". Debug package should have lower priority. " +
                                         "Main package priority: {} Debug package"
@@ -101,15 +103,17 @@ class MajorCheck(CommonMethods):
         _pkgPriorities = {}
 
         for pkg in pkgs:
-            # TODO feature not yet implemented, can be enabled later as an execution speedup
-            # if pkg in subpackages_without_alternatives():
-            #     PriorityCheck.instance.log(pkg + " is not expected to contain postscript, skipping check.")
-            #     continue
+            pkg_name = rename_default_subpkg(utils.pkg_name_split.get_subpackage_only(os.path.basename(pkg)))
 
-            if not DefaultMock().postinstall_exception_checked(pkg):
+            if pkg_name in subpackages_without_alternatives():
+                PriorityCheck.instance.log(pkg + " is not expected to contain postscript, skipping check.")
                 continue
 
-            pkg_name = rename_default_subpkg(utils.pkg_name_split.get_subpackage_only(os.path.basename(pkg)))
+            # must be here anyway, since it creates the snapshot
+            if not DefaultMock().postinstall_exception_checked(pkg):
+                # logs itself in mock
+                continue
+
             _pkgPriorities[pkg_name] = {}
 
             masters = DefaultMock().get_masters()
@@ -126,7 +130,7 @@ class MajorCheck(CommonMethods):
                         self.check_prefix(priority)):
                     self._success_list.append(os.path.basename(pkg))
                     PriorityCheck.instance.log("Priority " + priority + " valid for " + pkg_name +
-                                               "vpackage, master " + m, la.Verbosity.TEST)
+                                               " package, master " + m, la.Verbosity.TEST)
 
                     _pkgPriorities[pkg_name].update({m : priority})
 
@@ -137,12 +141,11 @@ class MajorCheck(CommonMethods):
         PriorityCheck.instance.log("Checking debug packages priorities.", la.Verbosity.TEST)
         self.check_debug_packages(_pkgPriorities)
         PriorityCheck.instance.log("Successful for: " + str(self._success_list), la.Verbosity.TEST)
-        PriorityCheck.instance.log("Failed for: " + str(self.failed), la.Verbosity.ERROR)
+        PriorityCheck.instance.log("Failed for: " + str(self.list_of_failed_tests), la.Verbosity.ERROR)
         PriorityCheck.instance.log("Debug package priority check failed for: " + str(self._debug_check_fail_list),
                                    la.Verbosity.ERROR)
 
-        assert len(self.failed) == 0
-        assert len(self._debug_check_fail_list) == 0
+        return self.passed, self.failed
 
 
 class OpenJdk6(MajorCheck):
@@ -190,7 +193,7 @@ class PriorityCheck(utils.core.base_xtest.BaseTest):
 
     def test_priority(self):
         pkgs = self.getBuild()
-        self.csch._check_priorities(pkgs)
+        return self.csch._check_priorities(pkgs)
 
     def setCSCH(self):
         PriorityCheck.instance = self

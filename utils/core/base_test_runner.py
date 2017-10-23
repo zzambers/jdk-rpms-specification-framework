@@ -118,18 +118,25 @@ class BaseTestRunner:
                     calllable = getattr(self, a)
                     try:
                         self.indent = "        "
-                        calllable()
-                        passed += 1
-                        la.LoggingAccess().stdout(
-                            tu.result(True) + ": " + type(self).__name__ + "." + a + "[" + arch + "]")
+                        p, f = calllable()
+                        passed += p
+                        failed += f
+                        if f == 0:
+                            la.LoggingAccess().stdout(
+                                    tu.result(True) + " testsuite: " + type(self).__name__ + "." + a + "[" + arch + "]"
+                                    + " passed tests: {} failed tests: {}".format(p, f))
+                        else:
+                            m = tu.result(False) + " testsuite: " + type(self).__name__ + "." + a + "[" + arch + "]"\
+                                + " passed tests: {} failed tests: {}".format(p, f)
+                            la.LoggingAccess().stdout(m)
                     except BaseException as ex:
                         m = tu.result(False) + ": " + type(self).__name__ + "." + a + "[" + arch + "]" + " (" + str(
                             ex) + ") from " + \
                             inspect.stack()[1][1]
                         la.LoggingAccess().stdout(m)
                         failed += 1
-                        #print(m, file=sys.stderr)
-                        #traceback.print_exc()
+                        # print(m, file=sys.stderr)
+                        # traceback.print_exc()
                     methodEnd = time.clock()
                     ms = (methodEnd)*1000-(methodStart*1000)
                     self.indent = "    "

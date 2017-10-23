@@ -7,7 +7,7 @@ import utils.core.base_xtest as bt
 import config.global_config as gc
 from utils.core.configuration_specific import JdkConfiguration
 from utils.mock.mock_executor import DefaultMock
-from utils.test_utils import rename_default_subpkg, replace_archs_with_general_arch
+from utils.test_utils import rename_default_subpkg, replace_archs_with_general_arch, passed_or_failed
 import utils.pkg_name_split as pkgsplit
 from utils.test_utils import get_32bit_id_in_nvra, log_failed_test
 from config.global_config import get_32b_arch_identifiers_in_scriptlets as get_id
@@ -18,8 +18,10 @@ from utils.core.unknown_java_exception import UnknownJavaVersionException
 class BaseMethods(JdkConfiguration):
     def __init__(self):
         super().__init__()
-        self.failed = []
+        self.list_of_failed_tests = []
         self.rpms = rc.RuntimeConfig().getRpmList()
+        self.failed = 0
+        self.passed = 0
 
     # returns architecture in 32bit identifier
     def _get_arch(self):
@@ -56,13 +58,14 @@ class BaseMethods(JdkConfiguration):
         return subdirectories
 
     def _test_subdirectories_equals(self, subdirectories, expected_subdirectories, _subpkg, name):
-        if sorted(subdirectories) != sorted(expected_subdirectories):
+
+        if not passed_or_failed(self, sorted(subdirectories) == sorted(expected_subdirectories)):
             for subdirectory in expected_subdirectories:
-                if subdirectory not in subdirectories:
+                if not passed_or_failed(self, subdirectory in subdirectories):
                     log_failed_test(self, "Missing {} subdirectory in {} "
                                           "subpackage".format(subdirectory, _subpkg))
             for subdirectory in subdirectories:
-                if subdirectory not in expected_subdirectories:
+                if not passed_or_failed(self, subdirectory in expected_subdirectories):
                     log_failed_test(self, "Extra {} subdirectory in {} subpackage".format(subdirectory, _subpkg))
         else:
                 SubdirectoryTest.instance.log("Subdirectory test for {} finished, no fails occured.".format(name))
@@ -82,12 +85,15 @@ class BaseMethods(JdkConfiguration):
             if readlink[1] != 0:
                 log_failed_test(self, subdirectory + " is not a link! Subdirectory test link failed for " +
                                 _subpkg)
+                self.failed += 1
             elif readlink[0] != expected_link:
                 log_failed_test(self, " {} should point at {} but points at {} ".format(subdirectory,
                                                                                         expected_link,
                                                                                         readlink[0]))
+                self.failed += 1
             else:
                 SubdirectoryTest.instance.log("Subdirectory link check successful for " + subdirectory)
+                self.passed += 1
 
     def _subdirectory_test(self, pkgs):
         for pkg in pkgs:
@@ -117,10 +123,10 @@ class BaseMethods(JdkConfiguration):
             self._test_subdirectories_equals(subdirectories, expected_subdirectories, _subpkg, name)
             self._test_links_are_correct(subdirectories, name, _subpkg)
 
-        if len(self.failed) != 0:
-            SubdirectoryTest.instance.log("Summary of failed tests: " + "\n        ".join(self.failed),
+        if len(self.list_of_failed_tests) != 0:
+            SubdirectoryTest.instance.log("Summary of failed tests: " + "\n        ".join(self.list_of_failed_tests),
                                           la.Verbosity.ERROR)
-        assert(len(self.failed) == 0)
+        return self.passed, self.failed
 
 
 class OpenJdk6(BaseMethods):
@@ -250,7 +256,7 @@ class SubdirectoryTest(bt.BaseTest):
 
     def test_subdirectories(self):
         pkgs = self.getBuild()
-        self.csch._subdirectory_test(pkgs)
+        return self.csch._subdirectory_test(pkgs)
 
     def setCSCH(self):
         SubdirectoryTest.instance = self

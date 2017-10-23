@@ -157,9 +157,10 @@ def get_32bit_id_in_nvra(nvra):
     return nvra
 
 
-# this method expects your testsuite has a "failed" list, if you do not, just use logging_access methods
+# this method expects your testsuite has a "list_of_failed_tests" list, if you do not,
+# just use logging_access methods
 def log_failed_test(instance, fail):
-    instance.failed.append(fail)
+    instance.list_of_failed_tests.append(fail)
     la.LoggingAccess().log("        " + fail, la.Verbosity.TEST)
     return
 
@@ -167,3 +168,19 @@ def log_failed_test(instance, fail):
 def get_arch(instance):
     from config.global_config import get_32b_arch_identifiers_in_scriptlets
     return get_32b_arch_identifiers_in_scriptlets(instance.getCurrentArch())
+
+
+# this method is shortcut for getting your passes or fails for the sum-up, give two arguments - instance of object
+# (usually self, and a bool-result condition)
+def passed_or_failed(instance, bool):
+    if bool:
+        instance.passed += 1
+    else:
+        instance.failed += 1
+    return bool
+
+# reinit method, sets the counts of passed and failed for zero, used for no-arch tests
+def _reinit(instance):
+    instance.failed = 0
+    instance.passed = 0
+

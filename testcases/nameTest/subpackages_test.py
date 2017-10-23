@@ -10,9 +10,17 @@ import utils.core.unknown_java_exception as ex
 from utils.test_constants import *
 from outputControl import logging_access as la
 from utils import pkg_name_split as split
+from utils.test_utils import passed_or_failed
 
 
 class MainPackagePresent(JdkConfiguration):
+
+    def __init__(self):
+        super().__init__()
+        self.failed = 0
+        self.passed = 0
+
+
     def _getSubPackages(self):
         return [""]
 
@@ -25,11 +33,12 @@ class MainPackagePresent(JdkConfiguration):
                                      + str(len(subpkgSetExpected)), la.Verbosity.TEST)
         SubpackagesTest.instance.log("Presented: " + str(ssGiven), la.Verbosity.TEST)
         SubpackagesTest.instance.log("Expected:  " + str(subpkgSetExpected), la.Verbosity.TEST)
-        assert len(ssGiven) == len(subpkgSetExpected)
+        passed_or_failed(self, len(ssGiven) == len(subpkgSetExpected))
         for subpkg in subpkgSetExpected:
             SubpackagesTest.instance.log(
                 "Checking `" + subpkg + "` of " + SubpackagesTest.instance.current_arch, la.Verbosity.TEST)
-            assert subpkg in subpkgSetExpected
+            passed_or_failed(self, subpkg in subpkgSetExpected)
+
 
 
 class BaseSubpackages(MainPackagePresent):
@@ -44,6 +53,7 @@ class BaseSubpackages(MainPackagePresent):
             rpms.getVendor() + " should have exactly " + str(
                 len(set(self._getSubPackages()))) + " subpackages: " + self._subpkgsToString())
         self._mainCheck(subpackages)
+        return self.passed, self.failed
 
     def _getSubPackages(self):
         return super()._getSubPackages() + ["debuginfo"]
@@ -191,12 +201,10 @@ class SubpackagesTest(utils.core.base_xtest.BaseTest):
 
     def test_checkAllSubpackages(self):
         rpms = self.getBuild()
-        assert rpms is not None
-        assert len(rpms) > 1
         subpackages = []
         for rpm in rpms:
             subpackages.append(split.get_subpackage_only(ntpath.basename(rpm)))
-        self.csch.checkSubpackages(subpackages)
+        return self.csch.checkSubpackages(subpackages)
 
     def setCSCH(self):
         SubpackagesTest.instance = self

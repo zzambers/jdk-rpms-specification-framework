@@ -9,6 +9,12 @@ from utils.rpmbuild_utils import ScripletStarterFinisher
 
 
 class TestTest(utils.core.base_xtest.BaseTest):
+    def __init__(self):
+        super().__init__()
+        self.passed = 0
+        self.failed = 0
+
+    # this test has no asserts, therefore it is not working properly, must be fixed, now gives 0 passes, 0 fails
     def test_allScripletsPresentedAsExpected(self):
         pkgs = self.getBuild()
         for pkg in pkgs:
@@ -22,7 +28,9 @@ class TestTest(utils.core.base_xtest.BaseTest):
                 else:
                     self.log("is " + str(len(content)) + " lines long")
                     # todo add asserts
+        return self.passed, self.failed
 
+    # this test is currently disabled
     def allScripletsPReturnsZero(self):
         pkgs = self.getBuild()
         failures=[]

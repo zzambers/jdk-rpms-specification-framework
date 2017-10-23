@@ -4,7 +4,7 @@ import re
 import config.global_config
 import config.runtime_config
 from outputControl import logging_access as la
-import utils.pkg_name_split as split
+from utils import pkg_name_split as split
 import utils.test_utils
 
 

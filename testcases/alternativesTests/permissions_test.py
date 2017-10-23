@@ -6,7 +6,8 @@ import config.global_config as gc
 import config.runtime_config as rc
 import utils
 from utils.mock.mock_executor import DefaultMock
-from utils.test_utils import log_failed_test, rename_default_subpkg, get_arch, two_lists_diff, get_32bit_id_in_nvra
+from utils.test_utils import log_failed_test, rename_default_subpkg, get_arch, two_lists_diff, get_32bit_id_in_nvra,\
+    passed_or_failed
 from utils.test_constants import *
 import os
 from utils import pkg_name_split as pkgsplit
@@ -18,8 +19,10 @@ class BaseTest(JdkConfiguration):
 
     def __init__(self):
         super().__init__()
-        self.failed = []
+        self.list_of_failed_tests = []
         self.invalid_file_candidates = []
+        self.failed = 0
+        self.passed = 0
 
     def _get_target_java_directory(self, name):
         return get_32bit_id_in_nvra(pkgsplit.get_nvra(name))
@@ -33,8 +36,8 @@ class BaseTest(JdkConfiguration):
         DefaultMock().provideCleanUsefullRoot()
         default_manpages, res = DefaultMock().execute_ls("/usr/share/man/man1")
         default_manpages = default_manpages.split("\n")
-        if res != 0:
-            log_failed_test(self, "Default manpages extraction has failed. Manpage tests invalid: " + str(res) +
+        if not passed_or_failed(self, res == 0):
+            log_failed_test(self, "Default manpages extraction has failed. Manpage tests will be invalid: " + str(res) +
                             str(default_manpages))
 
         for pkg in pkgs:
@@ -50,7 +53,7 @@ class BaseTest(JdkConfiguration):
 
             out, result = DefaultMock().executeCommand(["ls -LR " + JVM_DIR + "/" +
                                                        self._get_target_java_directory(name)])
-            if result == 2:
+            if passed_or_failed(self, result == 2):
                 log_failed_test(self, "Java directory not found for " + subpackage)
                 continue
             valid_targets = self._parse_output(out, subpackage)
@@ -60,10 +63,10 @@ class BaseTest(JdkConfiguration):
             for manpage in manpages:
                 self.sort_and_test([MAN_DIR + "/" + manpage], subpackage, name)
 
-        PermissionTest.instance.log("Failed permissions tests: " + "\n    ".join(self.failed), la.Verbosity.ERROR)
+        PermissionTest.instance.log("Failed permissions tests: " + "\n    ".join(self.list_of_failed_tests), la.Verbosity.ERROR)
         PermissionTest.instance.log("Unexpected files, filetypes or errors occured, requires sanity check, these are "
                                     "treated as fails: " + "\n    ".join(self.invalid_file_candidates))
-        assert len(self.failed) == 0
+        return self.passed, self.failed
 
     def _parse_output(self, out, subpackage):
         output_parts = out.split("\n")
@@ -78,11 +81,13 @@ class BaseTest(JdkConfiguration):
                     self.invalid_file_candidates.append(line)
                     PermissionTest.instance.log("In subpackage {} following was found: ".format(subpackage) + line)
                     PermissionTest.instance.log("This might be expected behaviour and should be only sanity checked.")
+                    self.passed += 1
                     continue
                 else:
                     self.invalid_file_candidates.append(line)
                     PermissionTest.instance.log("Unexpected filetype. Needs manual inspection.")
                     log_failed_test(self, "In subpackage {} following was found: ".format(subpackage) + line)
+                    self.failed += 1
                 continue
             elif header.search(line):
                 current_header = header.match(line)
@@ -110,7 +115,7 @@ class BaseTest(JdkConfiguration):
             elif out == "symbolic link":
                 self._test_fill_in(target, out, "777")
                 out, res = DefaultMock().executeCommand(["readlink " + target])
-                if res != 0:
+                if not passed_or_failed(self, res == 0):
                     log_failed_test(self, "Target of symbolic link {} does not exist.".format(target) + " Error " + out)
                 elif "../" in out:
                     parts = target.split("/")
@@ -128,19 +133,23 @@ class BaseTest(JdkConfiguration):
                         PermissionTest.instance.log("This is expected behaviour in devel subpackage, since this is "
                                                     "consciously broken "
                                                     "symlink to default subpackage binaries. Not treated as fail.")
+                        self.passed += 1
                         return
 
                 else:
                     PermissionTest.instance.log("Unexpected filetype. Needs manual inspection.")
+
                 log_failed_test(self, "In subpackage {} following was found: Command stat -c '%F' {} finished"
                                       " with message: {}. ".format(subpackage, target, res, out))
 
                 self.invalid_file_candidates.append(target)
+                self.failed += 1
 
     def _test_fill_in(self, file, filetype, expected_permission):
         out, res = DefaultMock().executeCommand(['stat -c "%a" ' + file])
         if res != 0:
             log_failed_test(self, filetype + " link is broken, could not find " + file)
+            self.failed += 1
             return
         else:
             PermissionTest.instance.log(filetype + " {} exists. Checking permissions... ".format(file),
@@ -149,10 +158,12 @@ class BaseTest(JdkConfiguration):
             if not (int(out[p]) == int(expected_permission[p])):
                 log_failed_test(self, "Permissions of {} not as expected, should be {} but is "
                                       "{}.".format(file, expected_permission, out))
+                self.failed += 1
                 break
-        else:
-            PermissionTest.instance.log(filetype + " {} with permissions {}. Check "
-                                        "successful.".format(file, out), la.Verbosity.TEST)
+            else:
+                PermissionTest.instance.log(filetype + " {} with permissions {}. Check "
+                                            "successful.".format(file, out), la.Verbosity.TEST)
+                self.passed += 1
         return
 
 
@@ -199,7 +210,7 @@ class PermissionTest(bt.BaseTest):
 
     def test_alternatives_binary_files(self):
         pkgs = self.getBuild()
-        self.csch.doc_test_java_files_permissions(pkgs)
+        return self.csch.doc_test_java_files_permissions(pkgs)
 
     def setCSCH(self):
         PermissionTest.instance = self
@@ -240,6 +251,7 @@ class PermissionTest(bt.BaseTest):
             self.csch = BaseTest()
             return
 
+        ## WHAT ABOUT ITW???
         raise UnknownJavaVersionException("Unknown JDK version!!!")
 
 
