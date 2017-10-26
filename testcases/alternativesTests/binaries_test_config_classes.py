@@ -304,6 +304,15 @@ class Oracle6(IbmWithPluginSubpackage):
     def remove_binaries_without_slaves(self, args=None):
         return
 
+    def handle_plugin_binaries(self, args=None):
+        plugin_binaries = get_plugin_binaries()
+        self._document("{} are no longer present in binaries in any subpackage.".format(" and ".join(plugin_binaries)))
+        self._check_plugin_bins_and_slaves_are_not_present(self._get_subpackages_with_binaries())
+        return
+
+    def _get_subpackages_with_binaries(self):
+        return BinarySlaveTestMethods(self.binaries_test)._get_subpackages_with_binaries()
+
 
 class OracleNoArchPlugin(Oracle6):
     def _get_checked_masters(self):
@@ -318,7 +327,7 @@ class Oracle6ArchPlugin(Oracle6):
         return super()._get_binary_directory(name) + "." + self._get_arch()
 
 
-class Oracle7and8(Oracle6ArchPlugin):
+class Oracle7(Oracle6ArchPlugin):
     def _remove_excludes(self):
         exclude_list = oracle_exclude_list()
         for exclude in exclude_list:
@@ -333,7 +342,7 @@ class Oracle7and8(Oracle6ArchPlugin):
         return
 
     def _get_subpackages_with_binaries(self):
-        subpackages = super()._get_subpackages_with_binaries()
+        subpackages = BinarySlaveTestMethods(self.binaries_test)._get_subpackages_with_binaries()
         subpackages.append(JAVAFX)
         return subpackages
 
@@ -344,6 +353,11 @@ class Oracle7and8(Oracle6ArchPlugin):
 
     def _get_binary_directory(self, name):
         return PathTest(self.binaries_test)._get_binary_directory(name)
+
+
+class Oracle8(Oracle7):
+    def handle_plugin_binaries(self, args=None):
+        return IbmWithPluginSubpackage(self.binaries_test).handle_plugin_binaries()
 
 
 class Itw(BinarySlaveTestMethods):

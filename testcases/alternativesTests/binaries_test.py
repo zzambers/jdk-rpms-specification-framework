@@ -19,8 +19,8 @@ class BinariesTest(bt.BaseTest):
     def setCSCH(self):
         from testcases.alternativesTests.binaries_test_config_classes import OpenJdk8, OpenJdk7, OpenJdk6, OpenJdk9, \
             OpenJdk6PowBeArchAndX86, OpenJdk8Debug, Itw, OpenJdk9Debug, Ibm, IbmWithPluginSubpackage, \
-            IbmArchMasterPlugin, Ibm390Architectures, Oracle6ArchPlugin, Oracle7and8, OracleNoArchPlugin,\
-            OpenJdk8NoExports, OpenJDK8JFX, OpenJdk8NoExportsDebugJFX, OpenJdk8NoExportsDebug
+            IbmArchMasterPlugin, Ibm390Architectures, Oracle6ArchPlugin, Oracle7, OracleNoArchPlugin,\
+            OpenJdk8NoExports, OpenJDK8JFX, OpenJdk8NoExportsDebugJFX, OpenJdk8NoExportsDebug, Oracle8
         BinariesTest.instance = self
         rpms = rc.RuntimeConfig().getRpmList()
         self.log("Checking binaries and slaves for " + rpms.getMajorPackage(), la.Verbosity.TEST)
@@ -131,8 +131,11 @@ class BinariesTest(bt.BaseTest):
                 else:
                     self.csch = Oracle6ArchPlugin(BinariesTest.instance)
                     return
-            elif rpms.getMajorVersionSimplified() == "7" or rpms.getMajorVersionSimplified() == "8":
-                self.csch = Oracle7and8(BinariesTest.instance)
+            elif rpms.getMajorVersionSimplified() == "7":
+                self.csch = Oracle7(BinariesTest.instance)
+                return
+            elif rpms.getMajorVersionSimplified() == "8":
+                self.csch = Oracle8(BinariesTest.instance)
                 return
             else:
                 raise ex.UnknownJavaVersionException("Unknown Oracle java version")
