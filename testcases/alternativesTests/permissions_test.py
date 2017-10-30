@@ -159,11 +159,10 @@ class BaseTest(JdkConfiguration):
                 log_failed_test(self, "Permissions of {} not as expected, should be {} but is "
                                       "{}.".format(file, expected_permission, out))
                 self.failed += 1
-                break
-            else:
-                PermissionTest.instance.log(filetype + " {} with permissions {}. Check "
-                                            "successful.".format(file, out), la.Verbosity.TEST)
-                self.passed += 1
+                return
+        PermissionTest.instance.log(filetype + " {} with permissions {}. Check "
+                                    "successful.".format(file, out), la.Verbosity.TEST)
+        self.passed += 1
         return
 
 
@@ -251,7 +250,10 @@ class PermissionTest(bt.BaseTest):
             self.csch = BaseTest()
             return
 
-        ## WHAT ABOUT ITW???
+        if rpms.getVendor() == gc.ITW:
+            # might be worth to check also other subdirectories
+            self.csch = BaseTest()
+            return
         raise UnknownJavaVersionException("Unknown JDK version!!!")
 
 
