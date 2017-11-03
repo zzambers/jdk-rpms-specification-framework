@@ -63,7 +63,7 @@ class CheckPostinstallScript(BasePackages):
 
         self._document("\n".join(doc))
 
-    def _check_post_in_script(self, pkgs):
+    def _check_post_in_script(self, pkgs=None):
         passed = []
         failed = []
 
@@ -188,9 +188,14 @@ class ProprietaryJava6WithArch(ProprietaryJava6):
 
 
 class Oracle6(ProprietaryJava6):
+        # oracle packages do not have plugin subpackage with postinstall script
     def _add_plugin(self):
-        # oracle packages do have plugin subpackage with postinstall script, but it does not have any masters
         return []
+
+    def _generate_masters(self):
+        masters = super()._generate_masters()
+        masters.pop(PLUGIN)
+        return masters
 
 
 class Oracle6WithArch(Oracle6):
@@ -223,10 +228,18 @@ class Ibm7WithoutPlugin(Ibm7):
         return masters
 
 
-class Oracle7a8(ProprietaryJava7and8Base):
+class Oracle7(ProprietaryJava7and8Base):
     def _generate_masters(self):
-        masters = super(Oracle7a8, self)._generate_masters()
+        masters = super(Oracle7, self)._generate_masters()
         masters[JAVAFX] = [JAVAFXPACKAGER]
+        masters.pop(PLUGIN)
+        return masters
+
+
+class Oracle8(Oracle7):
+    def _generate_masters(self):
+        masters = super()._generate_masters()
+        masters[PLUGIN] = self._add_plugin()
         return masters
 
 
@@ -242,9 +255,14 @@ class Ibm8WithoutPlugin(Ibm8):
         return masters
 
 
-class Oracle7a8x86(Oracle7a8):
+class Oracle7a8x86(Oracle7):
     def _add_plugin(self):
         return [self._get_masters_arch_copy(LIBJAVAPLUGIN)]
+
+    def _generate_masters(self):
+        masters = super()._generate_masters()
+        masters[PLUGIN] = self._add_plugin()
+        return masters
 
 
 class PostinstallScriptTest(bt.BaseTest):
@@ -320,12 +338,16 @@ class PostinstallScriptTest(bt.BaseTest):
                 else:
                     self.csch = Oracle6()
                     return
-            elif rpms.getMajorVersionSimplified() == "7" or rpms.getMajorVersionSimplified() == "8":
+            elif rpms.getMajorVersionSimplified() == "7":
+                self.csch = Oracle7()
+                return
+
+            elif rpms.getMajorVersionSimplified() == "8":
                 if self.getCurrentArch() in gc.getX86_64Arch():
                     self.csch = Oracle7a8x86()
                     return
                 else:
-                    self.csch = Oracle7a8()
+                    self.csch = Oracle8()
                     return
             else:
                 raise ex.UnknownJavaVersionException("Unknown Oracle java version.")
