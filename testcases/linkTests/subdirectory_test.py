@@ -245,7 +245,7 @@ class ITW(BaseMethods):
     def _subdirectory_test(self, pkgs):
         SubdirectoryTest.instance.log("Iced Tea web binaries are in /usr/bin, no subdirectories with n-v-r-a are "
                                       "created. This test is skipped for icedtea-web packages.", la.Verbosity.TEST)
-        return
+        return self.passed, self.failed
 
     def document_subdirs(self, args):
         self._document("IcedTea-web has no subdirectories in " + JVM_DIR)

@@ -72,6 +72,7 @@ class ItwSubpackages(BaseSubpackages):
         self._document("IcedTea-Web has exactly following subpackages: `" + "`,`".join(
             self._getSubPackages()) + "`. Where `` is main package " + gc.ITW)
         self._mainCheck(subpackages)
+        return self.passed, self.failed
 
 
 class OpenJdk6(JDKBase):
