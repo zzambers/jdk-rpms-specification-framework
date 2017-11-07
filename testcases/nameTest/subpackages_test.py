@@ -37,7 +37,7 @@ class MainPackagePresent(JdkConfiguration):
         for subpkg in subpkgSetExpected:
             SubpackagesTest.instance.log(
                 "Checking `" + subpkg + "` of " + SubpackagesTest.instance.current_arch, la.Verbosity.TEST)
-            passed_or_failed(self, subpkg in subpkgSetExpected)
+            passed_or_failed(self, subpkg in ssGiven)
 
 
 
