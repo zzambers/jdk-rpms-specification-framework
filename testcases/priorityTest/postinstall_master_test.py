@@ -159,6 +159,24 @@ class OpenJdk8Intel(OpenJdk8OtherArchs):
         return masters
 
 
+class OpenJdk9Armvhl(OpenJdk7):
+    def _generate_masters(self):
+        masters = super()._generate_masters()
+        masters[JAVADOC_ZIP] = [JAVADOCZIP]
+        return masters
+
+
+class OpenJdk9OtherArchs(OpenJdk9Armvhl):
+    def _generate_masters(self):
+        masters = super()._generate_masters()
+        masters[JAVADOC_ZIP + DEBUG_SUFFIX] = [JAVADOCZIP]
+        masters[DEVEL + DEBUG_SUFFIX] = masters[DEVEL]
+        masters[HEADLESS + DEBUG_SUFFIX] = masters[HEADLESS]
+        masters[JAVADOC + DEBUG_SUFFIX] = masters[JAVADOC]
+        masters[DEFAULT + DEBUG_SUFFIX] = []
+        return masters
+
+
 class IcedTeaWeb(CheckPostinstallScript):
     def _generate_masters(self):
         masters = super()._generate_masters()
@@ -295,10 +313,10 @@ class PostinstallScriptTest(bt.BaseTest):
                     return
             elif rpms.getMajorVersionSimplified() == "9":
                 if self.getCurrentArch() in gc.getArm32Achs():
-                    self.csch = OpenJdk8OtherArchs()
+                    self.csch = OpenJdk9Armvhl()
                     return
                 else:
-                    self.csch = OpenJdk8Intel()
+                    self.csch = OpenJdk9OtherArchs()
                     return
             else:
                 raise ex.UnknownJavaVersionException("Unknown JDK version.")
