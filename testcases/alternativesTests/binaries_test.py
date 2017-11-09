@@ -75,11 +75,12 @@ class BinariesTest(bt.BaseTest):
                         return
 
             elif rpms.getMajorVersionSimplified() == "9":
-                if self.getCurrentArch() in gc.getIx86archs() + gc.getX86_64Arch() + gc.getPower64LeAchs():
-                    self.csch = OpenJdk9Debug(BinariesTest.instance)
+                if self.getCurrentArch() in gc.getArm32Achs():
+                    self.csch = OpenJdk9(BinariesTest.instance)
+
                     return
                 else:
-                    self.csch = OpenJdk9(BinariesTest.instance)
+                    self.csch = OpenJdk9Debug(BinariesTest.instance)
                     return
             else:
                 raise ex.UnknownJavaVersionException("Unknown OpenJDK version.")
@@ -143,9 +144,9 @@ class BinariesTest(bt.BaseTest):
             raise ex.UnknownJavaVersionException("Unknown platform, java was not identified.")
 
 
-def get_var():
-    a = BinariesTest.var
-    return a
+#def get_var():
+ #   a = BinariesTest.var
+ #   return a
 
 
 def testAll():
