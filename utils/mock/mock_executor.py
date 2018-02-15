@@ -53,6 +53,7 @@ class Mock:
                                                          la.Verbosity.MOCK)
         # comment this, set inited and alternatives to true if debug of some test needs to be done in hurry
         self._scrubLvmCommand()
+        #self.init()
 
     def getMockName(self):
         return self.os + "-" + self.version + "-" + self.arch
@@ -70,7 +71,7 @@ class Mock:
         return self.getDir() + "/result"
 
     def mainCommand(self):
-        return [self.command, "--yum", "-r", self.getMockName(), "--old-chroot"]
+        return [self.command, "--yum","--old-chroot", "-r", self.getMockName()]
 
     def mainCommandAsString(self):
         s = ""
@@ -91,6 +92,11 @@ class Mock:
 
     def reinit(self):
         self._rollbackCommand("postinit")
+        current, items = self.listSnapshots()
+        for i in items:
+            self.snapshots[i] = ""
+        self.snapshots[current] = ""
+
 
     def listSnapshots(self):
         o =  exxec.processAsStrings(self.mainCommand() + ["--list-snapshots"])
@@ -118,7 +124,7 @@ class Mock:
 
     def _scrubLvmCommand(self):
         o, e, r = exxec.processToStringsWithResult(self.mainCommand() + ["--scrub", "lvm"])
-        if r == 60:
+        if r != 0:
             raise utils.mock.mock_execution_exception.MockExecutionException("Build chroot is locked, please restart "
                                                                              "the testsuite.")
         outputControl.logging_access.LoggingAccess().log(e, la.Verbosity.MOCK)
@@ -226,17 +232,17 @@ class Mock:
         else:
             self.init()
             self.installAlternatives()
-        if rc.RuntimeConfig().getRpmList().getVendor() in (gc.ORACLE + gc.SUN + gc.IBM + gc.ITW):
-            # ibm/itw/oracle plugin packages expect mozilla installed in the filesystem, this gives us
-            # directories neccessary
-            self.mkdirP("/usr/lib64/mozilla")
-            self.mkdirP("/usr/lib64/mozilla/plugins")
-            self.mkdirP("/usr/lib/mozilla")
-            self.mkdirP("/usr/lib/mozilla/plugins")
-            if rc.RuntimeConfig().getRpmList().getVendor() == gc.ORACLE:
-                # oracle plugin packages in addition expect also these directories
-                self.mkdirP("/usr/lib/jvm/jce-1.7.0-oracle")
-                self.mkdirP("/usr/lib/jvm/jce-1.8.0-oracle")
+            if rc.RuntimeConfig().getRpmList().getVendor() in (gc.ORACLE + gc.SUN + gc.IBM + gc.ITW):
+                # ibm/itw/oracle plugin packages expect mozilla installed in the filesystem, this gives us
+                # directories neccessary
+                self.mkdirP("/usr/lib64/mozilla")
+                self.mkdirP("/usr/lib64/mozilla/plugins")
+                self.mkdirP("/usr/lib/mozilla")
+                self.mkdirP("/usr/lib/mozilla/plugins")
+                if rc.RuntimeConfig().getRpmList().getVendor() == gc.ORACLE:
+                    # oracle plugin packages in addition expect also these directories
+                    self.mkdirP("/usr/lib/jvm/jce-1.7.0-oracle")
+                    self.mkdirP("/usr/lib/jvm/jce-1.8.0-oracle")
 
     def executeScriptlet(self, rpmFile, scripletName):
         scriplet = rpmuts.getSrciplet(rpmFile, scripletName)
@@ -314,7 +320,11 @@ class Mock:
                                                                              "output is empty ")
         data = {}
         otp = output.splitlines()
-        data[PRIORITY]= otp[2].split(" ")[-1]
+        try:
+            data[PRIORITY]= otp[2].split(" ")[-1]
+        except Exception:
+            raise utils.mock.mock_execution_exception.MockExecutionException("alternatives output reading encountered "
+                                                                             "an error: " + output)
         if not data[PRIORITY].isdigit():
             raise ValueError("Priority must be digit-only.")
         data[STATUS] = otp[0].split(" ")[-1].strip(".")
