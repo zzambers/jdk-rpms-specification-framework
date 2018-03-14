@@ -11,7 +11,7 @@ import utils.pkg_name_split as pkgsplit
 import utils
 from utils.mock.mock_executor import DefaultMock
 from config.global_config import get_32b_arch_identifiers_in_scriptlets as get_id
-from utils.test_utils import rename_default_subpkg, passed_or_failed
+from utils.test_utils import rename_default_subpkg, passed_or_failed, get_arch
 from utils.test_constants import *
 
 JAVADOCZIP = 'javadoczip'
@@ -84,7 +84,11 @@ class CheckPostinstallScript(BasePackages):
             PostinstallScriptTest.instance.log("Searching for " + rbu.POSTINSTALL + " in " + os.path.basename(pkg),
                                                la.Verbosity.TEST)
             PostinstallScriptTest.instance.log("Checking master for " + os.path.basename(pkg), la.Verbosity.TEST)
-
+            if "-debuginfo" in _subpackage:
+                PostinstallScriptTest.instance.log("Skipping " + _subpackage + " subpackage, because debuginfo "
+                                                                               "subpackages does not contain "
+                                                                               "any postinstall.")
+                continue
             if not DefaultMock().postinstall_exception_checked(pkg):
                 skipped.append(_subpackage)
                 continue
