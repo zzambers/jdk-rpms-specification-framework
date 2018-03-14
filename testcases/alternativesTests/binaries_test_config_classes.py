@@ -5,7 +5,6 @@ from utils.test_utils import get_32bit_id_in_nvra, log_failed_test, passed_or_fa
 from utils.test_constants import *
 from utils.test_utils import two_lists_diff as diff
 from utils.mock.mock_executor import DefaultMock
-#from testcases.alternativesTests.binaries_test import get_var
 
 
 class OpenJdk6(BinarySlaveTestMethods):
@@ -37,6 +36,9 @@ class OpenJdk6(BinarySlaveTestMethods):
                 self.installed_slaves[subpkg].remove(POLICYTOOL)
                 self.passed += 1
             except KeyError:
+                log_failed_test(self, POLICYTOOL + " slave not present in " + subpkg)
+                self.failed += 1
+            except ValueError:
                 log_failed_test(self, POLICYTOOL + " slave not present in " + subpkg)
                 self.failed += 1
         return
