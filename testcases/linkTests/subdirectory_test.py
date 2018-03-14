@@ -7,15 +7,16 @@ import utils.core.base_xtest as bt
 import config.global_config as gc
 from utils.core.configuration_specific import JdkConfiguration
 from utils.mock.mock_executor import DefaultMock
-from utils.test_utils import rename_default_subpkg, replace_archs_with_general_arch, passed_or_failed
+from utils.test_utils import rename_default_subpkg, replace_archs_with_general_arch, passed_or_failed, get_arch
 import utils.pkg_name_split as pkgsplit
 from utils.test_utils import get_32bit_id_in_nvra, log_failed_test
-from config.global_config import get_32b_arch_identifiers_in_scriptlets as get_id
 from utils.test_constants import *
 from utils.core.unknown_java_exception import UnknownJavaVersionException
 
 
 class BaseMethods(JdkConfiguration):
+    """ This class tests whether the subdirectories in /usr/lib/jvm are as expected  """
+
     def __init__(self):
         super().__init__()
         self.list_of_failed_tests = []
@@ -23,24 +24,28 @@ class BaseMethods(JdkConfiguration):
         self.failed = 0
         self.passed = 0
 
-    # returns architecture in 32bit identifier
     def _get_arch(self):
-        return get_id(SubdirectoryTest.instance.getCurrentArch())
+        """ Returns architecture in 32 bit identifier """
+        return get_arch(SubdirectoryTest.instance)
 
     def _get_major_version(self):
+        """ Returns major version (eg. 1.8.0 or 9 in case of jdk9"""
         return self.rpms.getMajorVersion()
 
-    # this is the only directory
     def _get_nvra_suffix(self, name):
+        """ Getter for the name of main jdk/sdk directory"""
         return get_32bit_id_in_nvra(pkgsplit.get_nvra(name))
 
     def _get_expected_subdirectories(self, name):
+        """ Expected set of subdirectories"""
         return {}
 
     def _get_jre_link(self, expected_link):
+        """ Creating path to jre directory """
         return expected_link + "/jre"
 
     def document_subdirs(self, args):
+        """ Only doc method, called automatically by the framework, should not be executed as part of the test."""
         name = self.rpms.getNvr() + "." + self._get_arch()
         dirs = self._get_expected_subdirectories(name)
         docs = JVM_DIR + " must contain following subdirectories: \n"
@@ -55,10 +60,13 @@ class BaseMethods(JdkConfiguration):
         self._document(docs)
 
     def _remove_fake_subdirectories(self, subdirectories):
+        """ There are created jce-1.x.x dirs by the engine of the framework for oracle and IBM java, that are made
+        during the installation, since we only extract, we crate them at mock init, this deletes them to avoid mess
+        in tests."""
         return subdirectories
 
     def _test_subdirectories_equals(self, subdirectories, expected_subdirectories, _subpkg, name):
-
+        """ Check whether the subdirectories in /usr/lib/jvm are as expected, logs and counts fails/passes"""
         if not passed_or_failed(self, sorted(subdirectories) == sorted(expected_subdirectories)):
             for subdirectory in expected_subdirectories:
                 if not passed_or_failed(self, subdirectory in subdirectories):
@@ -71,9 +79,13 @@ class BaseMethods(JdkConfiguration):
                 SubdirectoryTest.instance.log("Subdirectory test for {} finished, no fails occured.".format(name))
 
     def _test_links_are_correct(self, subdirectories, name, _subpkg):
+        """ Tests if all the symlinks in /usr/lib/jvm ('fake subdirectories') are pointing at correct target (usually
+        /usr/lib/jvm/nvr(a)) """
         SubdirectoryTest.instance.log("Testing subdirectory links: ")
         for subdirectory in subdirectories:
             expected_link = JVM_DIR + "/" + self._get_nvra_suffix(name)
+
+            # skipping created subdirs at mock init, are dirs, not links
             if "jce" in subdirectory:
                 SubdirectoryTest.instance.log(subdirectory + " is a directory.")
                 continue
@@ -96,6 +108,7 @@ class BaseMethods(JdkConfiguration):
                 self.passed += 1
 
     def _subdirectory_test(self, pkgs):
+        """ Main method for the test, that is called when the test suite is started, does all the work """
         for pkg in pkgs:
             name = os.path.basename(pkg)
             _subpkg = rename_default_subpkg(pkgsplit.get_subpackage_only(name))
@@ -129,6 +142,7 @@ class BaseMethods(JdkConfiguration):
         return self.passed, self.failed
 
 
+# here follow configuration classes, determining the unique set of subdirectories for each class
 class OpenJdk6(BaseMethods):
     def _get_expected_subdirectories(self, name):
         return {DEFAULT: ["jre",
@@ -145,6 +159,7 @@ class OpenJdk6(BaseMethods):
     def _get_nvra_suffix(self, name):
         directory = pkgsplit.get_name_version_release(name)
         unnecessary_part = directory.split("-")[-1]
+        # jdk6 has shorter name of the subdirectory, only name-version
         directory = directory.replace("-" + unnecessary_part, "")
         return directory
 
@@ -154,6 +169,7 @@ class OpenJdk6PowerBeArchAndX86(OpenJdk6):
         return super()._get_nvra_suffix(name) + "." + self._get_arch()
 
     def _get_expected_subdirectories(self, name):
+        """ ojdk6 on some architectures has architecture included in the subdirs """
         subdirs = super()._get_expected_subdirectories(name)
         subdirs[DEFAULT].remove("jre" + "-" + self._get_major_version() + "-" + self.rpms.getVendor())
         subdirs[DEFAULT].append("jre" + "-" + self._get_major_version() + "-" + self.rpms.getVendor() + "." +
@@ -166,6 +182,7 @@ class OpenJdk6PowerBeArchAndX86(OpenJdk6):
 
 class OpenJdk7(OpenJdk6):
     def _get_nvra_suffix(self, name):
+        """ From jdk7 there is regular /usr/lib/jvm/nvra """
         nvra = super(OpenJdk6, self)._get_nvra_suffix(name)
         return nvra
 
@@ -179,6 +196,7 @@ class OpenJdk7(OpenJdk6):
 
 class Oracle7(OpenJdk6):
     def _get_nvra_suffix(self, name):
+        """ From jdk7 there is regular /usr/lib/jvm/nvra """
         nvra = super(OpenJdk6, self)._get_nvra_suffix(name)
         return nvra
 
@@ -203,6 +221,7 @@ class Ibm7(Oracle7):
         return subdirectories
 
     def _get_major_version(self):
+        """ IBM has a 1.7.1 java naming convention, but the alternatives version is still 1.7.0 """
         return "1.7.0"
 
     def _get_expected_subdirectories(self, name):
@@ -242,6 +261,7 @@ class OpenJdk9(OpenJdk7):
 
 
 class ITW(BaseMethods):
+    """ No test for ITW, since everything is in /usr/bin"""
     def _subdirectory_test(self, pkgs):
         SubdirectoryTest.instance.log("Iced Tea web binaries are in /usr/bin, no subdirectories with n-v-r-a are "
                                       "created. This test is skipped for icedtea-web packages.", la.Verbosity.TEST)
