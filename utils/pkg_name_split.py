@@ -22,10 +22,16 @@ def _hyphen_split(name):
     name = name.strip()
     hyphen_parts = name.split('-')
     num_h = len(hyphen_parts)
-    if (name.startswith(gc.ITW)):
+    if name.startswith(gc.ITW):
         icedtea, web,  *pkg, version, whole_end = hyphen_parts
         pkg = '-'.join(pkg)
         return [gc.ITW, gc.ITW, gc.ITW, pkg, version, whole_end]
+    # rolling release is breaking everything, needs more checks, because it can break everything
+    elif name.startswith("java-openjdk"):
+        java, vendor, *pkg, version, whole_end = hyphen_parts
+        pkg = '-'.join(pkg)
+        ver = version.split(".")
+        return [java, ver[0], vendor, pkg, version, whole_end]
     else:
         java, java_ver, vendor, *pkg, version, whole_end = hyphen_parts
         pkg = '-'.join(pkg)
