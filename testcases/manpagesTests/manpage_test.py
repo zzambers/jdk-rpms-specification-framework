@@ -416,7 +416,9 @@ class ManpageTests(bt.BaseTest):
                 self.csch = OpenJdk7()
                 return
 
-            elif rpms.getMajorVersionSimplified() == "8" or rpms.getMajorVersionSimplified() == "9":
+            elif rpms.getMajorVersionSimplified() == "8"\
+                    or rpms.getMajorVersionSimplified() == "9" \
+                    or rpms.getMajorVersionSimplified() == "10":
                 if self.getCurrentArch() in gc.getX86_64Arch() + gc.getIx86archs():
                     self.csch = OpenJdk8WithDebug()
                     return
