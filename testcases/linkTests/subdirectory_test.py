@@ -34,7 +34,11 @@ class BaseMethods(JdkConfiguration):
 
     def _get_nvra_suffix(self, name):
         """ Getter for the name of main jdk/sdk directory"""
-        return get_32bit_id_in_nvra(pkgsplit.get_nvra(name))
+        nvra = get_32bit_id_in_nvra(pkgsplit.get_nvra(name))
+        # this hook is neccessary because of the rolling release
+        if nvra.startswith("java-openjdk"):
+            nvra = nvra.replace("java-openjdk", "java-" + self._get_major_version() + "-openjdk")
+        return nvra
 
     def _get_expected_subdirectories(self, name):
         """ Expected set of subdirectories"""
@@ -67,16 +71,14 @@ class BaseMethods(JdkConfiguration):
 
     def _test_subdirectories_equals(self, subdirectories, expected_subdirectories, _subpkg, name):
         """ Check whether the subdirectories in /usr/lib/jvm are as expected, logs and counts fails/passes"""
-        if not passed_or_failed(self, sorted(subdirectories) == sorted(expected_subdirectories)):
-            for subdirectory in expected_subdirectories:
-                if not passed_or_failed(self, subdirectory in subdirectories):
-                    log_failed_test(self, "Missing {} subdirectory in {} "
-                                          "subpackage".format(subdirectory, _subpkg))
-            for subdirectory in subdirectories:
-                if not passed_or_failed(self, subdirectory in expected_subdirectories):
-                    log_failed_test(self, "Extra {} subdirectory in {} subpackage".format(subdirectory, _subpkg))
-        else:
-                SubdirectoryTest.instance.log("Subdirectory test for {} finished, no fails occured.".format(name))
+        passed_or_failed(self, sorted(subdirectories) == sorted(expected_subdirectories))
+        for subdirectory in expected_subdirectories:
+            if not passed_or_failed(self, subdirectory in subdirectories):
+                log_failed_test(self, "Missing {} subdirectory in {} "
+                                      "subpackage".format(subdirectory, _subpkg))
+        for subdirectory in subdirectories:
+            if not passed_or_failed(self, subdirectory in expected_subdirectories):
+                log_failed_test(self, "Extra {} subdirectory in {} subpackage".format(subdirectory, _subpkg))
 
     def _test_links_are_correct(self, subdirectories, name, _subpkg):
         """ Tests if all the symlinks in /usr/lib/jvm ('fake subdirectories') are pointing at correct target (usually
@@ -301,7 +303,7 @@ class SubdirectoryTest(bt.BaseTest):
                 else:
                     self.csch = OpenJdk7()
                     return
-            elif rpms.getMajorVersionSimplified() == "9":
+            elif rpms.getMajorVersionSimplified() == "9" or rpms.getMajorVersionSimplified() == "10":
                 if self.getCurrentArch() in gc.getIx86archs() + gc.getX86_64Arch() + gc.getPower64LeAchs() \
                         + gc.getAarch64Arch() + gc.getPower64BeAchs():
                     self.csch = OpenJdk9D()
