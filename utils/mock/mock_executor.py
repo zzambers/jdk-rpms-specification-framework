@@ -41,7 +41,7 @@ class Mock:
         #            ,"/var"
     ]
 
-    def __init__(self, os="fedora", version="27", arch="x86_64", command="mock"):
+    def __init__(self, os="fedora", version="28", arch="x86_64", command="mock"):
         self.os = os
         self.version = version
         self.arch = arch
@@ -150,6 +150,7 @@ class Mock:
         outputControl.logging_access.LoggingAccess().log(e, la.Verbosity.MOCK)
         o, e = exxec.processToStrings(self.mainCommand() + ["--install", "symlinks"])
         outputControl.logging_access.LoggingAccess().log(e, la.Verbosity.MOCK)
+        o, e = exxec.processToStrings(self.mainCommand() + ["--install", "tzdata-java"])
         self.createSnapshot("alternatives")
         self.alternatives = True
 
@@ -195,7 +196,8 @@ class Mock:
         """ Using various copy-in  variants have perofroamnce or existence issues at all """
         if (resetBuildRoot):
             DefaultMock().provideCleanUsefullRoot()
-        out, serr, res = utils.process_utils.executeShell("rpm2cpio " + rpmPath + " | " + self.mainCommandAsString() + " --shell \"cpio -idmv\"")
+        out, serr, res = utils.process_utils.executeShell("rpm2cpio " + rpmPath + " | " + self.mainCommandAsString() +
+                                                          " --shell \"cpio -idmv\"")
         return out, serr, res
 
     def mkdirP(self, dirName):
