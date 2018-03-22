@@ -165,7 +165,12 @@ class OpenJdk8(MajorCheck):
 
 class OpenJdk9(MajorCheck):
     def __init__(self):
-        super().__init__(LEN_7, PREFIX_190)
+        super().__init__(1, 1)
+
+
+    def check_prefix(self, priority):
+        self._document("Priority for jdk 9 and 10 is always 1 for normal packages and 0 for debug packages.")
+        return True
 
 
 class ProprietaryJava6(MajorCheck):
@@ -210,7 +215,7 @@ class PriorityCheck(utils.core.base_xtest.BaseTest):
             elif rpms.getMajorVersionSimplified() == "8":
                 self.csch = OpenJdk8()
                 return
-            elif rpms.getMajorVersionSimplified() == "9":
+            elif rpms.getMajorVersionSimplified() == "9" or rpms.getMajorVersionSimplified() == "10":
                 self.csch = OpenJdk9()
                 return
             else:
