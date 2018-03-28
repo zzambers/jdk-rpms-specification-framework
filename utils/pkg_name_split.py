@@ -30,8 +30,8 @@ def _hyphen_split(name):
     elif name.startswith("java-openjdk"):
         java, vendor, *pkg, version, whole_end = hyphen_parts
         pkg = '-'.join(pkg)
-        ver = version.split(".")
-        return [java, ver[0], vendor, pkg, version, whole_end]
+        java_ver = version.split(".")[0]
+        return [java, java_ver, vendor, pkg, version, whole_end]
     else:
         java, java_ver, vendor, *pkg, version, whole_end = hyphen_parts
         pkg = '-'.join(pkg)
@@ -134,13 +134,17 @@ def get_arch(name):
 
 def get_nvra(name):
     """ eg java-1.8.0-openjdk-1.8.0.101-4.b13.el7.i686"""
-    if name.endswith(".rpm"):
+    n = name
+    if n.endswith(".rpm"):
         sub = get_subpackage_only(name)
         if sub != "":
-            name = name.replace("-" + sub, "")
-        name = name.replace(".rpm", "")
-
-    return name
+            n = n.replace("-" + sub, "")
+        n = n.replace(".rpm", "")
+    # this hook is necessary because of the rolling release, everything but the package name contains
+    # the version (manpages, subdirs, links etc.)
+    if n.startswith("java-openjdk"):
+        n = n.replace("java-openjdk", "java-" + get_major_ver(name) + "-openjdk")
+    return n
 
 
 def get_name_version_release(name):

@@ -34,11 +34,7 @@ class BaseMethods(JdkConfiguration):
 
     def _get_nvra_suffix(self, name):
         """ Getter for the name of main jdk/sdk directory"""
-        nvra = get_32bit_id_in_nvra(pkgsplit.get_nvra(name))
-        # this hook is neccessary because of the rolling release
-        if nvra.startswith("java-openjdk"):
-            nvra = nvra.replace("java-openjdk", "java-" + self._get_major_version() + "-openjdk")
-        return nvra
+        return get_32bit_id_in_nvra(pkgsplit.get_nvra(name))
 
     def _get_expected_subdirectories(self, name):
         """ Expected set of subdirectories"""
