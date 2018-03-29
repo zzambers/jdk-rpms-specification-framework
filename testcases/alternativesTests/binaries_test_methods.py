@@ -152,7 +152,7 @@ class BinarySlaveTestMethods(GetAllBinariesAndSlaves):
 
         except KeyError as err:
             self.failed += 1
-            log_failed_test(self, err)
+            log_failed_test(self, err.__str__())
         return
 
     # main check, that includes all small checks and at the end compares the binaries with slaves

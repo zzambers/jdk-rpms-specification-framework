@@ -84,7 +84,7 @@ class BaseTest(JdkConfiguration):
             try:
                 self.installed_binaries[subpackage].remove(JAVA_RMI_CGI)
                 self.passed += 1
-            except ValueError:
+            except ValueError or KeyError:
                 self.failed += 1
                 log_failed_test(self, "Missing {} in {}.".format(JAVA_RMI_CGI, DEVEL))
         return self.installed_binaries
@@ -111,6 +111,10 @@ class PathTest(BaseTest):
             if not DefaultMock().postinstall_exception_checked(pkg):
                 self.binaries_test.log("Skipping path test because of missing post install scriptlet.")
                 continue
+            if (_subpkg == DEFAULT or _subpkg == DEFAULT + DEBUG_SUFFIX) and pkgsplit.get_major_ver(name) == "10":
+                self.binaries_test.log("Skipping default package, it has no binaries.")
+                continue
+
             paths = self._get_paths()
             self.binaries_test.log("Given paths: " + ", ".join(paths), la.Verbosity.TEST)
 

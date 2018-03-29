@@ -200,6 +200,29 @@ class OpenJdk9Debug(OpenJdk9):
                                                            DEFAULT + DEBUG_SUFFIX]
 
 
+class OpenJdk10(OpenJdk9):
+    pass
+
+
+class OpenJdk10Debug(OpenJdk9Debug):
+
+    def _policytool_binary_subpackages(self):
+        return []
+
+    def _policytool_slave_subpackages(self):
+        return []
+
+    def _get_subpackages_with_binaries(self):
+        subpackages = super()._get_subpackages_with_binaries()
+        subpackages.remove(DEFAULT)
+        subpackages.remove(DEFAULT + DEBUG_SUFFIX)
+        return subpackages
+
+    def handle_policytool(self, args=None):
+        self._document("From JDK 10, there is no policytool.")
+        return
+
+
 class Ibm(BinarySlaveTestMethods):
     # classic and j9vm are folders, not binaries
     def _remove_excludes(self):
