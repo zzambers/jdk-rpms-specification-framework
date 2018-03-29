@@ -2,7 +2,6 @@ PLUGIN = "plugin"
 JAVA = "java"
 JAVAC = "javac"
 HEADLESS = "headless"
-DEBUG_SUFFIX = "-debug"
 DEVEL = "devel"
 DEFAULT = "default"
 CONTROL_PANEL = "ControlPanel"
@@ -88,11 +87,26 @@ def get_openjfx_binaries():
 
 
 def subpackages_without_alternatives():
-    return ["accessibility", "debuginfo", "demo", "src", "accessibility-debug",
-            "src-debug", "demo-debug", "headless-debuginfo", "devel-debuginfo", "demo-debuginfo",
-            "debug-debuginfo", "devel-debug-debuginfo", "debugsource", "headless-debug-debuginfo",
-            "demo-debug-debuginfo", "jdbc"]
+    return ["accessibility", "debuginfo", "demo", "src", "accessibility" + DEBUG_SUFFIX,
+            "src" + DEBUG_SUFFIX, "demo" + DEBUG_SUFFIX, "headless-debuginfo", "devel-debuginfo", "demo-debuginfo",
+            "debug-debuginfo", "devel" + DEBUG_SUFFIX + "-debuginfo", "debugsource",
+            "headless" + DEBUG_SUFFIX + "-debuginfo",
+            "demo" + DEBUG_SUFFIX + "-debuginfo", "jdbc"]
 
 
 def get_javadoc_dirs():
-    return [JAVADOC, JAVADOC + DEBUG_SUFFIX, "javadoc-zip-debug", "javadoc-zip"]
+    return [JAVADOC, JAVADOC + DEBUG_SUFFIX, "javadoc-zip" + DEBUG_SUFFIX, "javadoc-zip"]
+
+
+# slowdebug/debug suffixes in various jdk are not trivial task to do, this is very bad hack and can not stay this way
+def identify_debug_suffix():
+    import config.runtime_config as conf
+    rpms = conf.RuntimeConfig().getRpmList()
+    version = rpms.getMajorVersionSimplified()
+    if int(version) > 9:
+        return "-slowdebug"
+    else:
+        return "-debug"
+
+
+DEBUG_SUFFIX = identify_debug_suffix()
