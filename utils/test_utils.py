@@ -131,6 +131,8 @@ def rename_default_subpkg(subpkg):
         subpkg = "default"
     elif subpkg == "debug":
         subpkg = "default-debug"
+    elif subpkg == "slowdebug":
+        subpkg = "default-slowdebug"
     return subpkg
 
 
@@ -178,6 +180,7 @@ def passed_or_failed(instance, bool):
     else:
         instance.failed += 1
     return bool
+
 
 # reinit method, sets the counts of passed and failed for zero, used for no-arch tests
 def _reinit(instance):
