@@ -98,17 +98,17 @@ class OpenJdk8(OpenJdk7):
 
     def _get_debug_debuginfo(self):
         return ["debug-debuginfo",
-                "demo-debug-debuginfo",
-                "devel-debug-debuginfo",
-                "headless-debug-debuginfo"]
+                "demo" + DEBUG_SUFFIX + "-debuginfo",
+                "devel" + DEBUG_SUFFIX + "-debuginfo",
+                "headless" + DEBUG_SUFFIX + "-debuginfo"]
 
     def _get_debug_subpackages(self):
-        return ["accessibility-debug",
-                "debug",
-                "demo-debug",
-                "devel-debug",
-                "headless-debug",
-                "src-debug"]
+        return ["accessibility" + DEBUG_SUFFIX,
+                DEBUG_SUFFIX,
+                "demo" + DEBUG_SUFFIX,
+                "devel" + DEBUG_SUFFIX,
+                "headless" + DEBUG_SUFFIX,
+                "src" + DEBUG_SUFFIX]
 
     def _get_javadoc_debug(self):
         return ["javadoc-debug", "javadoc-zip-debug"]
@@ -123,9 +123,9 @@ class OpenJdk8Debug(OpenJdk8):
 class OpenJdk8JFX(OpenJdk8Debug):
     def _getSubPackages(self):
         return super()._getSubPackages() + ["openjfx",
-                                            "openjfx-debug",
+                                            "openjfx" + DEBUG_SUFFIX,
                                             "openjfx-devel",
-                                            "openjfx-devel-debug"]
+                                            "openjfx-devel" + DEBUG_SUFFIX]
 
 
 class OpenJdk8DebugDebuginfo(OpenJdk8Debug):
@@ -165,16 +165,16 @@ class OpenJdk9(OpenJdk8):
 
 class OpenJdk9DebugDebuginfo(OpenJdk8DebugDebuginfo):
     def _getSubPackages(self):
-        return super()._getSubPackages() + ["jmods", "jmods-debug"]
+        return super()._getSubPackages() + ["jmods", "jmods" + DEBUG_SUFFIX]
 
     def _get_debug_debuginfo(self):
-        return ["devel-debug-debuginfo",
-                "headless-debug-debuginfo"]
+        return ["devel" + DEBUG_SUFFIX + "debuginfo",
+                "headless" + DEBUG_SUFFIX + "debuginfo"]
 
 
 class OpenJdk9Debug(OpenJdk8Debug):
     def _getSubPackages(self):
-        return super()._getSubPackages() + ["jmods", "jmods-debug"]
+        return super()._getSubPackages() + ["jmods", "jmods" + DEBUG_SUFFIX]
 
 
 class OracleAndIbmBase(JDKBase):
@@ -257,7 +257,7 @@ class SubpackagesTest(utils.core.base_xtest.BaseTest):
 
                 else:
                     raise ex.UnknownJavaVersionException("Unrecognized OS.")
-            elif rpms.getMajorVersionSimplified() == "9":
+            elif rpms.getMajorVersionSimplified() == "9" or rpms.getMajorVersionSimplified() == "10":
                 if rpms.isFedora():
                     if int(rpms.getOsVersion()) < 27:
                         if self.getCurrentArch() in gc.getArm32Achs():
