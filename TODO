@@ -12,36 +12,40 @@ TODO (what the framework should do):
 	* download single-arch (+noarch) parts of build from brew/koji
 	* none subpackage is empty unless expected
 	- check config files are as expected
+	    - some of them are now in /etc/java/java-version-vendor/nvra
 	x provides and obsolaetes (and requires?) are as expected
 	* plugin, javaws, jcontrol sanity
 		* if plugin pkg is present, then javaws and jcontrol, ControlPanel files should be in that pkg
 		* if plugin pkg is present, then it should provide javaws and jcontrol, ControlPanel
-	x broken symlinks
+	* broken symlinks
 	* alternatives are correct
 	* alternatives and binaries in bin or jre/bin are correct
 	* man page corresponds to existing manpages, to alternatives and to binaries in bin jre/bin
 	- desktop shortcuts are sane
-	- all connections of  binaries x desktop files x alternatives are sane
+	x all connections of  binaries x desktop files x alternatives are sane
 	x download whole build from brew/koji (a set of rpms for each arch) and check:
 		- correct set of architectures is present
 		- test each architecture separately
 	- check that everything that postinstall script adds is removed when uninstalled - no idea how
 
-    x versionless/versionfull link check - subdirectories in usr/lib/jre/nvra - n - nv -nvr ...
-    - executable permission (slave 755)
+    * versionless/versionfull link check - subdirectories in usr/lib/jre/nvra - n - nv -nvr ...
+    * executable permission (slave 755)
     * path test - if all the binaries are in at least one $PATH directory
         * if is in more, check that binary links are identical
         TODO:
         this test uses binaries from BinaryTest. Since there are few special cases, this test currently does not
         check some binaries:
         ITW: itweb-settings.itweb binary has ControlPanel slave - both is deleted from slave/bin list, IS NOT CHECKED
-        JDK: care for policytool, check if it works out after refactoring
+        * JDK: care for policytool, check if it works out after refactoring
         * IBM: haven't tested yet, might fail on some plugin binaries - no binaries are removed
         * ORACLE: jmc.ini - has no slave, should not have link in $PATH???? - should not
-    - generate another logfile, where only test fails will be logged.
+    * generate another logfile, where only test fails will be logged.
 
 * generate in human-readable form, what it itself test
 - rpm can list %ghosts - if file exists, package "owns it" - bins, slaves, mpges
+- rpms own all files that they create
+  - rpm -ql java-1.8.0-openjdk-headless
+  - + all of the directories in the system
 
 - todo
 x work inprogress
@@ -56,14 +60,45 @@ notes:
 minor_tasks:
 * rename mock_executor install script snapshots to something more bug-proof
 * binary test - policytool can be handled by small methods overriding each other in OpenJdk6/7/8 classes
-- for anything but postinstall check, there should be a workaround so we do not check anything but default and
+* for anything but postinstall check, there should be a workaround so we do not check anything but default and
   devel pkg, might speed up the tests a little bit
-- delete all ibm6 testcases
+* delete all ibm6 testcases
 * refactor postinstall test
-- fix doc bug
+* fix doc bug
 * refactor strings in binary test and manpage test, should be in methods
-- utils could contain a log methods file, that would contain logging methods to get rid of the strings.
+* utils could contain a log methods file, that would contain logging methods to get rid of the strings.
 * extract regularly used constants to a single file
-- subpackages test misses else throw exceptions in setCSCH at vendors etc.
+* subpackages test misses else throw exceptions in setCSCH at vendors etc.
+* fix mock - if there is locked root or vm, it sometimes behaves like all the tests have passed. Must fail immidiately
+  though
+- there are some magic errors while trying to download builds from koji or brew, appear only when run in virtualbox
+- plugin binaries might not be checked - the master binary located somewhere usr/lib/plugin....
+* rework logs, add verbosity option, refactor the framework accordingly
+ fix the bug in jdk8 binary test, with openjfxpackages dependencies
+- mock is very unreliable and tends to crash randomly on installs. if does so, it should be at least checked somewhere!!!
+- fix scriptlet test
+- check fails:
+   - ITW f27 - InitTest.test_nativeArches[Non_Arch]
+             - PostinstallScriptTest.test_contains_postscript[Non_Arch]
+   - ITW f26 - SubpackagesTest.test_checkAllSubpackages[AllArchs]
+   - ojdk8 rhel7 - PostinstallScriptTest.test_contains_postscript[ppc64le, aarch64, ppc64]
+                 - SubpackagesTest.test_checkAllSubpackages[ppc64le, aarch64, ppc64]
+- adaption of the framework from debug to slowdebug (must accept debug for jdk <10 and
+slowdebug for jdk >=10)
+- fix the permission test so it does not reach out of /usr/lib/jvm
+  + do not forget about /etc/java (in more than only this test!!!)
+- TODO in symlink test
 
+
+FUTURE PLANS:
+- libjavaplugin will be unvailable f27+ => RHEL 8 +, all ibm and oracle java will have to get a new master
+  for its plugin subpackages / plugin slaves.....
+
+* testsuite needs to be reworked, so each failed test counts as one, so we can see the improvement and number of fails more
+  accurate
+
+   rpms = self.getBuild()
+        assert rpms is not None
+        assert len(rpms) > 1
+ -- good idea for test, but was on bad spot
 
