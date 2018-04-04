@@ -41,7 +41,7 @@ class Mock:
         #            ,"/var"
     ]
 
-    def __init__(self, os="fedora", version="28", arch="x86_64", command="mock"):
+    def __init__(self, os="fedora", version="27", arch="x86_64", command="mock"):
         self.os = os
         self.version = version
         self.arch = arch
@@ -71,7 +71,7 @@ class Mock:
         return self.getDir() + "/result"
 
     def mainCommand(self):
-        return [self.command, "--yum","--old-chroot", "-r", self.getMockName()]
+        return [self.command, "--yum", "--old-chroot", "-r", self.getMockName()]
 
     def mainCommandAsString(self):
         s = ""
