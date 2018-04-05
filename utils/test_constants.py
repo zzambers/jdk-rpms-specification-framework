@@ -101,12 +101,13 @@ def get_javadoc_dirs():
 # slowdebug/debug suffixes in various jdk are not trivial task to do, this is very bad hack and can not stay this way
 def identify_debug_suffix():
     import config.runtime_config as conf
+    import config.global_config as gc
     rpms = conf.RuntimeConfig().getRpmList()
     version = rpms.getMajorVersionSimplified()
-    if int(version) > 9:
-        return "-slowdebug"
-    else:
+    if int(version) < 9 or rpms.getDist() == gc.ITW:
         return "-debug"
+    else:
+        return "-slowdebug"
 
 
 DEBUG_SUFFIX = identify_debug_suffix()
