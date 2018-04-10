@@ -14,6 +14,10 @@ from utils import pkg_name_split as pkgsplit
 from utils.core.configuration_specific import JdkConfiguration
 from utils.core.unknown_java_exception import UnknownJavaVersionException
 
+# TODO: is broken for ojdk10 rolling releases
+# TODO: jexec is broken, doc that it is binary in lib and it can not be moved
+
+
 
 class BaseTest(JdkConfiguration):
 
@@ -25,7 +29,10 @@ class BaseTest(JdkConfiguration):
         self.passed = 0
 
     def _get_target_java_directory(self, name):
-        return get_32bit_id_in_nvra(pkgsplit.get_nvra(name))
+        directory =  get_32bit_id_in_nvra(pkgsplit.get_nvra(name))
+        if DEBUG_SUFFIX in name:
+          directory = directory + "-" + DEBUG_SUFFIX
+        return directory
 
     def _skipped_subpackages(self):
         return []
@@ -100,8 +107,12 @@ class BaseTest(JdkConfiguration):
     def sort_and_test(self, valid_targets, subpackage=None, name=None):
         self._document("\n - ".join(["Directories should have 755 permissions.",
                                      "Content of bin directory should have 755 permissions",
+                                     "All of the files ending with '.so' should have 755 permissions",
                                      "Regular files should have 644 permissions",
                                      "Symbolic links should have 777 permissions.",
+                                     "Permissions of a file classes.jsa must be 444."
+                                     "Binary jexec is an exception and must be in lib directory and has "
+                                     "755 permissions.",
                                      "Other types of files with different permissions should not be present."]))
         for target in valid_targets:
             out, res = DefaultMock().executeCommand(['stat -c "%F" ' + target])
@@ -110,6 +121,12 @@ class BaseTest(JdkConfiguration):
             elif out == "regular file":
                 if "/bin/" in target:
                     self._test_fill_in(target, "binary", "755")
+                elif ".so" in target:
+                    self._test_fill_in(target, "file ending with .so", "755")
+                elif "/lib/server/classes.jsa" in target:
+                    self._test_fill_in(target, "file classes.jsa", "444")
+                elif "/lib/jexec" in target:
+                    self._test_fill_in(target, "binary jexec", "755")
                 else:
                     self._test_fill_in(target, out, "644")
             elif out == "symbolic link":
@@ -229,7 +246,7 @@ class PermissionTest(bt.BaseTest):
             elif rpms.getMajorVersionSimplified() == "8":
                 self.csch = OpenJdk8()
                 return
-            elif rpms.getMajorVersionSimplified() == "9":
+            elif rpms.getMajorVersionSimplified() == "9" or rpms.getMajorVersionSimplified() == "10":
                 self.csch = OpenJdk8()
                 return
             else:
