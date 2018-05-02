@@ -18,8 +18,11 @@ from utils.core.unknown_java_exception import UnknownJavaVersionException
 # TODO: jexec is broken, doc that it is binary in lib and it can not be moved
 
 
-
 class BaseTest(JdkConfiguration):
+    """
+    This test is supposed to check all the files in /usr/lib/jvm/nvra and their permissions. If the checked file is
+    a link, we check it's target, if it is still in /usr/lib/jvm/nvra dir. We also check man pages located in MAN_DIR.
+    """
 
     def __init__(self):
         super().__init__()
@@ -29,19 +32,23 @@ class BaseTest(JdkConfiguration):
         self.passed = 0
 
     def _get_target_java_directory(self, name):
+        """Returns a directory where jdk is installed (mostly name-version-release-arch)."""
         directory =  get_32bit_id_in_nvra(pkgsplit.get_nvra(name))
         if DEBUG_SUFFIX in name:
           directory = directory + "-" + DEBUG_SUFFIX
         return directory
 
     def _skipped_subpackages(self):
+        """We might want to skip the subpackages that have post install, but do not add any files into jvm directory."""
         return []
 
     def doc_test_java_files_permissions(self, pkgs):
+        """Main test method body."""
         self._document("On all files extracted from RPMs to {}/nvra and {} apply "
                        "following rules:".format(JVM_DIR, MAN_DIR))
+        # get default manpages, since we check these too
         DefaultMock().provideCleanUsefullRoot()
-        default_manpages, res = DefaultMock().execute_ls("/usr/share/man/man1")
+        default_manpages, res = DefaultMock().execute_ls(MAN_DIR)
         default_manpages = default_manpages.split("\n")
         if not passed_or_failed(self, res == 0):
             log_failed_test(self, "Default manpages extraction has failed. Manpage tests will be invalid: " + str(res) +
@@ -58,6 +65,7 @@ class BaseTest(JdkConfiguration):
             if not DefaultMock().postinstall_exception_checked(pkg):
                 continue
 
+            # get content of jvm directory
             out, result = DefaultMock().executeCommand(["ls -LR " + JVM_DIR + "/" +
                                                        self._get_target_java_directory(name)])
             if passed_or_failed(self, result == 2):
@@ -76,6 +84,7 @@ class BaseTest(JdkConfiguration):
         return self.passed, self.failed
 
     def _parse_output(self, out, subpackage):
+        """Output of the file listing must be parsed into something more readable and easier to process."""
         output_parts = out.split("\n")
         return_targets = []
         header = re.compile("/[^:]*:")
@@ -105,6 +114,10 @@ class BaseTest(JdkConfiguration):
         return return_targets
 
     def sort_and_test(self, valid_targets, subpackage=None, name=None):
+        """
+        Sorts the files and checks whether permissions are as expected. If ever adding any exclude case, it must be
+        documented in the _document method.
+        """
         self._document("\n - ".join(["Directories should have 755 permissions.",
                                      "Content of bin directory should have 755 permissions",
                                      "All of the files ending with '.so' should have 755 permissions",
@@ -146,6 +159,7 @@ class BaseTest(JdkConfiguration):
                 if res != 0:
                     PermissionTest.instance.log("Command stat -c '%F' {} finished with {} exit"
                                                 " code".format(target, res))
+                    # JRE binaries in SDK packages have broken links that result in failed command.
                     if subpackage == DEVEL and (self._get_target_java_directory(name) + "/jre/bin/") in target:
                         PermissionTest.instance.log("This is expected behaviour in devel subpackage, since this is "
                                                     "consciously broken "
@@ -163,6 +177,10 @@ class BaseTest(JdkConfiguration):
                 self.failed += 1
 
     def _test_fill_in(self, file, filetype, expected_permission):
+        """
+        This method takes as an argument path to a file, type of the file for logs, expected permission and checks,
+        if it matches results from chroot. It also documents any fails or successful checks.
+        """
         out, res = DefaultMock().executeCommand(['stat -c "%a" ' + file])
         if res != 0:
             log_failed_test(self, filetype + " link is broken, could not find " + file)
@@ -183,11 +201,13 @@ class BaseTest(JdkConfiguration):
         return
 
 
+# follows implementation of configuration specific classes
 class OpenJdk6(BaseTest):
     def _skipped_subpackages(self):
         return [JAVADOC]
 
     def _get_target_java_directory(self, name):
+        # ojdk6 is specific in java directory name
         directory = super()._get_target_java_directory(name)
         unnecessary_part = directory.split("-")[-1]
         directory = directory.replace("-" + unnecessary_part, "")
@@ -268,7 +288,7 @@ class PermissionTest(bt.BaseTest):
             return
 
         if rpms.getVendor() == gc.ITW:
-            # might be worth to check also other subdirectories
+            # TODO might be worth to check also other subdirectories
             self.csch = BaseTest()
             return
         raise UnknownJavaVersionException("Unknown JDK version!!!")
