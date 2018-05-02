@@ -12,6 +12,12 @@ CRES_JAVA_REGEXE8 = re.compile(JAVA_REGEX8)
 JAVA_REGEX9="^java-([1-9][0-9]*)-.*-.*-.*\..*.rpm$"
 CRES_JAVA_REGEXE9 = re.compile(JAVA_REGEX9)
 
+JAVA_REGEX10="^java-([10-20])-.*-.*-.*\..*.rpm$"
+CRES_JAVA_REGEXE10 = re.compile(JAVA_REGEX9)
+
+JAVA_REGEX_ROLLING="^java-openjdk-.*-.*\..*.rpm$"
+CRES_JAVA_REGEXEROLLING = re.compile(JAVA_REGEX_ROLLING)
+
 ITW_REGEX="^icedtea-web-.*-.*\..*.rpm$"
 CRES_ITW_REGEXE = re.compile(ITW_REGEX)
 
@@ -37,3 +43,16 @@ class OthersRegexCheck(JdkConfiguration):
         self._document("RPM of jdks older then 9 and except itw must match following regex: "+JAVA_REGEX8)
         la.LoggingAccess().log("non ITW jdk older then 9 call for checkRegex")
         return CRES_JAVA_REGEXE8.match(name)
+
+
+# covers only up to jdk20 (est. 4-5 years?)
+class Jdk10RegexCheck(JdkConfiguration):
+    def checkRegex(self, name=None):
+        self._document("RPM with version 10 or higher (except itw) has following regex: " + JAVA_REGEX10 + " in case "
+                       "of normal packages and " + JAVA_REGEX_ROLLING + " in case of rolling release.")
+        if name.startswith("java-openjdk"):
+            la.LoggingAccess().log("JDK rolling release regex check.")
+            return CRES_JAVA_REGEXEROLLING.match(name)
+        else:
+            la.LoggingAccess().log("JDK 10 and higher regex check.")
+            return CRES_JAVA_REGEXE10.match(name)
