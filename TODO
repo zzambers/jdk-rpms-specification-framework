@@ -75,7 +75,7 @@ minor_tasks:
 - plugin binaries might not be checked - the master binary located somewhere usr/lib/plugin....
 * rework logs, add verbosity option, refactor the framework accordingly
  fix the bug in jdk8 binary test, with openjfxpackages dependencies
-- mock is very unreliable and tends to crash randomly on installs. if does so, it should be at least checked somewhere!!!
+- mock is very unreliable and tends to crash randomly on installs. if does so, it should be at least checked somewhere
 - fix scriptlet test
 - check fails:
    - ITW f27 - InitTest.test_nativeArches[Non_Arch]
@@ -83,12 +83,10 @@ minor_tasks:
    - ITW f26 - SubpackagesTest.test_checkAllSubpackages[AllArchs]
    - ojdk8 rhel7 - PostinstallScriptTest.test_contains_postscript[ppc64le, aarch64, ppc64]
                  - SubpackagesTest.test_checkAllSubpackages[ppc64le, aarch64, ppc64]
-- adaption of the framework from debug to slowdebug (must accept debug for jdk <10 and
-slowdebug for jdk >=10)
+* adaption of the framework from debug to slowdebug (must accept debug for jdk <10 and slowdebug for jdk >=10)
 - fix the permission test so it does not reach out of /usr/lib/jvm
   + do not forget about /etc/java (in more than only this test!!!)
-- TODO in symlink test
-
+- tests that crash on exceptions are still sometimes counted as unstable
 
 FUTURE PLANS:
 - libjavaplugin will be unvailable f27+ => RHEL 8 +, all ibm and oracle java will have to get a new master
