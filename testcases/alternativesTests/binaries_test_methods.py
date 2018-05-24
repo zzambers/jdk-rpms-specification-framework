@@ -24,7 +24,7 @@ class GetAllBinariesAndSlaves(PathTest):
         jre_subpackages = self._get_jre_subpackage()
         sdk_subpackages = self._get_sdk_subpackage()
         self._document(" and ".join(jre_slaves + sdk_slaves) + " are slaves, that point at export "
-                                                               "directories and jre/sdk binary directories.")
+                                                               "directories")
         for jsubpkg in jre_subpackages:
             for jslave in jre_slaves:
                 try:
@@ -41,6 +41,29 @@ class GetAllBinariesAndSlaves(PathTest):
                     self.passed += 1
                 except ValueError:
                     self.list_of_failed_tests.append(sslave + " export slave missing in " + ssubpkg)
+                    self.failed += 1
+        return
+
+    def check_subdirectory_slaves(self, args=None):
+        jre_slave = "jre"
+        sdk_slave = "java_sdk"
+        self._document(jre_slave + " and " + sdk_slave + " are slaves that point at directories in /usr/lib/jvm.")
+        jre_subpackages = self._get_jre_subpackage()
+        sdk_subpackages = self._get_sdk_subpackage()
+        for jsubpkg in jre_subpackages:
+            try:
+                self.installed_slaves[jsubpkg].remove(jre_slave)
+                self.passed += 1
+            except ValueError:
+                self.list_of_failed_tests.append(jre_slave + " slave missing in " + jsubpkg)
+                self.failed += 1
+
+        for ssubpkg in sdk_subpackages:
+                try:
+                    self.installed_slaves[ssubpkg].remove(sdk_slave)
+                    self.passed += 1
+                except ValueError:
+                    self.list_of_failed_tests.append(sdk_slave + " slave missing in " + ssubpkg)
                     self.failed += 1
         return
 
@@ -166,6 +189,7 @@ class BinarySlaveTestMethods(GetAllBinariesAndSlaves):
         self.handle_plugin_binaries()
         self.all_jre_in_sdk_check()
         self.check_exports_slaves()
+        self.check_subdirectory_slaves()
 
         self._perform_all_checks()
         self.path_test()

@@ -10,7 +10,7 @@ from utils.test_utils import get_32bit_id_in_nvra, passed_or_failed
 from outputControl import logging_access as la
 
 
-
+# TODO binary jexec in /usr/lib/jvm/nvra/lib in headless package is not checked on path, or in the directory.
 class BaseTest(JdkConfiguration):
     def __init__(self, binariesTest):
         super(BaseTest, self).__init__()
@@ -50,7 +50,7 @@ class BaseTest(JdkConfiguration):
         return [DEVEL + DEBUG_SUFFIX]
 
     def _get_binary_directory_path(self, name):
-        dir = JVM_DIR + "/" + self._get_binary_directory(name)
+        dir = JVM_DIR  + self._get_binary_directory(name)
         if DEBUG_SUFFIX + "-" in name:
             dir += DEBUG_SUFFIX
         if DEVEL in name or JAVAFX in name:
