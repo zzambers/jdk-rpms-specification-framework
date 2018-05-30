@@ -259,6 +259,18 @@ class OpenJdk10Debug(OpenJdk9Debug):
         return OpenJdk8NoExports.check_exports_slaves(self)
 
 
+class OpenJdk10x64(OpenJdk10Debug):
+    DEFAULT_BINARIES = []
+    DEVEL_BINARIES = ['appletviewer', 'idlj', 'jar', 'jaotc', 'jarsigner', 'javac', 'javadoc', 'javap', 'jcmd',
+                      'jconsole',
+                      'jdb', 'jdeprscan', 'jdeps', 'jhsdb', 'jimage', 'jinfo', 'jlink', 'jmap', 'jmod', 'jps',
+                      'jrunscript',
+                      'jshell', 'jstack', 'jstat', 'jstatd', 'rmic', 'schemagen', 'serialver', 'wsgen', 'wsimport',
+                      'xjc']
+    HEADLESS_BINARIES = ["java", "jjs", "keytool", "orbd", "pack200",
+                         "rmid", "rmiregistry", "servertool", "tnameserv", "unpack200"]
+
+
 class Ibm(BinarySlaveTestMethods):
     # classic and j9vm are folders, not binaries
     def _remove_excludes(self):

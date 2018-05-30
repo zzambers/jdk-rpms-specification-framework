@@ -20,7 +20,8 @@ class BinariesTest(bt.BaseTest):
         from testcases.alternativesTests.binaries_test_config_classes import OpenJdk8, OpenJdk7, OpenJdk6, OpenJdk9, \
             OpenJdk6PowBeArchAndX86, OpenJdk8Debug, Itw, OpenJdk9Debug, Ibm, IbmWithPluginSubpackage, \
             IbmArchMasterPlugin, Ibm390Architectures, Oracle6ArchPlugin, Oracle7, OracleNoArchPlugin,\
-            OpenJdk8NoExports, OpenJDK8JFX, OpenJdk8NoExportsDebugJFX, OpenJdk8NoExportsDebug, Oracle8, OpenJdk10, OpenJdk10Debug
+            OpenJdk8NoExports, OpenJDK8JFX, OpenJdk8NoExportsDebugJFX, OpenJdk8NoExportsDebug, Oracle8, OpenJdk10, \
+            OpenJdk10Debug, OpenJdk10x64
         BinariesTest.instance = self
         rpms = rc.RuntimeConfig().getRpmList()
         self.log("Checking binaries and slaves for " + rpms.getMajorPackage(), la.Verbosity.TEST)
@@ -77,7 +78,6 @@ class BinariesTest(bt.BaseTest):
             elif rpms.getMajorVersionSimplified() == "9":
                 if self.getCurrentArch() in gc.getArm32Achs():
                     self.csch = OpenJdk9(BinariesTest.instance)
-
                     return
                 else:
                     self.csch = OpenJdk9Debug(BinariesTest.instance)
@@ -86,7 +86,9 @@ class BinariesTest(bt.BaseTest):
             elif rpms.getMajorVersionSimplified() == "10":
                 if self.getCurrentArch() in gc.getArm32Achs():
                     self.csch = OpenJdk10(BinariesTest.instance)
-
+                    return
+                elif self.getCurrentArch() in gc.getX86_64Arch():
+                    self.csch = OpenJdk10x64(BinariesTest.instance)
                     return
                 else:
                     self.csch = OpenJdk10Debug(BinariesTest.instance)
