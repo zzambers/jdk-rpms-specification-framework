@@ -3,7 +3,7 @@ System config
 To verify the filesystem, mock tool is used.
 As really many "install - do something - check" where install is always the same, sometimes even "do something" is same then snapshot schema in mock is used.
 
-You need mock-lvm to have installed and set up
+You need mock-lvm to have installed and set up -- not anymore, check overlayfs part of this doc
 Generally you need to provide LVM group to mock.
 As you probably don't have spare partitions for new group, there is some reading followed by simple example how to provide *file* as new partition and how to make it lvm group:
 
@@ -77,3 +77,20 @@ Dependencies:
 mock
 mock-lvm
 rpm-build
+
+
+Overlayfs plugin
+It is now possible to mock straight to a directory. This can be done by a simple plugin (thanks zzambers!!)
+- see https://github.com/rpm-software-management/mock/wiki/Plugin-Overlayfs
+In short, you need to do two things:
+1. create a directory anywhere you want, call it whatever you want, e.g.
+mkdir /var/lib/MOCK_OVERLAYFS
+
+Then add following lines to a /etc/mock/site-defaults.cfg file:
+config_opts['plugin_conf']['overlayfs_enable'] = True
+config_opts['plugin_conf']['root_cache_enable'] = False
+config_opts['plugin_conf']['overlayfs_opts']['base_dir'] = "/var/lib/MOCK_OVERLAYFS"
+
+If you touch the buildroot during any operation in the framework, you need to mount the buildroot
+- see https://github.com/rpm-software-management/mock/pull/175
+In general, this is not desired behavior and should not be used, unless it can not be avoided. 
