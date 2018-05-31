@@ -145,7 +145,7 @@ class OpenJdk9(OpenJdk8):
     HEADLESS_BINARIES = ["appletviewer", "idlj", "java", "jjs", "jrunscript", "keytool", "orbd", "pack200",
                          "rmid", "rmiregistry", "servertool", "tnameserv", "unpack200"]
 
-    def get_binaries_as_dict(self):
+    def _get_binaries_as_dict(self):
         return {DEFAULT: self.DEFAULT_BINARIES,
                 DEVEL: self.DEVEL_BINARIES,
                 HEADLESS: self.HEADLESS_BINARIES,
@@ -158,7 +158,7 @@ class OpenJdk9(OpenJdk8):
         return JVM_DIR + "/" + get_32bit_id_in_nvra(pkgsplit.get_nvra(name)) + SDK_DIRECTORY
 
     def _check_binaries_against_hardcoded_list(self, binaries, subpackage):
-        hardcoded_binaries = self.get_binaries_as_dict()
+        hardcoded_binaries = self._get_binaries_as_dict()
         if not passed_or_failed(self, subpackage in hardcoded_binaries.keys()):
             log_failed_test(self, "Binaries in unexpected subpackage: " + subpackage)
             return
