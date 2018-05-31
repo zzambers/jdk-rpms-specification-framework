@@ -32,13 +32,12 @@ OJDK8DEBUG = "ojdk8debug"
 
 # exports jre binaries
 def get_exports_slaves_jre():
-    return ["jre_exports", "jre"]
+    return ["jre_exports"]
 
 
 # exports sdk binaries
 def get_exports_slaves_sdk():
-    return ["java_sdk_exports", "java_sdk"]
-
+    return ["java_sdk_exports"]
 
 def get_ibm_k_bins():
     return ["klist", "kinit", "ktab"]
@@ -61,25 +60,7 @@ def get_ibm_exclude_list():
 
 
 def get_plugin_binaries():
-    return [JCONTROL, CONTROL_PANEL, JAVAWS]
-
-# same goes for debug pairs
-DEFAULT_BINARIES = []
-DEVEL_BINARIES = ['appletviewer', 'idlj', 'jar', 'jarsigner', 'javac', 'javadoc', 'javah', 'javap', 'jcmd', 'jconsole',
-                  'jdb', 'jdeprscan', 'jdeps', 'jhsdb', 'jimage', 'jinfo', 'jlink', 'jmap', 'jmod', 'jps', 'jrunscript',
-                  'jshell', 'jstack', 'jstat', 'jstatd', 'rmic', 'schemagen', 'serialver', 'wsgen', 'wsimport', 'xjc']
-HEADLESS_BINARIES = ["appletviewer",  "idlj",  "java",  "jjs",  "jrunscript",  "keytool",  "orbd",  "pack200",
-                     "rmid",  "rmiregistry",  "servertool",  "tnameserv",  "unpack200"]
-
-
-def get_binaries_as_dict():
-    return {DEFAULT: DEFAULT_BINARIES,
-            DEVEL: DEVEL_BINARIES,
-            HEADLESS: HEADLESS_BINARIES,
-            DEFAULT + DEBUG_SUFFIX: DEFAULT_BINARIES,
-            DEVEL + DEBUG_SUFFIX: DEVEL_BINARIES,
-            HEADLESS + DEBUG_SUFFIX: HEADLESS_BINARIES
-            }
+        return [JCONTROL, CONTROL_PANEL, JAVAWS]
 
 
 def get_openjfx_binaries():
