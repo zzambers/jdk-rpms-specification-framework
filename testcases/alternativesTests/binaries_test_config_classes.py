@@ -162,7 +162,7 @@ class OpenJdk9(OpenJdk8):
         if not passed_or_failed(self, subpackage in hardcoded_binaries.keys()):
             log_failed_test(self, "Binaries in unexpected subpackage: " + subpackage)
             return
-        if not passed_or_failed(self, sorted(binaries) == hardcoded_binaries[subpackage]):
+        if not passed_or_failed(self, sorted(binaries) == sorted(hardcoded_binaries[subpackage])):
             log_failed_test(self, "Hardcode check: binaries are not as expected. Missing binaries: {}."
                             " Extra binaries: "
                             "{}".format(diff(hardcoded_binaries[subpackage], binaries),
@@ -260,6 +260,10 @@ class OpenJdk10Debug(OpenJdk9Debug):
 
 
 class OpenJdk10x64(OpenJdk10Debug):
+    """
+    This class has to be created due to extra jaotc binary. This binary is available only for x64 architecture Linux.
+    It allows AoT compilation, for more info see http://openjdk.java.net/jeps/295
+    """
     DEFAULT_BINARIES = []
     DEVEL_BINARIES = ['appletviewer', 'idlj', 'jar', 'jaotc', 'jarsigner', 'javac', 'javadoc', 'javap', 'jcmd',
                       'jconsole',
