@@ -50,13 +50,13 @@ class BaseTest(JdkConfiguration):
         return [DEVEL + DEBUG_SUFFIX]
 
     def _get_binary_directory_path(self, name):
-        dir = JVM_DIR  + self._get_binary_directory(name)
+        d = JVM_DIR + "/" + self._get_binary_directory(name)
         if DEBUG_SUFFIX + "-" in name:
-            dir += DEBUG_SUFFIX
+            d += DEBUG_SUFFIX
         if DEVEL in name or JAVAFX in name:
-            return dir + SDK_DIRECTORY
+            return d + SDK_DIRECTORY
         else:
-            return dir + JRE_DIRECTORY
+            return d + JRE_DIRECTORY
 
     def _check_binaries_against_harcoded_list(self, binaries, subpackage):
         return
