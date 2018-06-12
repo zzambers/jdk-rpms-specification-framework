@@ -35,7 +35,7 @@ class BaseTest(JdkConfiguration):
         """Returns a directory where jdk is installed (mostly name-version-release-arch)."""
         directory =  get_32bit_id_in_nvra(pkgsplit.get_nvra(name))
         if DEBUG_SUFFIX in name:
-          directory = directory + "-" + DEBUG_SUFFIX
+          directory = directory + DEBUG_SUFFIX
         return directory
 
     def _skipped_subpackages(self):
@@ -66,10 +66,12 @@ class BaseTest(JdkConfiguration):
                 continue
 
             # get content of jvm directory
-            out, result = DefaultMock().executeCommand(["ls -LR " + JVM_DIR + "/" +
-                                                       self._get_target_java_directory(name)])
+            jvm_dir = self._get_target_java_directory(name)
+            out, result = DefaultMock().executeCommand(["ls -LR " + JVM_DIR + "/" + jvm_dir
+                                                       ])
             if passed_or_failed(self, result == 2):
-                log_failed_test(self, "Java directory not found for " + subpackage)
+                log_failed_test(self, "Java directory not found for " + subpackage + ", for desired directory "
+                                + jvm_dir)
                 continue
             valid_targets = self._parse_output(out, subpackage)
             self.sort_and_test(valid_targets, subpackage, name)
@@ -129,6 +131,12 @@ class BaseTest(JdkConfiguration):
                                      "Other types of files with different permissions should not be present."]))
         for target in valid_targets:
             out, res = DefaultMock().executeCommand(['stat -c "%F" ' + target])
+            if JVM_DIR not in target and MAN_DIR not in target and res == 0:
+                PermissionTest.instance.log("This target: " + target + " is located out of the jvm directory. "
+                                                                      "These files are not checked.")
+                self.passed += 1
+                continue
+
             if out == "directory":
                 self._test_fill_in(target, out, "755")
             elif out == "regular file":
@@ -165,7 +173,7 @@ class BaseTest(JdkConfiguration):
                                                     "consciously broken "
                                                     "symlink to default subpackage binaries. Not treated as fail.")
                         self.passed += 1
-                        return
+                        continue
 
                 else:
                     PermissionTest.instance.log("Unexpected filetype. Needs manual inspection.")
@@ -188,7 +196,7 @@ class BaseTest(JdkConfiguration):
             return
         else:
             PermissionTest.instance.log(filetype + " {} exists. Checking permissions... ".format(file),
-                                        la.Verbosity.TEST)
+                                        la.Verbosity.MOCK)
         for p in range(3):
             if not (int(out[p]) == int(expected_permission[p])):
                 log_failed_test(self, "Permissions of {} not as expected, should be {} but is "
@@ -196,7 +204,7 @@ class BaseTest(JdkConfiguration):
                 self.failed += 1
                 return
         PermissionTest.instance.log(filetype + " {} with permissions {}. Check "
-                                    "successful.".format(file, out), la.Verbosity.TEST)
+                                    "successful.".format(file, out), la.Verbosity.MOCK)
         self.passed += 1
         return
 
