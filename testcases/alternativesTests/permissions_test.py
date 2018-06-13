@@ -5,6 +5,7 @@ import utils.core.base_xtest as bt
 import config.global_config as gc
 import config.runtime_config as rc
 import utils
+from outputControl.logging_access import Verbosity
 from utils.mock.mock_executor import DefaultMock
 from utils.test_utils import log_failed_test, rename_default_subpkg, get_arch, two_lists_diff, get_32bit_id_in_nvra,\
     passed_or_failed
@@ -36,6 +37,7 @@ class BaseTest(JdkConfiguration):
         directory =  get_32bit_id_in_nvra(pkgsplit.get_nvra(name))
         if DEBUG_SUFFIX in name:
           directory = directory + DEBUG_SUFFIX
+
         return directory
 
     def _skipped_subpackages(self):
@@ -69,7 +71,7 @@ class BaseTest(JdkConfiguration):
             jvm_dir = self._get_target_java_directory(name)
             out, result = DefaultMock().executeCommand(["ls -LR " + JVM_DIR + "/" + jvm_dir
                                                        ])
-            if passed_or_failed(self, result == 2):
+            if not passed_or_failed(self, result == 0):
                 log_failed_test(self, "Java directory not found for " + subpackage + ", for desired directory "
                                 + jvm_dir)
                 continue
@@ -174,11 +176,19 @@ class BaseTest(JdkConfiguration):
                                                     "symlink to default subpackage binaries. Not treated as fail.")
                         self.passed += 1
                         continue
+                    else:
+                        log_failed_test(self, "In subpackage {} following was found: Command stat -c '%F' {} finished"
+                                              " with message: {}. ".format(subpackage, target, res, out))
+
+                        self.invalid_file_candidates.append(
+                            "Target: " + target + " with result: " + res + " and output: " + out)
+                        self.failed += 1
+
 
                 else:
-                    PermissionTest.instance.log("Unexpected filetype. Needs manual inspection.")
+                    PermissionTest.instance.log("Unexpected filetype. Needs manual inspection.", Verbosity.TEST)
 
-                log_failed_test(self, "In subpackage {} following was found: Command stat -c '%F' {} finished"
+                    log_failed_test(self, "In subpackage {} following was found: Command stat -c '%F' {} finished"
                                       " with message: {}. ".format(subpackage, target, res, out))
 
                 self.invalid_file_candidates.append(target)
