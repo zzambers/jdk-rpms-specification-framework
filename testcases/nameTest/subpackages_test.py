@@ -104,7 +104,7 @@ class OpenJdk8(OpenJdk7):
 
     def _get_debug_subpackages(self):
         return ["accessibility" + DEBUG_SUFFIX,
-                DEBUG_SUFFIX,
+                "debug",
                 "demo" + DEBUG_SUFFIX,
                 "devel" + DEBUG_SUFFIX,
                 "headless" + DEBUG_SUFFIX,
@@ -163,13 +163,50 @@ class OpenJdk9(OpenJdk8):
         return []
 
 
+class OpenJdk10(OpenJdk9Debuginfo):
+    def _getSubPackages(self):
+        subpackages = super()._getSubPackages()
+        subpackages.remove("accessibility")
+        subpackages = subpackages + ["debugsource"] + self._get_debuginfo()
+        return subpackages
+
+
 class OpenJdk9DebugDebuginfo(OpenJdk8DebugDebuginfo):
     def _getSubPackages(self):
         return super()._getSubPackages() + ["jmods", "jmods" + DEBUG_SUFFIX]
 
     def _get_debug_debuginfo(self):
-        return ["devel" + DEBUG_SUFFIX + "debuginfo",
-                "headless" + DEBUG_SUFFIX + "debuginfo"]
+        return ["devel" + DEBUG_SUFFIX + "-debuginfo",
+                "headless" + DEBUG_SUFFIX + "-debuginfo"]
+
+
+class OpenJdk10DebugDebuginfo(OpenJdk9DebugDebuginfo):
+    def _getSubPackages(self):
+        subpackages = super()._getSubPackages()
+        subpackages.remove("accessibility")
+        subpackages.remove("accessibility" + DEBUG_SUFFIX)
+        return subpackages
+
+    def _get_debuginfo(self):
+        return ["devel-debuginfo",
+                "headless-debuginfo"]
+
+    def _get_debug_debuginfo(self):
+        return ["slowdebug-debuginfo",
+                "devel" + DEBUG_SUFFIX + "-debuginfo",
+                "headless" + DEBUG_SUFFIX + "-debuginfo"]
+
+    def _get_debug_subpackages(self):
+        return ["accessibility" + DEBUG_SUFFIX,
+                "slowdebug",
+                "demo" + DEBUG_SUFFIX,
+                "devel" + DEBUG_SUFFIX,
+                "headless" + DEBUG_SUFFIX,
+                "src" + DEBUG_SUFFIX]
+
+    def _get_javadoc_debug(self):
+        return ["javadoc-slowdebug", "javadoc-zip-slowdebug"]
+
 
 
 class OpenJdk9Debug(OpenJdk8Debug):
@@ -257,7 +294,7 @@ class SubpackagesTest(utils.core.base_xtest.BaseTest):
 
                 else:
                     raise ex.UnknownJavaVersionException("Unrecognized OS.")
-            elif rpms.getMajorVersionSimplified() == "9" or rpms.getMajorVersionSimplified() == "10":
+            elif rpms.getMajorVersionSimplified() == "9":
                 if rpms.isFedora():
                     if int(rpms.getOsVersion()) < 27:
                         if self.getCurrentArch() in gc.getArm32Achs():
@@ -287,6 +324,13 @@ class SubpackagesTest(utils.core.base_xtest.BaseTest):
                             raise ex.UnknownJavaVersionException("Check for this arch is not implemented for given OS.")
                 else:
                     raise ex.UnknownJavaVersionException("Unrecognized OS.")
+            elif rpms.getMajorVersionSimplified() == "10":
+                if self.getCurrentArch() in gc.getArm32Achs():
+                    self.csch = OpenJdk10()
+                    return
+                else:
+                    self.csch = OpenJdk10DebugDebuginfo()
+                    return
 
             else:
                 raise ex.UnknownJavaVersionException("Unknown OpenJDK version.")
