@@ -181,15 +181,16 @@ class BaseTest(JdkConfiguration):
                                               " with message: {}. ".format(subpackage, target, res, out))
 
                         self.invalid_file_candidates.append(
-                            "Target: " + target + " with result: " + res + " and output: " + out)
+                            "Target: " + target + " with result: " + res.__str__() + " and output: " + out)
                         self.failed += 1
+                        continue
 
 
                 else:
                     PermissionTest.instance.log("Unexpected filetype. Needs manual inspection.", Verbosity.TEST)
 
                     log_failed_test(self, "In subpackage {} following was found: Command stat -c '%F' {} finished"
-                                      " with message: {}. ".format(subpackage, target, res, out))
+                                    " with message: {}. ".format(subpackage, target, res, out))
 
                 self.invalid_file_candidates.append(target)
                 self.failed += 1
