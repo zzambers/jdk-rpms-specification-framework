@@ -123,7 +123,7 @@ class Mock:
         return e, o, r
 
     def _scrubLvmCommand(self):
-        o, e, r = exxec.processToStringsWithResult(self.mainCommand() + ["--scrub", "lvm"])
+        o, e, r = exxec.processToStringsWithResult(self.mainCommand() + ["--scrub", "all"])
         if r != 0:
             raise utils.mock.mock_execution_exception.MockExecutionException("Build chroot is locked, please restart "
                                                                              "the testsuite.")
