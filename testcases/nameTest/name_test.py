@@ -112,7 +112,7 @@ class NameTest(utils.core.base_xtest.BaseTest):
             self.log("Set ItwRegexCheck")
             self.csch = testcases.nameTest.connfigs.nametest_config.ItwRegexCheck()
             return
-        if int(config.runtime_config.RuntimeConfig().getRpmList().getMajorVersionSimplified()) >= 9:
+        if int(config.runtime_config.RuntimeConfig().getRpmList().getMajorVersionSimplified()) == 9:
             self.log("Set Jdk9RegexCheck")
             self.csch = testcases.nameTest.connfigs.nametest_config.Jdk9RegexCheck()
             return
