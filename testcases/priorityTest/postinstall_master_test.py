@@ -14,6 +14,8 @@ from config.global_config import get_32b_arch_identifiers_in_scriptlets as get_i
 from utils.test_utils import rename_default_subpkg, passed_or_failed, get_arch
 from utils.test_constants import *
 
+# TODO check if the masters are directories + doc that those are directories
+
 JAVADOCZIP = 'javadoczip'
 JAVADOCDIR = 'javadocdir'
 JAVADOC_ZIP = "javadoc-zip"
@@ -40,6 +42,7 @@ class BasePackages(JdkConfiguration):
         return self.rpms.getMajorVersion()
 
     def _get_masters_arch_copy(self, master):
+        """Some of the masters have arch at the end, this method appends it automatically."""
         master = master + "." + str(get_id(self._get_arch()))
         return master
 
@@ -49,6 +52,7 @@ class BasePackages(JdkConfiguration):
 
 class CheckPostinstallScript(BasePackages):
     def document_all(self, arg):
+        """ Just a simple documenting method, has no other functionality."""
         doc = ["Subpackages should contain following masters: "]
         masters = self._generate_masters()
         for k in masters.keys():
@@ -64,12 +68,17 @@ class CheckPostinstallScript(BasePackages):
         self._document("\n".join(doc))
 
     def _check_post_in_script(self, pkgs=None):
+        """
+        This method executes post install script and then looks for masters in /var/lib/alternatives. Checks whether
+        it matches expected set of masters, that is generated for each JDK.
+        """
         passed = []
         failed = []
 
         # skipped should contain only subpackages that does not have postscript
         skipped = []
 
+        # we need to delete the already existing masters so we get only the installed ones
         _default_masters = DefaultMock().get_default_masters()
 
         # correct set of masters
@@ -125,6 +134,7 @@ class CheckPostinstallScript(BasePackages):
         PostinstallScriptTest.instance.log("Master test failed for: " + "\n ".join(failed), la.Verbosity.ERROR)
 
         return self.passed, self.failed
+
 
 class OpenJdk6(CheckPostinstallScript):
     def _generate_masters(self):
@@ -294,7 +304,6 @@ class PostinstallScriptTest(bt.BaseTest):
         pkgs = self.getBuild()
         return self.csch._check_post_in_script(pkgs)
 
-
     def setCSCH(self):
         PostinstallScriptTest.instance = self
         rpms = rc.RuntimeConfig().getRpmList()
@@ -390,6 +399,7 @@ def documentAll():
 def main(argv):
     utils.core.base_xtest.defaultMain(argv, documentAll, testAll)
     return PostinstallScriptTest().execute_special_docs()
+
 
 if __name__ == "__main__":
     main(sys.argv[1:])
