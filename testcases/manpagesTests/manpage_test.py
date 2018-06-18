@@ -22,14 +22,21 @@ FILE = 1
 LINK = 0
 
 
-# this test expects that binaries are equal to its slaves (checked in binaries_test)
+
 class ManpageTestMethods(JdkConfiguration):
+    """
+    This test expects that binaries are equal to its slaves (checked in binaries_test). Only binaries are used as a
+    source of expected manpages.
+
+    This checks if all binaries have its manpages and if all the manpages have links.
+
+    IBM java does not have any manpages, so the test is skipped.
+    """
     def __init__(self):
         super().__init__()
         self.passed = 0
         self.failed = 0
         self.list_of_failed_tests = []
-
 
     skipped = []
     rpms = rc.RuntimeConfig().getRpmList()
@@ -77,6 +84,9 @@ class ManpageTestMethods(JdkConfiguration):
     def _clean_debug_subpackages(self, bins):
         return
 
+    def binaries_without_manpages(self, binaries=None):
+        return binaries
+
     # wont be doc-ed, is already handled in binary test
     def _remove_java_rmi_cgi(self, binaries):
         if JAVA_RMI_CGI in binaries:
@@ -109,6 +119,11 @@ class ManpageTestMethods(JdkConfiguration):
         return bins
 
     def manpage_file_check(self, bins, subpackage=None, plugin_bin_content=None, manpages_without_postscript=None):
+        """
+        Each man page is a file, located in /usr/shared/man, it has a specified name bin-nvra.1.gz. It must be present
+        for every binary in the given subpackages. JDK 10 has some of the pages missing, this is
+        solved as exclude. Any exclude must be always documented in _document.
+        """
         self._document("When rpm is installed, man page file exists for each binary "
                        "with {} suffix.".format(replace_archs_with_general_arch(self._get_manpage_suffixes(DEFAULT),
                                                 self._get_arch())[FILE]))
@@ -122,6 +137,10 @@ class ManpageTestMethods(JdkConfiguration):
         return manpage_files
 
     def manpage_links_check(self, bins, subpackage=None, manpages_with_postscript=None, manpage_files=None):
+        """
+        Each man page has a link, that is located in /usr/shared/man/ and has a specific name bin.1.gz. This link
+        points to alternatives. It must be present for every binary in given subpackages (except exludes).
+        """
         self._document("Each man page slave has {} suffix.".format(self._get_manpage_suffixes(DEFAULT)[LINK]))
         links = self._get_manpage_link_names(bins[subpackage])
         # now remove all files from man pages
@@ -189,8 +208,11 @@ class ManpageTestMethods(JdkConfiguration):
 
             # then check files
             DefaultMock().importRpm(pkg)
-            manpages_without_postscript[_subpkg] = self._clean_default_mpges(default_mans, DefaultMock().execute_ls(MAN_DIR)[0].split("\n"))
+            manpages_without_postscript[_subpkg] = self._clean_default_mpges(default_mans,
+                                                                             DefaultMock().execute_ls(MAN_DIR)[0]
+                                                                             .split("\n"))
         bins = self._clean_sdk_from_jre(bins, self._get_subpackages())
+        bins = self.binaries_without_manpages(bins)
 
         # then compare man files with binaries and man links with links
         for subpackage in bins.keys():
@@ -275,6 +297,44 @@ class OpenJdk8WithDebug(OpenJdk8):
             return [MANPAGE_SUFFIX, "-" + self.rpms.getNvr() + "." + self._get_arch() + DEBUG_SUFFIX + MANPAGE_SUFFIX]
         else:
             return super()._get_manpage_suffixes(subpackage)
+
+
+class OpenJdk10(OpenJdk8):
+    def _clean_up_binaries(self, binaries, master, usr_bin):
+        return binaries
+
+    def binaries_without_manpages(self, binaries=None):
+        binaries_list = ["jdeprscan", "jhsdb", "jimage", "jlink", "jmod", "jshell"]
+        self._document("In JDK 10, there are multiple binaries, that are missing manpages in "
+                       "devel subpackage: " + ", ".join(binaries_list))
+        for item in binaries_list:
+            binaries[DEVEL].remove(item)
+        return binaries
+
+
+class OpenJdk10Debug(OpenJdk8WithDebug):
+    def _clean_up_binaries(self, binaries, master, usr_bin):
+        return binaries
+
+    def binaries_without_manpages(self, binaries=None):
+        binaries_list = ["jdeprscan", "jhsdb", "jimage", "jlink", "jmod", "jshell"]
+        self._document("In JDK 10, there are multiple binaries, that are missing manpages in devel and devel-slowdebug "
+                       "subpackage: " + ", ".join(binaries_list))
+        for item in binaries_list:
+            binaries[DEVEL].remove(item)
+            binaries[DEVEL + DEBUG_SUFFIX].remove(item)
+        return binaries
+
+
+class OpenJdk10Debugx64(OpenJdk10Debug):
+    def binaries_without_manpages(self, binaries=None):
+        binaries_list = ["jdeprscan", "jhsdb", "jimage", "jlink", "jmod", "jshell", "jaotc"]
+        self._document("In JDK 10, there are multiple binaries, that are missing manpages in devel and devel-slowdebug "
+                       "subpackage: " + ", ".join(binaries_list))
+        bins = super().binaries_without_manpages(binaries)
+        bins[DEVEL].remove("jaotc")
+        bins[DEVEL + DEBUG_SUFFIX].remove("jaotc")
+        return bins
 
 
 class ITW(ManpageTestMethods):
@@ -417,13 +477,22 @@ class ManpageTests(bt.BaseTest):
                 return
 
             elif rpms.getMajorVersionSimplified() == "8"\
-                    or rpms.getMajorVersionSimplified() == "9" \
-                    or rpms.getMajorVersionSimplified() == "10":
+                    or rpms.getMajorVersionSimplified() == "9":
                 if self.getCurrentArch() in gc.getX86_64Arch() + gc.getIx86archs():
                     self.csch = OpenJdk8WithDebug()
                     return
                 else:
                     self.csch = OpenJdk8()
+                    return
+            elif rpms.getMajorVersionSimplified() == "10":
+                if self.getCurrentArch() in gc.getArm32Achs():
+                    self.csch = OpenJdk10()
+                    return
+                elif self.getCurrentArch() in gc.getX86_64Arch():
+                    self.csch = OpenJdk10Debugx64()
+                    return
+                else:
+                    self.csch = OpenJdk10Debug()
                     return
 
             else:
