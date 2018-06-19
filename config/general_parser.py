@@ -13,6 +13,9 @@ class Singleton(type):
 
 
 def _createParser():
+    """
+    This class is representing a parser, that gets arguments passed from commandline during the script initiation.
+    """
     lparser = argparse.ArgumentParser(description="To use the tests correctly you need to have correctly working mock "
                                                   "in non-root mode.")
     lparser.add_argument("-v", "--version",
