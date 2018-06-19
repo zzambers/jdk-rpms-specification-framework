@@ -230,6 +230,11 @@ class OpenJdk10(OpenJdk9):
         self._document("From JDK 10, there is no policytool.")
         return
 
+    def _get_subpackages_with_binaries(self):
+        subpackages = super()._get_subpackages_with_binaries()
+        subpackages.remove(DEFAULT)
+        return subpackages
+
 
 class OpenJdk10Debug(OpenJdk9Debug):
     DEFAULT_BINARIES = []
