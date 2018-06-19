@@ -285,18 +285,18 @@ class Mock:
                                                              la.Verbosity.MOCK)
             self.getSnapshot(key)
             return
-
-        self.importRpm(pkg)
-        content = utils.rpmbuild_utils.getSrciplet(pkg, scriptlet)
-        if len(content) == 0:
-            raise utils.mock.mock_execution_exception.MockExecutionException(scriptlet + " scriptlet not found in given"
-                                                                                         " package.")
-
         else:
-            o, r = self.executeScriptlet(pkg, scriptlet)
-            outputControl.logging_access.LoggingAccess().log(scriptlet + "returned " +
-                                                             str(r) + " of " + os.path.basename(pkg), la.Verbosity.MOCK)
-            self.createSnapshot(key)
+            self.importRpm(pkg)
+            content = utils.rpmbuild_utils.getSrciplet(pkg, scriptlet)
+            if len(content) == 0:
+                raise utils.mock.mock_execution_exception.MockExecutionException(scriptlet + " scriptlet not found in given"
+                                                                                             " package.")
+
+            else:
+                o, r = self.executeScriptlet(pkg, scriptlet)
+                outputControl.logging_access.LoggingAccess().log(scriptlet + "returned " +
+                                                                 str(r) + " of " + os.path.basename(pkg), la.Verbosity.MOCK)
+                self.createSnapshot(key)
 
     def execute_ls(self, dir):
         return self.executeCommand(["ls " + dir])
