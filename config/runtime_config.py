@@ -16,7 +16,10 @@ class Singleton(type):
 
 
 class RuntimeConfig(metaclass=Singleton):
-    pass;
+    """
+    This class handles configuration prior the run of the test cases. It keeps information about the rpms,
+    log files, default configuration of the tests and sets configuration from the parser.
+    """
 
     def __init__(self):
         self.pkgsDir = "rpms"
