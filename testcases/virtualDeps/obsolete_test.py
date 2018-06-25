@@ -65,7 +65,12 @@ class ObsolateTest(utils.core.base_xtest.BaseTest):
             self.csch = ITW()
             return
         if config.runtime_config.RuntimeConfig().getRpmList().isFedora():
-            self.csch = Openjdk8Fedora()
+            if int(config.runtime_config.RuntimeConfig().getRpmList().getMajorVersionSimplified()) >= 10:
+                self.csch = JdkRhel()
+                return
+            else:
+                self.csch = Openjdk8Fedora()
+                return
         else:
             self.csch = JdkRhel()
 
