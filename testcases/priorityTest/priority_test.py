@@ -38,6 +38,7 @@ class CommonMethods(JdkConfiguration):
         self.failed = 0
 
     def _get_priority(self, master):
+        """ This method calls chroot in mock and gets priority from pre-configured methods. """
         priority = DefaultMock().get_priority(master)
         if priority is None:
             PriorityCheck.instance.log("Priority not found in output for master " + master + ", output is invalid.",
@@ -46,7 +47,7 @@ class CommonMethods(JdkConfiguration):
         return priority
 
     def check_length(self, priority):
-
+        """ This method checks whether the length of priority is as expected. """
         self._document("Priority for {} should be ".format(self.rpms.getMajorPackage()) + str(self.length) + " digit.")
         PriorityCheck.instance.log("Checking priority length.", la.Verbosity.TEST)
 
@@ -58,6 +59,7 @@ class CommonMethods(JdkConfiguration):
         return True
 
     def check_prefix(self, priority):
+        """ This method checks if the prefix is as expected. In general, the prefix is based on major version. """
         self._document("Prefix is based on major version, in this case it should be " + self.prefix + ".")
         PriorityCheck.instance.log("Checking priority prefix.", la.Verbosity.TEST)
 
@@ -69,6 +71,7 @@ class CommonMethods(JdkConfiguration):
         return True
 
     def check_debug_packages(self, pkg_priorities):
+        """ Debug packages must have lower priority than normal packages. The standard difference is +-1."""
         self._document("Debug package should have lower priority than normal package.")
         pkgs = pkg_priorities.keys()
 
@@ -166,7 +169,6 @@ class OpenJdk8(MajorCheck):
 class OpenJdk9(MajorCheck):
     def __init__(self):
         super().__init__(1, 1)
-
 
     def check_prefix(self, priority):
         self._document("Priority for jdk 9 and 10 is always 1 for normal packages and 0 for debug packages.")
