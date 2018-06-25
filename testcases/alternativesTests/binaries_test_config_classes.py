@@ -6,6 +6,10 @@ from utils.test_constants import *
 from utils.test_utils import two_lists_diff as diff
 from utils.mock.mock_executor import DefaultMock
 
+# This script should contain only configuration specific implemetation of the method and overriden methods code.
+# Default methods should be always placed in methods or paths files.
+# Respect the class naming purpose, inheritance (if possible), and class placement (or this gets very messy)!!!
+
 
 class OpenJdk6(BinarySlaveTestMethods):
     def _get_binary_directory(self, name):
@@ -94,6 +98,10 @@ class OpenJdk8Debug(OpenJdk8):
 
 class OpenJDK8JFX(OpenJdk8Debug):
     def _jfx_check(self, list_of_elements, subpackage, slave_or_bin):
+        """
+        OpenJFX packaging is broken by design - binaries are in ojfx-devel, links are in headless.
+        This is fixed by this method and documented.
+        """
         jfx_bins = get_openjfx_binaries()
         for jfxbin in jfx_bins:
             try:
@@ -106,7 +114,6 @@ class OpenJDK8JFX(OpenJdk8Debug):
 
     def remove_binaries_without_slaves(self, args=None):
         for subpackage in self.installed_binaries.keys():
-            # subpackage == DEVEL or subpackage == DEVEL + DEBUG_SUFFIX or
             if "openjfx-devel" in subpackage:
                 self._jfx_check(self.installed_binaries, subpackage, "binary")
         return

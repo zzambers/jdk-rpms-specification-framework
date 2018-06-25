@@ -9,6 +9,10 @@ from utils.test_constants import *
 
 
 class BinariesTest(bt.BaseTest):
+    """
+    Base class for binaries test. This does nothing but configure the csch and returns.
+    No methods should be placed here.
+    """
     instance = None
     var = None
 
@@ -17,6 +21,11 @@ class BinariesTest(bt.BaseTest):
         return self.csch.check_binaries_with_slaves(pkgs)
 
     def setCSCH(self):
+        """
+        This must be imported here to avoid circular imports!
+        read https://stackoverflow.com/questions/744373/circular-or-cyclic-imports-in-python
+        http://stackabuse.com/python-circular-imports/
+        """
         from testcases.alternativesTests.binaries_test_config_classes import OpenJdk8, OpenJdk7, OpenJdk6, OpenJdk9, \
             OpenJdk6PowBeArchAndX86, OpenJdk8Debug, Itw, OpenJdk9Debug, Ibm, IbmWithPluginSubpackage, \
             IbmArchMasterPlugin, Ibm390Architectures, Oracle6ArchPlugin, Oracle7, OracleNoArchPlugin,\
