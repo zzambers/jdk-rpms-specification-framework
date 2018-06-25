@@ -81,7 +81,7 @@ class BaseMethods(JdkConfiguration):
 
                        )
         valid_link = False
-        # check openjfx links, that are expected to be broken
+        # check openjfx links, that are expected to be broken (binary in ojfx-devel, but link in headless)
         # TODO: add additional check
         if OPENJFXDIR in link.points_at:
             SymlinkTest.instance.log("Links pointing at " + OPENJFXDIR + " are targeting files provided by openjfx"
