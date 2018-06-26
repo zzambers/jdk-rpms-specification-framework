@@ -36,6 +36,12 @@ Handling special version/vendor/arch cases
 		- all public methods should have first line of self._document("description of special case")
 		- see example [2]
 
+Handling special cases - excludes
+    - it is possible to add an exclude for specific JDK/arch/subpackage/version
+    - all excludes MUST be documented and logged properly
+    - explaining notes should be added to the code, when the hook applies and why
+    - add exclude only if there is no other way how to handle it
+
 Documenting
 	- in documentation mode, the framework is iterating through all getTestedArchs and calling setCSCH
 		- on that self.csch instance, all public methods are invoken, and if it have self._document, then its message is included

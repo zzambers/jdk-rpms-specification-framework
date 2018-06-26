@@ -58,6 +58,8 @@ notes:
 		installing to chroot is very errorproof, but very time consuming
 
 minor_tasks:
+- check /etc/ directory - all config files from rpm (some query gets them) must be in etc and linked from jdk (idk how
+  does it work for rhel7)
 * rename mock_executor install script snapshots to something more bug-proof
 * binary test - policytool can be handled by small methods overriding each other in OpenJdk6/7/8 classes
 * for anything but postinstall check, there should be a workaround so we do not check anything but default and
@@ -80,7 +82,7 @@ minor_tasks:
 - check fails:
    - ITW f27 - InitTest.test_nativeArches[Non_Arch]
              - PostinstallScriptTest.test_contains_postscript[Non_Arch]
-   - ITW f26 - SubpackagesTest.test_checkAllSubpackages[AllArchs]
+   * ITW f26 - SubpackagesTest.test_checkAllSubpackages[AllArchs] (OBSOLETE)
    - ojdk8 rhel7 - PostinstallScriptTest.test_contains_postscript[ppc64le, aarch64, ppc64]
                  - SubpackagesTest.test_checkAllSubpackages[ppc64le, aarch64, ppc64]
 * adaption of the framework from debug to slowdebug (must accept debug for jdk <10 and slowdebug for jdk >=10)

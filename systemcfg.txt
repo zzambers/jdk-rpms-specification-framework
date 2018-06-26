@@ -93,4 +93,4 @@ config_opts['plugin_conf']['overlayfs_opts']['base_dir'] = "/var/lib/MOCK_OVERLA
 
 If you touch the buildroot during any operation in the framework, you need to mount the buildroot
 - see https://github.com/rpm-software-management/mock/pull/175
-In general, this is not desired behavior and should not be used, unless it can not be avoided. 
+In general, this is not desired behavior and should not be used, unless it can not be avoided.
