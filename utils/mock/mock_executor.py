@@ -42,6 +42,13 @@ class Mock:
     ]
 
     def __init__(self, os="fedora", version="27", arch="x86_64", command="mock"):
+        """
+        This is a base constructor for DefaultMock. Arguments should never be changed when initiating new instance,
+        unless you need it for some valid reasons (so far, there are NONE).
+        Version of mock must be currently < 27 (26 is obsoleted though). This is necessary due to rich dependencies in
+        fedora 28 packages, that do not work on RHEL 7 VM's. As soon as we got good RHEL 8 images, we must switch back
+        to rawhide and run this framework there, so we do not have to swich chroot every year or so.
+        """
         self.os = os
         self.version = version
         self.arch = arch
@@ -51,9 +58,10 @@ class Mock:
         self.snapshots = dict()
         outputControl.logging_access.LoggingAccess().log("Providing new instance of " + self.getMockName(),
                                                          la.Verbosity.MOCK)
-        # comment this, set inited and alternatives to true if debug of some test needs to be done in hurry
+        # comment this, set inited and alternatives to true if debug of some test needs to be done in hurry, it is
+        # sometimes acting strange though, so I do not recommend it (overlayfs plugin is quite fast so take the time
         self._scrubLvmCommand()
-        #self.init()
+        # self.init()
 
     def getMockName(self):
         return self.os + "-" + self.version + "-" + self.arch
@@ -194,7 +202,7 @@ class Mock:
 
     def importRpmCommand(self, rpmPath, resetBuildRoot=True):
         """ Using various copy-in  variants have perofroamnce or existence issues at all """
-        if (resetBuildRoot):
+        if resetBuildRoot:
             DefaultMock().provideCleanUsefullRoot()
         out, serr, res = utils.process_utils.executeShell("rpm2cpio " + rpmPath + " | " + self.mainCommandAsString() +
                                                           " --shell \"cpio -idmv\"")
@@ -229,7 +237,7 @@ class Mock:
         return o, r
 
     def provideCleanUsefullRoot(self):
-        if (self.alternatives):
+        if self.alternatives:
             self.installAlternatives()
         else:
             self.init()
@@ -314,6 +322,11 @@ class Mock:
         return output
 
     def parse_alternatives_display(self, master):
+        """
+        Alternatives --display master provide us with a lot of information, that are parsed here. Use the getters
+        below every time you need something.
+        """
+
         output = self.display_alternatives(master)
         if len(output.strip()) == 0:
             outputControl.logging_access.LoggingAccess().log("alternatives --display master output is empty",
