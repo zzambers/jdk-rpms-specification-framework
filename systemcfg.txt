@@ -84,12 +84,12 @@ It is now possible to mock straight to a directory. This can be done by a simple
 - see https://github.com/rpm-software-management/mock/wiki/Plugin-Overlayfs
 In short, you need to do two things:
 1. create a directory anywhere you want, call it whatever you want, e.g.
-mkdir /var/lib/MOCK_OVERLAYFS
+mkdir /var/MOCK_OVERLAYFS
 
 Then add following lines to a /etc/mock/site-defaults.cfg file:
 config_opts['plugin_conf']['overlayfs_enable'] = True
 config_opts['plugin_conf']['root_cache_enable'] = False
-config_opts['plugin_conf']['overlayfs_opts']['base_dir'] = "/var/lib/MOCK_OVERLAYFS"
+config_opts['plugin_conf']['overlayfs_opts']['base_dir'] = "/var/MOCK_OVERLAYFS"
 
 If you touch the buildroot during any operation in the framework, you need to mount the buildroot
 - see https://github.com/rpm-software-management/mock/pull/175
