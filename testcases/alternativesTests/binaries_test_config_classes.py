@@ -380,6 +380,19 @@ class IbmArchMasterPlugin(IbmWithPluginSubpackage):
         return [JAVA, JAVAC, LIBJAVAPLUGIN + "." + self._get_arch()]
 
 
+class Ibm8Rhel8(IbmArchMasterPlugin):
+    def check_java_cgi(self, args=None):
+        return
+
+    def _get_jre_subpackage(self):
+        return [HEADLESS]
+
+    def _check_plugin_binaries_and_slaves_are_present(self, bsubpackages, ssubpackages):
+        return
+
+
+
+
 class Oracle6(IbmWithPluginSubpackage):
     def _get_binary_directory(self, name):
         path = self._get_32bit_id_in_nvra(pkgsplit.get_nvra(name))

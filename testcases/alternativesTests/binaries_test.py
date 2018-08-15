@@ -30,7 +30,7 @@ class BinariesTest(bt.BaseTest):
             OpenJdk6PowBeArchAndX86, OpenJdk8Debug, Itw, OpenJdk9Debug, Ibm, IbmWithPluginSubpackage, \
             IbmArchMasterPlugin, Ibm390Architectures, Oracle6ArchPlugin, Oracle7, OracleNoArchPlugin,\
             OpenJdk8NoExports, OpenJDK8JFX, OpenJdk8NoExportsDebugJFX, OpenJdk8NoExportsDebug, Oracle8, OpenJdk10, \
-            OpenJdk10Debug, OpenJdk10x64
+            OpenJdk10Debug, OpenJdk10x64, Ibm8Rhel8
         BinariesTest.instance = self
         rpms = rc.RuntimeConfig().getRpmList()
         self.log("Checking binaries and slaves for " + rpms.getMajorPackage(), la.Verbosity.TEST)
@@ -128,17 +128,21 @@ class BinariesTest(bt.BaseTest):
                     return
 
             elif rpms.getMajorVersionSimplified() == "8":
-                if self.getCurrentArch() in (
-                            gc.getX86_64Arch() + gc.getPower64BeAchs() + gc.getIx86archs() + gc.getPpc32Arch()):
-                    self.csch = IbmArchMasterPlugin(BinariesTest.instance)
-                    return
+                if rpms.getOsVersionMajor() == "7":
+                    if self.getCurrentArch() in (
+                                gc.getX86_64Arch() + gc.getPower64BeAchs() + gc.getIx86archs() + gc.getPpc32Arch()):
+                        self.csch = IbmArchMasterPlugin(BinariesTest.instance)
+                        return
 
-                elif self.getCurrentArch() in gc.getS390xArch() + gc.getS390Arch():
-                    self.csch = Ibm390Architectures(BinariesTest.instance)
-                    return
+                    elif self.getCurrentArch() in gc.getS390xArch() + gc.getS390Arch():
+                        self.csch = Ibm390Architectures(BinariesTest.instance)
+                        return
 
-                else:
-                    self.csch = Ibm(BinariesTest.instance)
+                    else:
+                        self.csch = Ibm(BinariesTest.instance)
+                        return
+                elif rpms.getOsVersionMajor() == 29:
+                    self.csch = Ibm8Rhel8(BinariesTest.instance)
                     return
             else:
                 raise ex.UnknownJavaVersionException("Unknown IBM java version.")

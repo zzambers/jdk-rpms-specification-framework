@@ -118,20 +118,18 @@ class CheckPostinstallScript(BasePackages):
         passed_or_failed(self, set(expected_masters.keys()) == set(actual_masters.keys()))
 
         for subpkg in expected_masters.keys():
+            if subpkg not in actual_masters.keys():
+                PostinstallScriptTest.instance.log("There is no such subpackage as " + subpkg + " that contains masters." 
+                                                                                                "The test fails.")
+                self.failed += 1
+                continue
+
             PostinstallScriptTest.instance.log("Expected masters for " + subpkg + " : " +
                                                ", ".join(sorted(expected_masters[subpkg])), la.Verbosity.TEST)
             PostinstallScriptTest.instance.log("Presented masters for " + subpkg + " : " +
                                                ", ".join(sorted(actual_masters[subpkg])), la.Verbosity.TEST)
 
-        for e in expected_masters.keys():
-            passed_or_failed(self, sorted(expected_masters[e]) == sorted(actual_masters[e]))
-            if sorted(expected_masters[e]) == sorted(actual_masters[e]):
-                passed.append(e)
-            else:
-                failed.append(e)
-
-        PostinstallScriptTest.instance.log("Master test was successful for: " + ", ".join(passed), la.Verbosity.TEST)
-        PostinstallScriptTest.instance.log("Master test failed for: " + "\n ".join(failed), la.Verbosity.ERROR)
+            passed_or_failed(self, sorted(expected_masters[subpkg]) == sorted(actual_masters[subpkg]))
 
         return self.passed, self.failed
 
@@ -243,6 +241,15 @@ class ProprietaryJava7and8Base(ProprietaryJava6WithArch):
         return masters
 
 
+class ProprietaryJavaRhel8(OpenJdk7):
+    def _generate_masters(self):
+        masters = super()._generate_masters()
+        masters["webstart"] = ["javaws"]
+        masters[PLUGIN] = [self._get_masters_arch_copy(LIBJAVAPLUGIN)]
+        masters.pop(JAVADOC)
+        return masters
+
+
 class Ibm7(ProprietaryJava7and8Base):
     def _get_version(self):
         return "1.7.0"
@@ -339,27 +346,30 @@ class PostinstallScriptTest(bt.BaseTest):
             return
 
         elif rpms.getVendor() == gc.IBM:
-            if rpms.getMajorVersionSimplified() == "7":
-                if self.getCurrentArch() in gc.getS390xArch() + gc.getS390Arch() + \
-                        gc.getPower64LeAchs() + gc.getPower64BeAchs():
-                    self.csch = Ibm7WithoutPlugin()
-                    return
-                elif self.getCurrentArch() in gc.getX86_64Arch():
-                    self.csch = Ibm7x86()
-                    return
+            if rpms.getOsVersionMajor() < 8:
+                if rpms.getMajorVersionSimplified() == "7":
+                    if self.getCurrentArch() in gc.getS390xArch() + gc.getS390Arch() + \
+                            gc.getPower64LeAchs() + gc.getPower64BeAchs():
+                        self.csch = Ibm7WithoutPlugin()
+                        return
+                    elif self.getCurrentArch() in gc.getX86_64Arch():
+                        self.csch = Ibm7x86()
+                        return
+                    else:
+                        self.csch = Ibm7()
+                        return
+                elif rpms.getMajorVersionSimplified() == "8":
+                    if self.getCurrentArch() in gc.getS390xArch() + gc.getS390Arch() + gc.getPower64LeAchs():
+                        self.csch = Ibm8WithoutPlugin()
+                        return
+                    else:
+                        self.csch = Ibm8()
+                        return
                 else:
-                    self.csch = Ibm7()
-                    return
-            elif rpms.getMajorVersionSimplified() == "8":
-                if self.getCurrentArch() in gc.getS390xArch() + gc.getS390Arch() + gc.getPower64LeAchs():
-                    self.csch = Ibm8WithoutPlugin()
-                    return
-                else:
-                    self.csch = Ibm8()
-                    return
-
+                    raise ex.UnknownJavaVersionException("Unknown IBM java version.")
             else:
-                raise ex.UnknownJavaVersionException("Unknown IBM java version.")
+                self.csch = ProprietaryJavaRhel8()
+                return
 
         elif rpms.getVendor() == gc.ORACLE or rpms.getVendor() == gc.SUN:
             if rpms.getMajorVersionSimplified() == "6":

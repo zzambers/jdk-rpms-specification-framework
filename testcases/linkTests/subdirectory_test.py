@@ -233,6 +233,11 @@ class Ibm8(Ibm7):
         return self.rpms.getMajorVersion()
 
 
+class Ibm8Rhel8(OpenJdk7):
+    pass
+
+
+
 class OpenJdk8Debug(OpenJdk7):
     def _get_expected_subdirectories(self, name):
         subdirs = super()._get_expected_subdirectories(name)
@@ -326,14 +331,18 @@ class SubdirectoryTest(bt.BaseTest):
             else:
                 raise UnknownJavaVersionException("Unknown Oracle java version.")
         elif rpms.getVendor() == gc.IBM:
-            if rpms.getMajorVersionSimplified() == "7":
-                self.csch = Ibm7()
-                return
-            elif rpms.getMajorVersionSimplified() == "8":
-                self.csch = Ibm8()
-                return
+            if rpms.getOsVersionMajor() < 8:
+                if rpms.getMajorVersionSimplified() == "7":
+                    self.csch = Ibm7()
+                    return
+                elif rpms.getMajorVersionSimplified() == "8":
+                    self.csch = Ibm8()
+                    return
+                else:
+                    raise UnknownJavaVersionException("Unknown IBM java version.")
             else:
-                raise UnknownJavaVersionException("Unknown IBM java version.")
+                self.csch = Ibm8Rhel8()
+                return
 
         elif rpms.getVendor() == gc.ITW:
             self.csch = ITW()

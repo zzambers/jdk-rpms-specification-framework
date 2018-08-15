@@ -11,7 +11,7 @@ import utils.core.unknown_java_exception as ex
 from utils.mock.mock_executor import DefaultMock
 import config.runtime_config as rc
 from config.global_config import get_32b_arch_identifiers_in_scriptlets as get_id
-from utils.test_constants import *
+
 
 MANPAGE_SUFFIX = ".1.gz"
 SUBPACKAGE = "subpackage"
@@ -24,6 +24,7 @@ LINK = 0
 
 
 class ManpageTestMethods(JdkConfiguration):
+
     """
     This test expects that binaries are equal to its slaves (checked in binaries_test). Only binaries are used as a
     source of expected manpages.
