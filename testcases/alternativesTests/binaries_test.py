@@ -128,7 +128,7 @@ class BinariesTest(bt.BaseTest):
                     return
 
             elif rpms.getMajorVersionSimplified() == "8":
-                if rpms.getOsVersionMajor() == "7":
+                if rpms.getOsVersionMajor() == 7:
                     if self.getCurrentArch() in (
                                 gc.getX86_64Arch() + gc.getPower64BeAchs() + gc.getIx86archs() + gc.getPpc32Arch()):
                         self.csch = IbmArchMasterPlugin(BinariesTest.instance)
