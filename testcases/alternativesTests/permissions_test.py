@@ -296,7 +296,7 @@ class PermissionTest(bt.BaseTest):
             elif rpms.getMajorVersionSimplified() == "8":
                 self.csch = OpenJdk8()
                 return
-            elif rpms.getMajorVersionSimplified() == "9" or rpms.getMajorVersionSimplified() == "10":
+            elif int(rpms.getMajorVersionSimplified()) >= 9:
                 self.csch = OpenJdk8()
                 return
             else:

@@ -111,7 +111,7 @@ class PathTest(BaseTest):
             if not DefaultMock().postinstall_exception_checked(pkg):
                 self.binaries_test.log("Skipping path test because of missing post install scriptlet.")
                 continue
-            if (_subpkg == DEFAULT or _subpkg == DEFAULT + DEBUG_SUFFIX) and pkgsplit.get_major_ver(name) == "10":
+            if (_subpkg == DEFAULT or _subpkg == DEFAULT + DEBUG_SUFFIX) and int(pkgsplit.get_major_ver(name)) >= 10:
                 self.binaries_test.log("Skipping default package, it has no binaries.")
                 continue
 

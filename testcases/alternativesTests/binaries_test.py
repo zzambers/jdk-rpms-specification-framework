@@ -92,7 +92,7 @@ class BinariesTest(bt.BaseTest):
                     self.csch = OpenJdk9Debug(BinariesTest.instance)
                     return
 
-            elif rpms.getMajorVersionSimplified() == "10":
+            elif rpms.getMajorVersionSimplified() == "10" or rpms.getMajorVersionSimplified() == "11":
                 if self.getCurrentArch() in gc.getArm32Achs():
                     self.csch = OpenJdk10(BinariesTest.instance)
                     return
