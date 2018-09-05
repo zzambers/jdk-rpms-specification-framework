@@ -324,7 +324,7 @@ class SubpackagesTest(utils.core.base_xtest.BaseTest):
                             raise ex.UnknownJavaVersionException("Check for this arch is not implemented for given OS.")
                 else:
                     raise ex.UnknownJavaVersionException("Unrecognized OS.")
-            elif rpms.getMajorVersionSimplified() == "10":
+            elif int(rpms.getMajorVersionSimplified()) >= 10:
                 if self.getCurrentArch() in gc.getArm32Achs():
                     self.csch = OpenJdk10()
                     return

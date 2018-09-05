@@ -304,7 +304,7 @@ class SubdirectoryTest(bt.BaseTest):
                 else:
                     self.csch = OpenJdk7()
                     return
-            elif rpms.getMajorVersionSimplified() == "9" or rpms.getMajorVersionSimplified() == "10":
+            elif int(rpms.getMajorVersionSimplified()) >= 9:
                 if self.getCurrentArch() in gc.getIx86archs() + gc.getX86_64Arch() + gc.getPower64LeAchs() \
                         + gc.getAarch64Arch() + gc.getPower64BeAchs():
                     self.csch = OpenJdk9D()

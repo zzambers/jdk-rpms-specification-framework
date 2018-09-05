@@ -331,7 +331,7 @@ class PostinstallScriptTest(bt.BaseTest):
                 else:
                     self.csch = OpenJdk8OtherArchs()
                     return
-            elif rpms.getMajorVersionSimplified() == "9" or rpms.getMajorVersionSimplified() == "10":
+            elif int(rpms.getMajorVersionSimplified()) >= 9:
                 if self.getCurrentArch() in gc.getArm32Achs():
                     self.csch = OpenJdk9Armvhl()
                     return
