@@ -486,7 +486,7 @@ class ManpageTests(bt.BaseTest):
                 else:
                     self.csch = OpenJdk8()
                     return
-            elif rpms.getMajorVersionSimplified() == "10":
+            elif int(rpms.getMajorVersionSimplified()) >= 10:
                 if self.getCurrentArch() in gc.getArm32Achs():
                     self.csch = OpenJdk10()
                     return
