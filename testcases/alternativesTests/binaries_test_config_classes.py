@@ -283,8 +283,52 @@ class OpenJdk10x64(OpenJdk10Debug):
                       'jrunscript',
                       'jshell', 'jstack', 'jstat', 'jstatd', 'rmic', 'schemagen', 'serialver', 'wsgen', 'wsimport',
                       'xjc']
-    HEADLESS_BINARIES = ["java", "jjs", "keytool", "orbd", "pack200",
-                         "rmid", "rmiregistry", "servertool", "tnameserv", "unpack200"]
+    HEADLESS_BINARIES = ["java", "jjs", "keytool", "pack200",
+                         "rmid", "rmiregistry", "tnameserv", "unpack200"]
+
+
+class OpenJdk11(OpenJdk10):
+    DEFAULT_BINARIES = []
+    DEVEL_BINARIES = ['jar', 'jarsigner', 'javac', 'javadoc', 'javap', 'jcmd',
+                      'jconsole',
+                      'jdb', 'jdeprscan', 'jdeps', 'jhsdb', 'jimage', 'jinfo', 'jlink', 'jmap', 'jmod', 'jps',
+                      'jrunscript',
+                      'jshell', 'jstack', 'jstat', 'jstatd', 'rmic', 'serialver']
+    HEADLESS_BINARIES = ["java", "jjs", "keytool", "pack200",
+                         "rmid", "rmiregistry", "unpack200"]
+
+
+class OpenJdk11x64(OpenJdk10x64):
+    DEFAULT_BINARIES = []
+    DEVEL_BINARIES = ['jar', 'jaotc', 'jarsigner', 'javac', 'javadoc', 'javap', 'jcmd',
+                      'jconsole',
+                      'jdb', 'jdeprscan', 'jdeps', 'jhsdb', 'jimage', 'jinfo', 'jlink', 'jmap', 'jmod', 'jps',
+                      'jrunscript',
+                      'jshell', 'jstack', 'jstat', 'jstatd', 'rmic','serialver']
+    HEADLESS_BINARIES = ["java", "jjs", "keytool","pack200",
+                         "rmid", "rmiregistry", "unpack200"]
+
+
+class OpenJdk11Debug(OpenJdk10Debug):
+    DEFAULT_BINARIES = []
+    DEVEL_BINARIES = ['jar', 'jarsigner', 'javac', 'javadoc', 'javap', 'jcmd',
+                      'jconsole',
+                      'jdb', 'jdeprscan', 'jdeps', 'jhsdb', 'jimage', 'jinfo', 'jlink', 'jmap', 'jmod', 'jps',
+                      'jrunscript',
+                      'jshell', 'jstack', 'jstat', 'jstatd', 'rmic','serialver']
+    HEADLESS_BINARIES = ["java", "jjs", "keytool","pack200",
+                         "rmid", "rmiregistry", "unpack200"]
+
+
+class OpenJdk11NoJhsdb(OpenJdk11Debug):
+    DEFAULT_BINARIES = []
+    DEVEL_BINARIES = ['jar', 'jarsigner', 'javac', 'javadoc', 'javap', 'jcmd',
+                      'jconsole',
+                      'jdb', 'jdeprscan', 'jdeps', 'jimage', 'jinfo', 'jlink', 'jmap', 'jmod', 'jps',
+                      'jrunscript',
+                      'jshell', 'jstack', 'jstat', 'jstatd', 'rmic', 'serialver']
+    HEADLESS_BINARIES = ["java", "jjs", "keytool", "pack200",
+                         "rmid", "rmiregistry", "unpack200"]
 
 
 class Ibm(BinarySlaveTestMethods):
@@ -389,8 +433,6 @@ class Ibm8Rhel8(IbmArchMasterPlugin):
 
     def _check_plugin_binaries_and_slaves_are_present(self, bsubpackages, ssubpackages):
         return
-
-
 
 
 class Oracle6(IbmWithPluginSubpackage):

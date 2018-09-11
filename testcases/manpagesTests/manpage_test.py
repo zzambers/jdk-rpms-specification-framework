@@ -339,6 +339,21 @@ class OpenJdk10Debugx64(OpenJdk10Debug):
         return bins
 
 
+class OpenJdk11(OpenJdk10):
+    def binaries_without_manpages(self, binaries=None):
+        return binaries
+
+
+class OpenJdk11Debug(OpenJdk10Debug):
+    def binaries_without_manpages(self, binaries=None):
+        return binaries
+
+
+class OpenJdk11Debugx64(OpenJdk10Debugx64):
+    def binaries_without_manpages(self, binaries=None):
+        return binaries
+
+
 class ITW(ManpageTestMethods):
     def _clean_sdk_from_jre(self, bins, packages):
         return bins
@@ -486,7 +501,7 @@ class ManpageTests(bt.BaseTest):
                 else:
                     self.csch = OpenJdk8()
                     return
-            elif int(rpms.getMajorVersionSimplified()) >= 10:
+            elif int(rpms.getMajorVersionSimplified()) == 10:
                 if self.getCurrentArch() in gc.getArm32Achs():
                     self.csch = OpenJdk10()
                     return
@@ -495,6 +510,16 @@ class ManpageTests(bt.BaseTest):
                     return
                 else:
                     self.csch = OpenJdk10Debug()
+                    return
+            elif int(rpms.getMajorVersionSimplified()) == 11:
+                if self.getCurrentArch() in gc.getArm32Achs():
+                    self.csch = OpenJdk11()
+                    return
+                elif self.getCurrentArch() in gc.getX86_64Arch():
+                    self.csch = OpenJdk11Debugx64()
+                    return
+                else:
+                    self.csch = OpenJdk11Debug()
                     return
 
             else:

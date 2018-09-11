@@ -30,7 +30,7 @@ class BinariesTest(bt.BaseTest):
             OpenJdk6PowBeArchAndX86, OpenJdk8Debug, Itw, OpenJdk9Debug, Ibm, IbmWithPluginSubpackage, \
             IbmArchMasterPlugin, Ibm390Architectures, Oracle6ArchPlugin, Oracle7, OracleNoArchPlugin,\
             OpenJdk8NoExports, OpenJDK8JFX, OpenJdk8NoExportsDebugJFX, OpenJdk8NoExportsDebug, Oracle8, OpenJdk10, \
-            OpenJdk10Debug, OpenJdk10x64, Ibm8Rhel8
+            OpenJdk10Debug, OpenJdk10x64, Ibm8Rhel8, OpenJdk11, OpenJdk11Debug, OpenJdk11x64, OpenJdk11NoJhsdb
         BinariesTest.instance = self
         rpms = rc.RuntimeConfig().getRpmList()
         self.log("Checking binaries and slaves for " + rpms.getMajorPackage(), la.Verbosity.TEST)
@@ -92,7 +92,7 @@ class BinariesTest(bt.BaseTest):
                     self.csch = OpenJdk9Debug(BinariesTest.instance)
                     return
 
-            elif rpms.getMajorVersionSimplified() == "10" or rpms.getMajorVersionSimplified() == "11":
+            elif rpms.getMajorVersionSimplified() == "10":
                 if self.getCurrentArch() in gc.getArm32Achs():
                     self.csch = OpenJdk10(BinariesTest.instance)
                     return
@@ -101,6 +101,20 @@ class BinariesTest(bt.BaseTest):
                     return
                 else:
                     self.csch = OpenJdk10Debug(BinariesTest.instance)
+                    return
+
+            elif rpms.getMajorVersionSimplified() == "11":
+                if self.getCurrentArch() in gc.getArm32Achs():
+                    self.csch = OpenJdk11(BinariesTest.instance)
+                    return
+                elif self.getCurrentArch() in gc.getX86_64Arch():
+                    self.csch = OpenJdk11x64(BinariesTest.instance)
+                    return
+                elif self.getCurrentArch() in gc.getS390xArch():
+                    self.csch = OpenJdk11NoJhsdb(BinariesTest.instance)
+                    return
+                else:
+                    self.csch = OpenJdk11Debug(BinariesTest.instance)
                     return
             else:
                 raise ex.UnknownJavaVersionException("Unknown OpenJDK version.")

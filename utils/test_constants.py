@@ -85,7 +85,8 @@ def identify_debug_suffix():
     import config.global_config as gc
     rpms = conf.RuntimeConfig().getRpmList()
     version = rpms.getMajorVersionSimplified()
-    if int(version) < 9 or rpms.getDist() == gc.ITW:
+    dist = rpms.getDist()
+    if int(version) < 9 or rpms.getDist() == gc.ITW or dist == "el7":
         return "-debug"
     else:
         return "-slowdebug"
