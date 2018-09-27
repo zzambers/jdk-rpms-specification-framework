@@ -6,6 +6,7 @@ import config.runtime_config
 from outputControl import logging_access as la
 from utils import pkg_name_split as split
 import utils.test_utils
+import utils.pkg_name_split as ns
 
 
 class RpmList:
@@ -61,10 +62,7 @@ class RpmList:
     def getMajorVersionSimplified(self):
         """Returns just number. instead of 1.7.1 or 1.8.0 return 7 or 8. Of course for 9 and more returns 9 and more"""
         vers = self.getMajorVersion()
-        old_naming_regex = re.compile("^[0-9].[0-9].[0-9]$")
-        if old_naming_regex.match(vers):
-            return vers.split(".")[1]
-        return vers
+        return ns.simplify_version(vers)
 
     def getJava(self):
         return self.expectSingleMeberSet(split.get_javaprefix, "java prefix")

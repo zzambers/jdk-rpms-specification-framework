@@ -10,6 +10,7 @@ from utils.test_utils import get_32bit_id_in_nvra, passed_or_failed
 from outputControl import logging_access as la
 
 
+
 # TODO binary jexec in /usr/lib/jvm/nvra/lib in headless package is not checked on path, or in the directory.
 class BaseTest(JdkConfiguration):
     def __init__(self, binariesTest):
@@ -111,7 +112,7 @@ class PathTest(BaseTest):
             if not DefaultMock().postinstall_exception_checked(pkg):
                 self.binaries_test.log("Skipping path test because of missing post install scriptlet.")
                 continue
-            if (_subpkg == DEFAULT or _subpkg == DEFAULT + DEBUG_SUFFIX) and int(pkgsplit.get_major_ver(name)) >= 10:
+            if (_subpkg == DEFAULT or _subpkg == DEFAULT + DEBUG_SUFFIX) and int(pkgsplit.simplify_version(pkgsplit.get_major_ver(name))) >= 10:
                 self.binaries_test.log("Skipping default package, it has no binaries.")
                 continue
 

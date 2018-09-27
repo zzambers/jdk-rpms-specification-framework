@@ -5,6 +5,7 @@ import config.global_config as gc
 import config.runtime_config as rc
 import utils.core.unknown_java_exception as ex
 import utils
+import testcases.alternativesTests.binaries_test_config_classes as tcc
 from utils.test_constants import *
 
 
@@ -26,11 +27,6 @@ class BinariesTest(bt.BaseTest):
         read https://stackoverflow.com/questions/744373/circular-or-cyclic-imports-in-python
         http://stackabuse.com/python-circular-imports/
         """
-        from testcases.alternativesTests.binaries_test_config_classes import OpenJdk8, OpenJdk7, OpenJdk6, OpenJdk9, \
-            OpenJdk6PowBeArchAndX86, OpenJdk8Debug, Itw, OpenJdk9Debug, Ibm, IbmWithPluginSubpackage, \
-            IbmArchMasterPlugin, Ibm390Architectures, Oracle6ArchPlugin, Oracle7, OracleNoArchPlugin,\
-            OpenJdk8NoExports, OpenJDK8JFX, OpenJdk8NoExportsDebugJFX, OpenJdk8NoExportsDebug, Oracle8, OpenJdk10, \
-            OpenJdk10Debug, OpenJdk10x64, Ibm8Rhel8, OpenJdk11, OpenJdk11Debug, OpenJdk11x64, OpenJdk11NoJhsdb
         BinariesTest.instance = self
         rpms = rc.RuntimeConfig().getRpmList()
         self.log("Checking binaries and slaves for " + rpms.getMajorPackage(), la.Verbosity.TEST)
@@ -38,14 +34,14 @@ class BinariesTest(bt.BaseTest):
         if rpms.getVendor() == gc.OPENJDK:
             if rpms.getMajorVersionSimplified() == "6":
                 if self.getCurrentArch() in (gc.getX86_64Arch() + gc.getPower64BeAchs()):
-                    self.csch = OpenJdk6PowBeArchAndX86(BinariesTest.instance)
+                    self.csch = tcc.OpenJdk6PowBeArchAndX86(BinariesTest.instance)
                     return
                 else:
-                    self.csch = OpenJdk6(BinariesTest.instance)
+                    self.csch = tcc.OpenJdk6(BinariesTest.instance)
                     return
 
             elif rpms.getMajorVersionSimplified() == "7" :
-                self.csch = OpenJdk7(BinariesTest.instance)
+                self.csch = tcc.OpenJdk7(BinariesTest.instance)
                 return
 
             elif rpms.getMajorVersionSimplified() == "8":
@@ -53,24 +49,24 @@ class BinariesTest(bt.BaseTest):
                     if int(rpms.getOsVersion()) > 26:
                         if self.getCurrentArch() in gc.getAarch64Arch() + gc.getPower64LeAchs() + gc.getPower64BeAchs():
                             # BinariesTest.var = OJDK8DEBUG
-                            self.csch = OpenJdk8NoExportsDebug(BinariesTest.instance)
+                            self.csch = tcc.OpenJdk8NoExportsDebug(BinariesTest.instance)
                             return
                         elif self.getCurrentArch() in gc.getIx86archs() + gc.getX86_64Arch():
                             # BinariesTest.var = OJDK8JFX
-                            self.csch = OpenJdk8NoExportsDebugJFX(BinariesTest.instance)
+                            self.csch = tcc.OpenJdk8NoExportsDebugJFX(BinariesTest.instance)
                             return
                         else:
                             # BinariesTest.var = OJDK8
-                            self.csch = OpenJdk8NoExports(BinariesTest.instance)
+                            self.csch = tcc.OpenJdk8NoExports(BinariesTest.instance)
                     elif int(rpms.getOsVersion()) > 24:
                         if self.getCurrentArch() in gc.getAarch64Arch()+ gc.getPower64LeAchs() + gc.getPower64BeAchs():
-                            self.csch = OpenJdk8Debug(BinariesTest.instance)
+                            self.csch = tcc.OpenJdk8Debug(BinariesTest.instance)
                             return
                         elif self.getCurrentArch() in gc.getIx86archs() + gc.getX86_64Arch():
-                            self.csch = OpenJDK8JFX(BinariesTest.instance)
+                            self.csch = tcc.OpenJDK8JFX(BinariesTest.instance)
                             return
                         else:
-                            self.csch = OpenJdk8(BinariesTest.instance)
+                            self.csch = tcc.OpenJdk8(BinariesTest.instance)
                             return
                     else:
                         raise ex.UnknownJavaVersionException("Outdated version of fedora OpenJDK.")
@@ -78,85 +74,85 @@ class BinariesTest(bt.BaseTest):
                 else:
                     if self.getCurrentArch() in gc.getIx86archs() + gc.getX86_64Arch() + gc.getAarch64Arch() + \
                             gc.getPower64Achs():
-                        self.csch = OpenJdk8Debug(BinariesTest.instance)
+                        self.csch = tcc.OpenJdk8Debug(BinariesTest.instance)
                         return
                     else:
-                        self.csch = OpenJdk8(BinariesTest.instance)
+                        self.csch = tcc.OpenJdk8(BinariesTest.instance)
                         return
 
             elif rpms.getMajorVersionSimplified() == "9":
                 if self.getCurrentArch() in gc.getArm32Achs():
-                    self.csch = OpenJdk9(BinariesTest.instance)
+                    self.csch = tcc.OpenJdk9(BinariesTest.instance)
                     return
                 else:
-                    self.csch = OpenJdk9Debug(BinariesTest.instance)
+                    self.csch = tcc.OpenJdk9Debug(BinariesTest.instance)
                     return
 
             elif rpms.getMajorVersionSimplified() == "10":
                 if self.getCurrentArch() in gc.getArm32Achs():
-                    self.csch = OpenJdk10(BinariesTest.instance)
+                    self.csch = tcc.OpenJdk10(BinariesTest.instance)
                     return
                 elif self.getCurrentArch() in gc.getX86_64Arch():
-                    self.csch = OpenJdk10x64(BinariesTest.instance)
+                    self.csch = tcc.OpenJdk10x64(BinariesTest.instance)
                     return
                 else:
-                    self.csch = OpenJdk10Debug(BinariesTest.instance)
+                    self.csch = tcc.OpenJdk10Debug(BinariesTest.instance)
                     return
 
             elif rpms.getMajorVersionSimplified() == "11":
                 if self.getCurrentArch() in gc.getArm32Achs():
-                    self.csch = OpenJdk11(BinariesTest.instance)
+                    self.csch = tcc.OpenJdk11(BinariesTest.instance)
                     return
                 elif self.getCurrentArch() in gc.getX86_64Arch():
-                    self.csch = OpenJdk11x64(BinariesTest.instance)
+                    self.csch = tcc.OpenJdk11x64(BinariesTest.instance)
                     return
                 elif self.getCurrentArch() in gc.getS390xArch():
-                    self.csch = OpenJdk11NoJhsdb(BinariesTest.instance)
+                    self.csch = tcc.OpenJdk11NoJhsdb(BinariesTest.instance)
                     return
                 else:
-                    self.csch = OpenJdk11Debug(BinariesTest.instance)
+                    self.csch = tcc.OpenJdk11Debug(BinariesTest.instance)
                     return
             else:
                 raise ex.UnknownJavaVersionException("Unknown OpenJDK version.")
 
         elif rpms.getVendor() == gc.ITW:
-                self.csch = Itw(BinariesTest.instance)
+                self.csch = tcc.Itw(BinariesTest.instance)
                 return
 
         elif rpms.getVendor() == gc.IBM:
             if rpms.getMajorVersionSimplified() == "7":
                 if self.getCurrentArch() in (gc.getPpc32Arch() + gc.getIx86archs()):
-                    self.csch = IbmWithPluginSubpackage(BinariesTest.instance)
+                    self.csch = tcc.IbmWithPluginSubpackage(BinariesTest.instance)
                     return
 
                 elif self.getCurrentArch() in gc.getX86_64Arch():
-                    self.csch = IbmArchMasterPlugin(BinariesTest.instance)
+                    self.csch = tcc.IbmArchMasterPlugin(BinariesTest.instance)
                     return
 
                 elif self.getCurrentArch() in gc.getS390xArch() + gc.getS390Arch():
-                    self.csch = Ibm390Architectures(BinariesTest.instance)
+                    self.csch = tcc.Ibm390Architectures(BinariesTest.instance)
                     return
 
                 else:
-                    self.csch = Ibm(BinariesTest.instance)
+                    self.csch = tcc.Ibm(BinariesTest.instance)
                     return
 
             elif rpms.getMajorVersionSimplified() == "8":
                 if rpms.getOsVersionMajor() == 7:
                     if self.getCurrentArch() in (
                                 gc.getX86_64Arch() + gc.getPower64BeAchs() + gc.getIx86archs() + gc.getPpc32Arch()):
-                        self.csch = IbmArchMasterPlugin(BinariesTest.instance)
+                        self.csch = tcc.IbmArchMasterPlugin(BinariesTest.instance)
                         return
 
                     elif self.getCurrentArch() in gc.getS390xArch() + gc.getS390Arch():
-                        self.csch = Ibm390Architectures(BinariesTest.instance)
+                        self.csch = tcc.Ibm390Architectures(BinariesTest.instance)
                         return
 
                     else:
-                        self.csch = Ibm(BinariesTest.instance)
+                        self.csch = tcc.Ibm(BinariesTest.instance)
                         return
                 elif rpms.getOsVersionMajor() == 29:
-                    self.csch = Ibm8Rhel8(BinariesTest.instance)
+                    self.csch = tcc.Ibm8Rhel8(BinariesTest.instance)
                     return
             else:
                 raise ex.UnknownJavaVersionException("Unknown IBM java version.")
@@ -164,17 +160,17 @@ class BinariesTest(bt.BaseTest):
         elif rpms.getVendor() == gc.ORACLE or rpms.getVendor() == gc.SUN:
             if rpms.getMajorVersionSimplified() == "6":
                 if self.getCurrentArch() in gc.getIx86archs():
-                    self.csch = OracleNoArchPlugin(BinariesTest.instance)
+                    self.csch = tcc.OracleNoArchPlugin(BinariesTest.instance)
                     return
 
                 else:
-                    self.csch = Oracle6ArchPlugin(BinariesTest.instance)
+                    self.csch = tcc.Oracle6ArchPlugin(BinariesTest.instance)
                     return
             elif rpms.getMajorVersionSimplified() == "7":
-                self.csch = Oracle7(BinariesTest.instance)
+                self.csch = tcc.Oracle7(BinariesTest.instance)
                 return
             elif rpms.getMajorVersionSimplified() == "8":
-                self.csch = Oracle8(BinariesTest.instance)
+                self.csch = tcc.Oracle8(BinariesTest.instance)
                 return
             else:
                 raise ex.UnknownJavaVersionException("Unknown Oracle java version")

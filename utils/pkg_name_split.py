@@ -1,3 +1,4 @@
+import re
 from collections import namedtuple
 import config.global_config
 import ntpath
@@ -149,3 +150,9 @@ def get_nvra(name):
 
 def get_name_version_release(name):
     return get_nvra(name).replace("." + get_arch(name), "")
+
+def simplify_version(vers):
+    old_naming_regex = re.compile("^[0-9].[0-9].[0-9]$")
+    if old_naming_regex.match(vers):
+        return vers.split(".")[1]
+    return vers
