@@ -103,7 +103,7 @@ class BinariesTest(bt.BaseTest):
                 if self.getCurrentArch() in gc.getArm32Achs():
                     self.csch = tcc.OpenJdk11(BinariesTest.instance)
                     return
-                elif self.getCurrentArch() in gc.getX86_64Arch():
+                elif self.getCurrentArch() in gc.getX86_64Arch() + gc.getAarch64Arch():
                     self.csch = tcc.OpenJdk11x64(BinariesTest.instance)
                     return
                 elif self.getCurrentArch() in gc.getS390xArch():
