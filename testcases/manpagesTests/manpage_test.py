@@ -24,6 +24,7 @@ LINK = 0
 
 # TODO: if there are any manpages extra, this suite should recognize it and fail
 
+
 class ManpageTestMethods(JdkConfiguration):
 
     """
