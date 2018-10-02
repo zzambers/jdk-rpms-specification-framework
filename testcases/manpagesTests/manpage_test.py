@@ -22,7 +22,7 @@ MANPAGE_FOR_BINARY = MANPAGE + " file for binary"
 FILE = 1
 LINK = 0
 
-
+# TODO: if there are any manpages extra, this suite should recognize it and fail
 
 class ManpageTestMethods(JdkConfiguration):
 
@@ -39,6 +39,8 @@ class ManpageTestMethods(JdkConfiguration):
         self.passed = 0
         self.failed = 0
         self.list_of_failed_tests = []
+        self.missing_manpages = []
+        self.checked_subpackages = []
 
     skipped = []
     rpms = rc.RuntimeConfig().getRpmList()
@@ -50,6 +52,22 @@ class ManpageTestMethods(JdkConfiguration):
         for e in excludes:
             if e in binaries:
                 binaries.remove(e)
+        return binaries
+
+    def binaries_without_manpages(self, binaries=None):
+        manpages_list = self.missing_manpages
+        subpackages_list = self.checked_subpackages
+        if manpages_list.__len__() == 0 or subpackages_list.__len__() == 0:
+            return
+        self._document("There are multiple binaries, that are missing manpages in " +
+                       " and ".join(subpackages_list) + "subpackage: " + ", ".join(manpages_list))
+        for item in manpages_list:
+            for subpackage in subpackages_list:
+                try:
+                    binaries[subpackage].remove(item)
+                except ValueError:
+                    log_failed_test(self, item + "is not present in manpages! This is unexpected behaviour.")
+
         return binaries
 
     def _get_extra_bins(self, plugin_bin_content):
@@ -85,9 +103,6 @@ class ManpageTestMethods(JdkConfiguration):
 
     def _clean_debug_subpackages(self, bins):
         return
-
-    def binaries_without_manpages(self, binaries=None):
-        return binaries
 
     # wont be doc-ed, is already handled in binary test
     def _remove_java_rmi_cgi(self, binaries):
@@ -302,56 +317,50 @@ class OpenJdk8WithDebug(OpenJdk8):
 
 
 class OpenJdk10(OpenJdk8):
-    def _clean_up_binaries(self, binaries, master, usr_bin):
-        return binaries
+    def __init__(self):
+        super().__init__()
+        self.checked_subpackages = [DEVEL]
+        self.missing_manpages = ["jdeprscan", "jhsdb", "jimage", "jlink", "jmod", "jshell"]
 
-    def binaries_without_manpages(self, binaries=None):
-        binaries_list = ["jdeprscan", "jhsdb", "jimage", "jlink", "jmod", "jshell"]
-        self._document("In JDK 10, there are multiple binaries, that are missing manpages in "
-                       "devel subpackage: " + ", ".join(binaries_list))
-        for item in binaries_list:
-            binaries[DEVEL].remove(item)
+    def _clean_up_binaries(self, binaries, master, usr_bin):
         return binaries
 
 
 class OpenJdk10Debug(OpenJdk8WithDebug):
-    def _clean_up_binaries(self, binaries, master, usr_bin):
-        return binaries
+    def __init__(self):
+        super().__init__()
+        self.checked_subpackages = [DEVEL, DEVEL + DEBUG_SUFFIX]
+        self.missing_manpages = ["jdeprscan", "jhsdb", "jimage", "jlink", "jmod", "jshell"]
 
-    def binaries_without_manpages(self, binaries=None):
-        binaries_list = ["jdeprscan", "jhsdb", "jimage", "jlink", "jmod", "jshell"]
-        self._document("In JDK 10, there are multiple binaries, that are missing manpages in devel and devel-slowdebug "
-                       "subpackage: " + ", ".join(binaries_list))
-        for item in binaries_list:
-            binaries[DEVEL].remove(item)
-            binaries[DEVEL + DEBUG_SUFFIX].remove(item)
+    def _clean_up_binaries(self, binaries, master, usr_bin):
         return binaries
 
 
 class OpenJdk10Debugx64(OpenJdk10Debug):
-    def binaries_without_manpages(self, binaries=None):
-        binaries_list = ["jdeprscan", "jhsdb", "jimage", "jlink", "jmod", "jshell", "jaotc"]
-        self._document("In JDK 10, there are multiple binaries, that are missing manpages in devel and devel-slowdebug "
-                       "subpackage: " + ", ".join(binaries_list))
-        bins = super().binaries_without_manpages(binaries)
-        bins[DEVEL].remove("jaotc")
-        bins[DEVEL + DEBUG_SUFFIX].remove("jaotc")
-        return bins
+
+    def __init__(self):
+        super().__init__()
+        self.checked_subpackages = [DEVEL, DEVEL + DEBUG_SUFFIX]
+        self.missing_manpages = ["jdeprscan", "jhsdb", "jimage", "jlink", "jmod", "jshell", "jaotc"]
 
 
 class OpenJdk11(OpenJdk10):
-    def binaries_without_manpages(self, binaries=None):
-        return binaries
+    pass
 
 
 class OpenJdk11Debug(OpenJdk10Debug):
-    def binaries_without_manpages(self, binaries=None):
-        return binaries
+    pass
 
 
 class OpenJdk11Debugx64(OpenJdk10Debugx64):
-    def binaries_without_manpages(self, binaries=None):
-        return binaries
+    pass
+
+
+class OpenJdk11s390x(OpenJdk11Debug):
+    def __init__(self):
+        super().__init__()
+        self.checked_subpackages = [DEVEL, DEVEL + DEBUG_SUFFIX]
+        self.missing_manpages = ["jdeprscan", "jimage", "jlink", "jmod", "jshell"]
 
 
 class ITW(ManpageTestMethods):
@@ -515,7 +524,7 @@ class ManpageTests(bt.BaseTest):
                 if self.getCurrentArch() in gc.getArm32Achs():
                     self.csch = OpenJdk11()
                     return
-                elif self.getCurrentArch() in gc.getX86_64Arch():
+                elif self.getCurrentArch() in gc.getX86_64Arch() + gc.getAarch64Arch():
                     self.csch = OpenJdk11Debugx64()
                     return
                 else:
