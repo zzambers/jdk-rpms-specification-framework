@@ -22,11 +22,6 @@ class BinariesTest(bt.BaseTest):
         return self.csch.check_binaries_with_slaves(pkgs)
 
     def setCSCH(self):
-        """
-        This must be imported here to avoid circular imports!
-        read https://stackoverflow.com/questions/744373/circular-or-cyclic-imports-in-python
-        http://stackabuse.com/python-circular-imports/
-        """
         BinariesTest.instance = self
         rpms = rc.RuntimeConfig().getRpmList()
         self.log("Checking binaries and slaves for " + rpms.getMajorPackage(), la.Verbosity.TEST)
@@ -48,15 +43,12 @@ class BinariesTest(bt.BaseTest):
                 if rpms.isFedora():
                     if int(rpms.getOsVersion()) > 26:
                         if self.getCurrentArch() in gc.getAarch64Arch() + gc.getPower64LeAchs() + gc.getPower64BeAchs():
-                            # BinariesTest.var = OJDK8DEBUG
                             self.csch = tcc.OpenJdk8NoExportsDebug(BinariesTest.instance)
                             return
                         elif self.getCurrentArch() in gc.getIx86archs() + gc.getX86_64Arch():
-                            # BinariesTest.var = OJDK8JFX
                             self.csch = tcc.OpenJdk8NoExportsDebugJFX(BinariesTest.instance)
                             return
                         else:
-                            # BinariesTest.var = OJDK8
                             self.csch = tcc.OpenJdk8NoExports(BinariesTest.instance)
                     elif int(rpms.getOsVersion()) > 24:
                         if self.getCurrentArch() in gc.getAarch64Arch()+ gc.getPower64LeAchs() + gc.getPower64BeAchs():
@@ -110,7 +102,10 @@ class BinariesTest(bt.BaseTest):
                     self.csch = tcc.OpenJdk11NoJhsdb(BinariesTest.instance)
                     return
                 else:
-                    self.csch = tcc.OpenJdk11Debug(BinariesTest.instance)
+                    if rpms.isRhel() and self.getCurrentArch() in gc.getS390Arch() + gc.getPpc32Arch():
+                        self.csch = tcc.OpenJdk11(BinariesTest.instance)
+                    else:
+                        self.csch = tcc.OpenJdk11Debug(BinariesTest.instance)
                     return
             else:
                 raise ex.UnknownJavaVersionException("Unknown OpenJDK version.")
@@ -176,11 +171,6 @@ class BinariesTest(bt.BaseTest):
                 raise ex.UnknownJavaVersionException("Unknown Oracle java version")
         else:
             raise ex.UnknownJavaVersionException("Unknown platform, java was not identified.")
-
-
-#def get_var():
- #   a = BinariesTest.var
- #   return a
 
 
 def testAll():

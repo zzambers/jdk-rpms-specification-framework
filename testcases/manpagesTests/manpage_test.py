@@ -529,7 +529,10 @@ class ManpageTests(bt.BaseTest):
                     self.csch = OpenJdk11Debugx64()
                     return
                 else:
-                    self.csch = OpenJdk11Debug()
+                    if rpms.isRhel() and self.getCurrentArch() in gc.getS390Arch() + gc.getPpc32Arch():
+                        self.csch = OpenJdk11()
+                    else:
+                        self.csch = OpenJdk11Debug()
                     return
 
             else:
