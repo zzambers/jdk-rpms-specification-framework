@@ -103,7 +103,7 @@ class BinariesTest(bt.BaseTest):
                     return
                 else:
                     if rpms.isRhel() and self.getCurrentArch() in gc.getS390Arch() + gc.getPpc32Arch():
-                        self.csch = tcc.OpenJdk11(BinariesTest.instance)
+                        self.csch = tcc.OpenJdk11NoDebugNoJhsdb(BinariesTest.instance)
                     else:
                         self.csch = tcc.OpenJdk11Debug(BinariesTest.instance)
                     return
@@ -146,7 +146,7 @@ class BinariesTest(bt.BaseTest):
                     else:
                         self.csch = tcc.Ibm(BinariesTest.instance)
                         return
-                elif rpms.getOsVersionMajor() == 29:
+                elif rpms.getOsVersionMajor() == 8:
                     self.csch = tcc.Ibm8Rhel8(BinariesTest.instance)
                     return
             else:

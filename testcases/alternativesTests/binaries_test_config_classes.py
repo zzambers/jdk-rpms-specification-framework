@@ -309,6 +309,17 @@ class OpenJdk11x64(OpenJdk10x64):
                          "rmid", "rmiregistry", "unpack200"]
 
 
+class OpenJdk11NoDebugNoJhsdb(OpenJdk10):
+    DEFAULT_BINARIES = []
+    DEVEL_BINARIES = ['jar', 'jarsigner', 'javac', 'javadoc', 'javap', 'jcmd',
+                      'jconsole',
+                      'jdb', 'jdeprscan', 'jdeps', 'jhsdb', 'jimage', 'jinfo', 'jlink', 'jmap', 'jmod', 'jps',
+                      'jrunscript',
+                      'jshell', 'jstack', 'jstat', 'jstatd', 'rmic', 'serialver']
+    HEADLESS_BINARIES = ["java", "jjs", "keytool", "pack200",
+                         "rmid", "rmiregistry", "unpack200"]
+
+
 class OpenJdk11Debug(OpenJdk10Debug):
     DEFAULT_BINARIES = []
     DEVEL_BINARIES = ['jar', 'jarsigner', 'javac', 'javadoc', 'javap', 'jcmd',
