@@ -59,7 +59,7 @@ class ManpageTestMethods(JdkConfiguration):
         manpages_list = self.missing_manpages
         subpackages_list = self.checked_subpackages
         if manpages_list.__len__() == 0 or subpackages_list.__len__() == 0:
-            return
+            return binaries
         self._document("There are multiple binaries, that are missing manpages in " +
                        " and ".join(subpackages_list) + "subpackage: " + ", ".join(manpages_list))
         for item in manpages_list:
