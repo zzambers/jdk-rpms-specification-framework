@@ -241,12 +241,18 @@ class ProprietaryJava7and8Base(ProprietaryJava6WithArch):
         return masters
 
 
-class ProprietaryJavaRhel8(OpenJdk7):
+class ProprietaryJavaRhel8s390x(OpenJdk7):
+    def _generate_masters(self):
+        masters = super()._generate_masters()
+        masters.pop(JAVADOC)
+        return masters
+
+
+class ProprietaryJavaRhel8(ProprietaryJavaRhel8s390x):
     def _generate_masters(self):
         masters = super()._generate_masters()
         masters["webstart"] = ["javaws"]
         masters[PLUGIN] = [self._get_masters_arch_copy(LIBJAVAPLUGIN)]
-        masters.pop(JAVADOC)
         return masters
 
 
