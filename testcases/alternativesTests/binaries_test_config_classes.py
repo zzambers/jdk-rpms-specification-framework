@@ -1,17 +1,16 @@
-from testcases.alternativesTests.binaries_test_methods import BinarySlaveTestMethods
+import testcases.alternativesTests.binaries_test_methods as bsm
 import utils.pkg_name_split as pkgsplit
-from testcases.alternativesTests.binaries_test_paths import PathTest
-from utils.test_utils import get_32bit_id_in_nvra, log_failed_test, passed_or_failed
-from utils.test_constants import *
-from utils.test_utils import two_lists_diff as diff
-from utils.mock.mock_executor import DefaultMock
+import testcases.alternativesTests.binaries_test_paths as btp
+import utils.test_constants as tc
+import utils.test_utils as tu
+import utils.mock.mock_executor as mexe
 
 # This script should contain only configuration specific implemetation of the method and overriden methods code.
 # Default methods should be always placed in methods or paths files.
 # Respect the class naming purpose, inheritance (if possible), and class placement (or this gets very messy)!!!
 
 
-class OpenJdk6(BinarySlaveTestMethods):
+class OpenJdk6(bsm.BinarySlaveTestMethods):
     def _get_binary_directory(self, name):
         directory = super()._get_binary_directory(name)
         unnecessary_part = directory.split("-")[-1]
@@ -22,28 +21,28 @@ class OpenJdk6(BinarySlaveTestMethods):
         return self._get_subpackages_with_binaries()
 
     def handle_policytool(self, args=None):
-        self._document(POLICYTOOL + " is a binary that behaves differently than normal binaries. It has binaries in {} "
+        self._document(tc.POLICYTOOL + " is a binary that behaves differently than normal binaries. It has binaries in {} "
                                     "subpackages, but slaves are in {} "
                                     "subpackages.".format(" and ".join(self._policytool_binary_subpackages()),
                                                           " and ".join(self._policytool_slave_subpackages())))
         for subpackage in self._policytool_binary_subpackages():
             try:
-                self.installed_binaries[subpackage].remove(POLICYTOOL)
+                self.installed_binaries[subpackage].remove(tc.POLICYTOOL)
                 self.passed += 1
 
             except KeyError:
-                log_failed_test(self, POLICYTOOL + " binary not present in " + subpackage)
+                tu.log_failed_test(self, tc.POLICYTOOL + " binary not present in " + subpackage)
                 self.failed += 1
                 continue
         for subpkg in self._policytool_slave_subpackages():
             try:
-                self.installed_slaves[subpkg].remove(POLICYTOOL)
+                self.installed_slaves[subpkg].remove(tc.POLICYTOOL)
                 self.passed += 1
             except KeyError:
-                log_failed_test(self, POLICYTOOL + " slave not present in " + subpkg)
+                tu.log_failed_test(self, tc.POLICYTOOL + " slave not present in " + subpkg)
                 self.failed += 1
             except ValueError:
-                log_failed_test(self, POLICYTOOL + " slave not present in " + subpkg)
+                tu.log_failed_test(self, tc.POLICYTOOL + " slave not present in " + subpkg)
                 self.failed += 1
         return
 
@@ -58,42 +57,42 @@ class OpenJdk6PowBeArchAndX86(OpenJdk6):
 
 class OpenJdk7(OpenJdk6):
     def _get_binary_directory(self, name):
-        return super(PathTest, self)._get_binary_directory(name)
+        return super(btp.PathTest, self)._get_binary_directory(name)
 
     def _get_subpackages_with_binaries(self):
-        return [DEFAULT, HEADLESS, DEVEL]
+        return [tc.DEFAULT, tc.HEADLESS, tc.DEVEL]
 
     def _policytool_binary_subpackages(self):
-        return [DEFAULT, DEVEL]
+        return [tc.DEFAULT, tc.DEVEL]
 
     def _policytool_slave_subpackages(self):
         return self._get_sdk_subpackage()
 
     def _get_jre_subpackage(self):
-        return [HEADLESS]
+        return [tc.HEADLESS]
 
 
 class OpenJdk8(OpenJdk7):
     def _policytool_slave_subpackages(self):
-        return [HEADLESS]
+        return [tc.HEADLESS]
 
 
 class OpenJdk8Debug(OpenJdk8):
     def _policytool_binary_subpackages(self):
-        return super()._policytool_binary_subpackages() + [DEVEL + DEBUG_SUFFIX, DEFAULT + DEBUG_SUFFIX]
+        return super()._policytool_binary_subpackages() + [tc.DEVEL + tc.DEBUG_SUFFIX, tc.DEFAULT + tc.DEBUG_SUFFIX]
 
     def _policytool_slave_subpackages(self):
-        return super()._policytool_slave_subpackages() + [HEADLESS + DEBUG_SUFFIX]
+        return super()._policytool_slave_subpackages() + [tc.HEADLESS + tc.DEBUG_SUFFIX]
 
     def _get_subpackages_with_binaries(self):
-        return super()._get_subpackages_with_binaries() + [HEADLESS + DEBUG_SUFFIX, DEVEL + DEBUG_SUFFIX,
-                                                           DEFAULT + DEBUG_SUFFIX]
+        return super()._get_subpackages_with_binaries() + [tc.HEADLESS + tc.DEBUG_SUFFIX, tc.DEVEL + tc.DEBUG_SUFFIX,
+                                                           tc.DEFAULT + tc.DEBUG_SUFFIX]
 
     def _get_jre_subpackage(self):
-        return super()._get_jre_subpackage() + [HEADLESS + DEBUG_SUFFIX]
+        return super()._get_jre_subpackage() + [tc.HEADLESS + tc.DEBUG_SUFFIX]
 
     def _get_sdk_subpackage(self):
-        return super()._get_sdk_subpackage() + [DEVEL + DEBUG_SUFFIX]
+        return super()._get_sdk_subpackage() + [tc.DEVEL + tc.DEBUG_SUFFIX]
 
 
 class OpenJDK8JFX(OpenJdk8Debug):
@@ -102,13 +101,13 @@ class OpenJDK8JFX(OpenJdk8Debug):
         OpenJFX packaging is broken by design - binaries are in ojfx-devel, links are in headless.
         This is fixed by this method and documented.
         """
-        jfx_bins = get_openjfx_binaries()
+        jfx_bins = tc.get_openjfx_binaries()
         for jfxbin in jfx_bins:
             try:
                 list_of_elements[subpackage].remove(jfxbin)
                 self.passed += 1
             except ValueError:
-                log_failed_test(self, jfxbin + " " + slave_or_bin + " not found in " + subpackage)
+                tu.log_failed_test(self, jfxbin + " " + slave_or_bin + " not found in " + subpackage)
                 self.failed += 1
         return
 
@@ -153,27 +152,27 @@ class OpenJdk9(OpenJdk8):
                          "rmid", "rmiregistry", "servertool", "tnameserv", "unpack200"]
 
     def _get_binaries_as_dict(self):
-        return {DEFAULT: self.DEFAULT_BINARIES,
-                DEVEL: self.DEVEL_BINARIES,
-                HEADLESS: self.HEADLESS_BINARIES,
-                DEFAULT + DEBUG_SUFFIX: self.DEFAULT_BINARIES,
-                DEVEL + DEBUG_SUFFIX: self.DEVEL_BINARIES,
-                HEADLESS + DEBUG_SUFFIX: self.HEADLESS_BINARIES
+        return {tc.DEFAULT: self.DEFAULT_BINARIES,
+                tc.DEVEL: self.DEVEL_BINARIES,
+                tc.HEADLESS: self.HEADLESS_BINARIES,
+                tc.DEFAULT + tc.DEBUG_SUFFIX: self.DEFAULT_BINARIES,
+                tc.DEVEL + tc.DEBUG_SUFFIX: self.DEVEL_BINARIES,
+                tc.HEADLESS + tc.DEBUG_SUFFIX: self.HEADLESS_BINARIES
                 }
 
     def _get_binary_directory_path(self, name):
-        return JVM_DIR + "/" + get_32bit_id_in_nvra(pkgsplit.get_nvra(name)) + SDK_DIRECTORY
+        return tc.JVM_DIR + "/" + tu.get_32bit_id_in_nvra(pkgsplit.get_nvra(name)) + tc.SDK_DIRECTORY
 
     def _check_binaries_against_hardcoded_list(self, binaries, subpackage):
         hardcoded_binaries = self._get_binaries_as_dict()
-        if not passed_or_failed(self, subpackage in hardcoded_binaries.keys()):
-            log_failed_test(self, "Binaries in unexpected subpackage: " + subpackage)
+        if not tu.passed_or_failed(self, subpackage in hardcoded_binaries.keys()):
+            tu.log_failed_test(self, "Binaries in unexpected subpackage: " + subpackage)
             return
-        if not passed_or_failed(self, sorted(binaries) == sorted(hardcoded_binaries[subpackage])):
-            log_failed_test(self, "Hardcode check: binaries are not as expected. Missing binaries: {}."
+        if not tu.passed_or_failed(self, sorted(binaries) == sorted(hardcoded_binaries[subpackage])):
+            tu.log_failed_test(self, "Hardcode check: binaries are not as expected. Missing binaries: {}."
                             " Extra binaries: "
-                            "{}".format(diff(hardcoded_binaries[subpackage], binaries),
-                                        diff(binaries, hardcoded_binaries[subpackage])))
+                            "{}".format(tu.two_lists_diff(hardcoded_binaries[subpackage], binaries),
+                                        tu.two_lists_diff(binaries, hardcoded_binaries[subpackage])))
         return
 
     def check_exports_slaves(self, args=None):
@@ -183,10 +182,10 @@ class OpenJdk9(OpenJdk8):
         return
 
     def _policytool_slave_subpackages(self):
-        return [HEADLESS]
+        return [tc.HEADLESS]
 
     def _policytool_binary_subpackages(self):
-        return [DEFAULT]
+        return [tc.DEFAULT]
 
     def document_jre_sdk(self, args=None):
         return
@@ -194,26 +193,26 @@ class OpenJdk9(OpenJdk8):
 
 class OpenJdk9Debug(OpenJdk9):
     def _get_binary_directory_path(self, name):
-        if DEBUG_SUFFIX in name:
-            return JVM_DIR + "/" + get_32bit_id_in_nvra(pkgsplit.get_nvra(name)) + DEBUG_SUFFIX + SDK_DIRECTORY
+        if tc.DEBUG_SUFFIX in name:
+            return tc.JVM_DIR + "/" + tu.get_32bit_id_in_nvra(pkgsplit.get_nvra(name)) + tc.DEBUG_SUFFIX + tc.SDK_DIRECTORY
         else:
             return super()._get_binary_directory_path(name)
 
     def _policytool_binary_subpackages(self):
-        return super()._policytool_binary_subpackages() + [DEFAULT + DEBUG_SUFFIX]
+        return super()._policytool_binary_subpackages() + [tc.DEFAULT + tc.DEBUG_SUFFIX]
 
     def _policytool_slave_subpackages(self):
-        return super()._policytool_slave_subpackages() + [HEADLESS + DEBUG_SUFFIX]
+        return super()._policytool_slave_subpackages() + [tc.HEADLESS + tc.DEBUG_SUFFIX]
 
     def _get_subpackages_with_binaries(self):
-        return super()._get_subpackages_with_binaries() + [HEADLESS + DEBUG_SUFFIX, DEVEL + DEBUG_SUFFIX,
-                                                           DEFAULT + DEBUG_SUFFIX]
+        return super()._get_subpackages_with_binaries() + [tc.HEADLESS + tc.DEBUG_SUFFIX, tc.DEVEL + tc.DEBUG_SUFFIX,
+                                                           tc.DEFAULT + tc.DEBUG_SUFFIX]
 
     def _get_jre_subpackage(self):
-        return super()._get_jre_subpackage() + [HEADLESS + DEBUG_SUFFIX]
+        return super()._get_jre_subpackage() + [tc.HEADLESS + tc.DEBUG_SUFFIX]
 
     def _get_sdk_subpackage(self):
-        return super()._get_sdk_subpackage() + [DEVEL + DEBUG_SUFFIX]
+        return super()._get_sdk_subpackage() + [tc.DEVEL + tc.DEBUG_SUFFIX]
 
 
 class OpenJdk10(OpenJdk9):
@@ -239,7 +238,7 @@ class OpenJdk10(OpenJdk9):
 
     def _get_subpackages_with_binaries(self):
         subpackages = super()._get_subpackages_with_binaries()
-        subpackages.remove(DEFAULT)
+        subpackages.remove(tc.DEFAULT)
         return subpackages
 
 
@@ -256,8 +255,8 @@ class OpenJdk10Debug(OpenJdk9Debug):
 
     def _get_subpackages_with_binaries(self):
         subpackages = super()._get_subpackages_with_binaries()
-        subpackages.remove(DEFAULT)
-        subpackages.remove(DEFAULT + DEBUG_SUFFIX)
+        subpackages.remove(tc.DEFAULT)
+        subpackages.remove(tc.DEFAULT + tc.DEBUG_SUFFIX)
         return subpackages
 
     def handle_policytool(self, args=None):
@@ -342,11 +341,11 @@ class OpenJdk11NoJhsdb(OpenJdk11Debug):
                          "rmid", "rmiregistry", "unpack200"]
 
 
-class Ibm(BinarySlaveTestMethods):
+class Ibm(bsm.BinarySlaveTestMethods):
     # classic and j9vm are folders, not binaries
     def _remove_excludes(self):
         subpackage = self._get_jre_subpackage()[0]
-        excludes = get_ibm_folders()
+        excludes = tc.get_ibm_folders()
         try:
             for e in excludes:
                 self.installed_binaries[subpackage].remove(e)
@@ -357,7 +356,7 @@ class Ibm(BinarySlaveTestMethods):
 
     def remove_binaries_without_slaves(self, args=None):
         subpackage = self._get_jre_subpackage()[0]
-        excludes = get_ibm_k_bins() + get_ibm_ikey_bins()
+        excludes = tc.get_ibm_k_bins() + tc.get_ibm_ikey_bins()
         self._document(" and ".join(excludes) + " are binaries present in {} subpackage. They are not in {} subpackage "
                                                 "and have no slaves in alternatives.".format(subpackage,
                                                                                            self._get_sdk_subpackage()[0]))
@@ -366,39 +365,39 @@ class Ibm(BinarySlaveTestMethods):
                 self.installed_binaries[subpackage].remove(e)
                 self.passed += 1
             except ValueError:
-                log_failed_test(self, e + " not present in " + subpackage + " binaries.")
+                tu.log_failed_test(self, e + " not present in " + subpackage + " binaries.")
                 self.failed += 1
         return
 
     def handle_plugin_binaries(self, args=None):
-        plugin_binaries = get_plugin_binaries()
+        plugin_binaries = tc.get_plugin_binaries()
         ssubpackages = self._get_jre_subpackage()
         bsubpackages = self._get_jre_subpackage() + self._get_sdk_subpackage()
         self._document("{} are binaries replacing {} subpackage. They are present in {} subpackages and their slaves"
-                       " are in {} subpackages.".format(" and ".join(plugin_binaries), PLUGIN,
+                       " are in {} subpackages.".format(" and ".join(plugin_binaries), tc.PLUGIN,
                                                         " and ".join(bsubpackages)
                                                         , "".join(ssubpackages)))
         self._check_plugin_binaries_and_slaves_are_present(bsubpackages, ssubpackages)
         return
 
     def _check_plugin_binaries_and_slaves_are_present(self, bsubpackages, ssubpackages):
-        for pbinary in get_plugin_binaries():
+        for pbinary in tc.get_plugin_binaries():
             for subpackage in bsubpackages:
-                if not passed_or_failed(self, pbinary in self.installed_binaries[subpackage]):
-                    log_failed_test(self, "Missing plugin binary " + pbinary + " in " + subpackage)
+                if not tu.passed_or_failed(self, pbinary in self.installed_binaries[subpackage]):
+                    tu.log_failed_test(self, "Missing plugin binary " + pbinary + " in " + subpackage)
             for subpackage in ssubpackages:
-                if not passed_or_failed(self, pbinary not in self.installed_slaves[subpackage]):
-                    log_failed_test(self, "Missing plugin slave " + pbinary + " in " + subpackage)
+                if not tu.passed_or_failed(self, pbinary not in self.installed_slaves[subpackage]):
+                    tu.log_failed_test(self, "Missing plugin slave " + pbinary + " in " + subpackage)
 
     def _check_plugin_bins_and_slaves_are_not_present(self, subpackages):
-        for pbinary in get_plugin_binaries():
+        for pbinary in tc.get_plugin_binaries():
             for subpackage in subpackages:
-                if not passed_or_failed(self, pbinary not in self.installed_binaries[subpackage]):
-                    log_failed_test(self, pbinary + " should not be in " + subpackage +
+                if not tu.passed_or_failed(self, pbinary not in self.installed_binaries[subpackage]):
+                    tu.log_failed_test(self, pbinary + " should not be in " + subpackage +
                                     " because this subpackage must not contain any plugin binaries.")
                     self.installed_binaries[subpackage].remove(pbinary)
-                if not passed_or_failed(self, pbinary not in self.installed_slaves[subpackage]):
-                    log_failed_test(self, pbinary + " should not be in " + subpackage +
+                if not tu.passed_or_failed(self, pbinary not in self.installed_slaves[subpackage]):
+                    tu.log_failed_test(self, pbinary + " should not be in " + subpackage +
                                     " because this subpackage must not contain plugin slaves.")
                     self.installed_slaves[subpackage].remove(pbinary)
         return
@@ -406,33 +405,33 @@ class Ibm(BinarySlaveTestMethods):
 
 class Ibm390Architectures(Ibm):
     def handle_plugin_binaries(self, args=None):
-        plugin_binaries = get_plugin_binaries()
+        plugin_binaries = tc.get_plugin_binaries()
         self._document("{} are not present in binaries in any subpackage. This architecture "
-                       "also has no {} subpackages.".format(" and ".join(plugin_binaries), PLUGIN))
+                       "also has no {} subpackages.".format(" and ".join(plugin_binaries), tc.PLUGIN))
         self._check_plugin_bins_and_slaves_are_not_present(self._get_subpackages_with_binaries())
         return
 
 
 class IbmWithPluginSubpackage(Ibm):
     def _get_checked_masters(self):
-        return super()._get_checked_masters() + [LIBJAVAPLUGIN]
+        return super()._get_checked_masters() + [tc.LIBJAVAPLUGIN]
 
     def _get_subpackages_with_binaries(self):
-        return super()._get_subpackages_with_binaries() + [PLUGIN]
+        return super()._get_subpackages_with_binaries() + [tc.PLUGIN]
 
     def handle_plugin_binaries(self, args=None):
-        plugin_binaries = get_plugin_binaries()
+        plugin_binaries = tc.get_plugin_binaries()
         subpackages_without_pbins = self._get_jre_subpackage() + self._get_sdk_subpackage()
         self._document("{} are binaries related with {}. They are present and have slaves only in {} "
-                       "subpackages.".format(" and ".join(plugin_binaries), PLUGIN, PLUGIN))
+                       "subpackages.".format(" and ".join(plugin_binaries), tc.PLUGIN, tc.PLUGIN))
         self._check_plugin_bins_and_slaves_are_not_present(subpackages_without_pbins)
-        self._check_plugin_binaries_and_slaves_are_present([PLUGIN], [PLUGIN])
+        self._check_plugin_binaries_and_slaves_are_present([tc.PLUGIN], [tc.PLUGIN])
         return
 
 
 class IbmArchMasterPlugin(IbmWithPluginSubpackage):
     def _get_checked_masters(self):
-        return [JAVA, JAVAC, LIBJAVAPLUGIN + "." + self._get_arch()]
+        return [tc.JAVA, tc.JAVAC, tc.LIBJAVAPLUGIN + "." + self._get_arch()]
 
 
 class Ibm8Rhel8(IbmArchMasterPlugin):
@@ -440,7 +439,7 @@ class Ibm8Rhel8(IbmArchMasterPlugin):
         return
 
     def _get_jre_subpackage(self):
-        return [HEADLESS]
+        return [tc.HEADLESS]
 
     def _check_plugin_binaries_and_slaves_are_present(self, bsubpackages, ssubpackages):
         return
@@ -460,23 +459,23 @@ class Oracle6(IbmWithPluginSubpackage):
         return
 
     def handle_plugin_binaries(self, args=None):
-        plugin_binaries = get_plugin_binaries()
+        plugin_binaries = tc.get_plugin_binaries()
         self._document("{} are no longer present in binaries in any subpackage.".format(" and ".join(plugin_binaries)))
         self._check_plugin_bins_and_slaves_are_not_present(self._get_subpackages_with_binaries())
         return
 
     def _get_subpackages_with_binaries(self):
-        return BinarySlaveTestMethods(self.binaries_test)._get_subpackages_with_binaries()
+        return bsm.BinarySlaveTestMethods(self.binaries_test)._get_subpackages_with_binaries()
 
 
 class OracleNoArchPlugin(Oracle6):
     def _get_checked_masters(self):
-        return [JAVA, JAVAC, LIBNSSCKBI_SO]
+        return [tc.JAVA, tc.JAVAC, tc.LIBNSSCKBI_SO]
 
 
 class Oracle6ArchPlugin(Oracle6):
     def _get_checked_masters(self):
-        return [JAVA, JAVAC, LIBNSSCKBI_SO + "." + self._get_arch()]
+        return [tc.JAVA, tc.JAVAC, tc.LIBNSSCKBI_SO + "." + self._get_arch()]
 
     def _get_binary_directory(self, name):
         return super()._get_binary_directory(name) + "." + self._get_arch()
@@ -484,30 +483,30 @@ class Oracle6ArchPlugin(Oracle6):
 
 class Oracle7(Oracle6ArchPlugin):
     def _remove_excludes(self):
-        exclude_list = oracle_exclude_list()
+        exclude_list = tc.oracle_exclude_list()
         for exclude in exclude_list:
             self._document("{} is not a binary. It is present in {} subpackages binaries. It has "
-                           "no slave in alternatives.".format(exclude, DEVEL))
+                           "no slave in alternatives.".format(exclude, tc.DEVEL))
             try:
-                self.installed_binaries[DEVEL].remove(exclude)
+                self.installed_binaries[tc.DEVEL].remove(exclude)
                 self.passed += 1
             except ValueError:
-                log_failed_test(self, exclude + " not present in " + DEVEL)
+                tu.log_failed_test(self, exclude + " not present in " + tc.DEVEL)
                 self.failed += 1
         return
 
     def _get_subpackages_with_binaries(self):
-        subpackages = BinarySlaveTestMethods(self.binaries_test)._get_subpackages_with_binaries()
-        subpackages.append(JAVAFX)
+        subpackages = bsm.BinarySlaveTestMethods(self.binaries_test)._get_subpackages_with_binaries()
+        subpackages.append(tc.JAVAFX)
         return subpackages
 
     def _get_checked_masters(self):
         masters = super()._get_checked_masters()
-        masters.append(JAVAFXPACKAGER)
+        masters.append(tc.JAVAFXPACKAGER)
         return masters
 
     def _get_binary_directory(self, name):
-        return PathTest(self.binaries_test)._get_binary_directory(name)
+        return btp.PathTest(self.binaries_test)._get_binary_directory(name)
 
 
 class Oracle8(Oracle7):
@@ -515,7 +514,7 @@ class Oracle8(Oracle7):
         return IbmWithPluginSubpackage(self.binaries_test).handle_plugin_binaries()
 
 
-class Itw(BinarySlaveTestMethods):
+class Itw(bsm.BinarySlaveTestMethods):
     def check_java_cgi(self, args=None):
         return
 
@@ -527,7 +526,7 @@ class Itw(BinarySlaveTestMethods):
         return
 
     def _get_subpackages_with_binaries(self):
-        return [DEFAULT]
+        return [tc.DEFAULT]
 
     def handle_plugin_binaries(self, args=None):
         self._document("ITW replaces plugin package for OpenJDK")
@@ -537,45 +536,45 @@ class Itw(BinarySlaveTestMethods):
         return
 
     def doc_extra_binary(self, args=None):
-        self._document(ITWEB_SETTINGS + " is an iced-tea binary. Its slave is " + CONTROL_PANEL)
+        self._document(tc.ITWEB_SETTINGS + " is an iced-tea binary. Its slave is " + tc.CONTROL_PANEL)
 
     def _get_all_binaries_and_slaves(self, pkgs):
-        DefaultMock().provideCleanUsefullRoot()
-        original_binaries = DefaultMock().execute_ls(USR_BIN)[0].split("\n")
+        mexe.DefaultMock().provideCleanUsefullRoot()
+        original_binaries = mexe.DefaultMock().execute_ls(tc.USR_BIN)[0].split("\n")
         installed_binaries, installed_slaves = super()._get_all_binaries_and_slaves(pkgs)
         installed_binaries = self._remove_links_from_usr_bin(installed_binaries)
         for subpackage in installed_binaries.keys():
             all_binaries = installed_binaries[subpackage]
-            installed_binaries[subpackage] = diff(all_binaries, original_binaries)
+            installed_binaries[subpackage] = tu.two_lists_diff(all_binaries, original_binaries)
 
-        settings = ITWEB_SETTINGS
+        settings = tc.ITWEB_SETTINGS
         bins = []
-        for b in installed_binaries[DEFAULT]:
+        for b in installed_binaries[tc.DEFAULT]:
             bins.append(b.replace(".itweb", ""))
-        installed_binaries[DEFAULT] = bins
+        installed_binaries[tc.DEFAULT] = bins
 
         try:
-            installed_binaries[DEFAULT].remove(settings)
-            installed_binaries[DEFAULT].append(CONTROL_PANEL)
+            installed_binaries[tc.DEFAULT].remove(settings)
+            installed_binaries[tc.DEFAULT].append(tc.CONTROL_PANEL)
             self.passed += 1
 
         except ValueError:
-            log_failed_test(self, settings + " binary not in " + DEFAULT + " subpackage")
+            tu.log_failed_test(self, settings + " binary not in " + tc.DEFAULT + " subpackage")
             self.failed += 1
         return installed_binaries, installed_slaves
     
     def _get_binary_directory_path(self, name):
-        return USR_BIN
+        return tc.USR_BIN
 
     def _get_checked_masters(self):
-        return [LIBJAVAPLUGIN + "." + self._get_arch()]
+        return [tc.LIBJAVAPLUGIN + "." + self._get_arch()]
 
     def _remove_links_from_usr_bin(self, installed_binaries):
         # perhaps doc
         links = []
-        for b in installed_binaries[DEFAULT]:
+        for b in installed_binaries[tc.DEFAULT]:
             if ".itweb" not in b:
                 links.append(b)
         for l in links:
-            installed_binaries[DEFAULT].remove(l)
+            installed_binaries[tc.DEFAULT].remove(l)
         return installed_binaries

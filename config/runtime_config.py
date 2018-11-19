@@ -1,7 +1,7 @@
 import config.global_config
 import utils.build_downloader
 from outputControl import logging_access as la
-from utils import rpm_list
+import utils.rpm_list as rpm_list
 
 VERSION_STRING = "jdks_specification_framework, version 0.1"
 

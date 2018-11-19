@@ -1,7 +1,7 @@
-from utils.mock.mock_executor import DefaultMock
+import utils.mock.mock_executor as mexe
 import utils.pkg_name_split as pkgsplit
-from utils.mock.mock_execution_exception import MockExecutionException
-from utils.test_utils import rename_default_subpkg, replace_archs_with_general_arch, log_failed_test
+import utils.mock.mock_execution_exception as mexc
+import utils.test_utils as tu
 import os
 import config.runtime_config as rc
 from testcases.alternativesTests.binaries_test_paths import PathTest
@@ -70,16 +70,16 @@ class GetAllBinariesAndSlaves(PathTest):
     def get_slaves(self, _subpkg):
         checked_masters = self._get_checked_masters()
         self._document("Checking slaves for masters:"
-                       " {}".format(" and ".join(replace_archs_with_general_arch(checked_masters, self._get_arch()))))
+                       " {}".format(" and ".join(tu.replace_archs_with_general_arch(checked_masters, self._get_arch()))))
 
-        masters = DefaultMock().get_masters()
+        masters = mexe.DefaultMock().get_masters()
         clean_slaves = []
         for m in checked_masters:
             if m not in masters:
                 continue
             try:
-                slaves = DefaultMock().get_slaves(m)
-            except MockExecutionException:
+                slaves = mexe.DefaultMock().get_slaves(m)
+            except mexc.MockExecutionException:
                 self.binaries_test.log("No relevant slaves were present for " + _subpkg + ".", la.Verbosity.TEST)
                 continue
             self.binaries_test.log("Found slaves for {}: {}".format(_subpkg, str(slaves)), la.Verbosity.TEST)
@@ -98,15 +98,15 @@ class GetAllBinariesAndSlaves(PathTest):
 
         for pkg in pkgs:
             name = os.path.basename(pkg)
-            _subpkg = rename_default_subpkg(pkgsplit.get_subpackage_only(name))
+            _subpkg = tu.rename_default_subpkg(pkgsplit.get_subpackage_only(name))
             if _subpkg in subpackages_without_alternatives() + get_javadoc_dirs():
                 self.binaries_test.log("Skipping binaries extraction for " + _subpkg)
                 self.skipped.append(_subpkg)
                 continue
-            if not DefaultMock().postinstall_exception_checked(pkg):
+            if not mexe.DefaultMock().postinstall_exception_checked(pkg):
                 self.binaries_test.log("Failed to execute postinstall. Slaves will not be found for " + _subpkg)
             binary_directory_path = self._get_binary_directory_path(name)
-            binaries = DefaultMock().execute_ls(binary_directory_path)
+            binaries = mexe.DefaultMock().execute_ls(binary_directory_path)
 
             if binaries[1] != 0:
                 self.binaries_test.log("Location {} does not exist, binaries test skipped "
@@ -153,13 +153,13 @@ class BinarySlaveTestMethods(GetAllBinariesAndSlaves):
                         sdk.remove(j)
                         self.passed += 1
                     except ValueError:
-                        log_failed_test(self, "Binary " + j + " is present in JRE, but is missing in SDK.")
+                        tu.log_failed_test(self, "Binary " + j + " is present in JRE, but is missing in SDK.")
                         self.failed += 1
         return
 
     def _perform_all_checks(self):
         if not passed_or_failed(self, sorted(self.installed_slaves.keys()) == sorted(self.installed_binaries.keys())):
-            log_failed_test(self, "Subpackages that contain binaries and slaves do not match. Subpackages with"
+            tu.log_failed_test(self, "Subpackages that contain binaries and slaves do not match. Subpackages with"
                             "binaries: {}, Subpackages with slaves: {}".format(
                                                                 sorted(self.installed_binaries.keys()),
                                                                 sorted(self.installed_slaves.keys())))
@@ -168,14 +168,14 @@ class BinarySlaveTestMethods(GetAllBinariesAndSlaves):
                 slaves = self.installed_slaves[subpackage]
                 binaries = self.installed_binaries[subpackage]
                 if not passed_or_failed(self, sorted(binaries) == sorted(slaves)):
-                    log_failed_test(self, "Binaries do not match slaves in {}. Missing binaries: {}"
+                    tu.log_failed_test(self, "Binaries do not match slaves in {}. Missing binaries: {}"
                                     " Missing slaves: {}".format(subpackage, diff(slaves, binaries),
                                                                  diff(binaries, slaves)))
                 self._check_binaries_against_hardcoded_list(binaries, subpackage)
 
         except KeyError as err:
             self.failed += 1
-            log_failed_test(self, err.__str__())
+            tu.log_failed_test(self, err.__str__())
         return
 
     # main check, that includes all small checks and at the end compares the binaries with slaves
