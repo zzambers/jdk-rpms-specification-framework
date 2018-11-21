@@ -1,6 +1,6 @@
-from outputControl import logging_access as la
 import sys
 import utils.core.base_xtest as bt
+from outputControl import logging_access as la
 import config.global_config as gc
 import config.runtime_config as rc
 import utils.core.unknown_java_exception as ex
@@ -35,7 +35,7 @@ class BinariesTest(bt.BaseTest):
                     self.csch = tcc.OpenJdk6(BinariesTest.instance)
                     return
 
-            elif rpms.getMajorVersionSimplified() == "7" :
+            elif rpms.getMajorVersionSimplified() == "7":
                 self.csch = tcc.OpenJdk7(BinariesTest.instance)
                 return
 
