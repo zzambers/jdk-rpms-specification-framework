@@ -93,7 +93,7 @@ class BaseTestRunner:
 
     def execute_tests(self):
         """Call all test_ prefixed methods in overwritting class"""
-        pu.executeShell("rm -rf jtregLogs/*")
+        pu.executeShell("mkdir jtregLogs")
         passed = 0
         failed = 0
         methodOnlyCounter = 0
