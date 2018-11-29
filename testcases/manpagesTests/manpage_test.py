@@ -12,6 +12,7 @@ from utils.mock.mock_executor import DefaultMock
 import config.runtime_config as rc
 from config.global_config import get_32b_arch_identifiers_in_scriptlets as get_id
 from utils.test_constants import *
+import outputControl.dom_objects as do
 
 
 MANPAGE_SUFFIX = ".1.gz"
@@ -150,8 +151,11 @@ class ManpageTestMethods(JdkConfiguration):
         # now check that every binary has a man file
         for b in binaries:
             manpage = b + self._get_manpage_suffixes(subpackage)[FILE]
+            testcase = do.Testcase("ManpageTests", "manpage_file_check")
+            do.Tests().add_testcase(testcase)
             if not passed_or_failed(self, manpage in manpage_files):
                 log_failed_test(self, manpage + " man page file not in " + subpackage)
+                testcase.set_view_file_stub(manpage + " man page file not in " + subpackage)
         return manpage_files
 
     def manpage_links_check(self, bins, subpackage=None, manpages_with_postscript=None, manpage_files=None):
@@ -166,8 +170,11 @@ class ManpageTestMethods(JdkConfiguration):
 
         for l in links:
             link = l + self._get_manpage_suffixes(subpackage)[LINK]
+            testcase = do.Testcase("ManpageTests", "manpage_links_check")
+            do.Tests().add_testcase(testcase)
             if not passed_or_failed(self, link in manpage_links):
                 log_failed_test(self, link + " man page link not in " + subpackage)
+                testcase.set_view_file_stub(link + " man page file not in " + subpackage)
 
     def man_page_test(self, pkgs):
         self._document("Every binary must have a man page. If binary has a slave, then man page has also its slave."
@@ -430,10 +437,16 @@ class ITW(ManpageTestMethods):
         itw_manpage_file = "icedtea-web.1.gz"
         self._document("IcedTea Web has an " + itw_manpage_file + " man page, that has no binary and " +
                        itw_manpage_link + " man page, that has no slave.")
+        testcase = do.Testcase("ManpageTests", "iced_tea_web_check")
+        do.Tests().add_testcase(testcase)
         if not passed_or_failed(self, itw_manpage_file in manpages_without_postscript[DEFAULT]):
             log_failed_test(self, itw_manpage_file + " manpage file missing in " + DEFAULT)
+            testcase.set_view_file_stub(itw_manpage_file + " manpage file missing in " + DEFAULT)
+        testcase = do.Testcase("ManpageTests", "iced_tea_web_check")
+        do.Tests().add_testcase(testcase)
         if not passed_or_failed(self, itw_manpage_link in manpages_with_postcript[DEFAULT]):
             log_failed_test(self, itw_manpage_link + " manpage link missing in " + DEFAULT)
+            testcase.set_view_file_stub(itw_manpage_link + " manpage link missing in " + DEFAULT)
         return
 
 

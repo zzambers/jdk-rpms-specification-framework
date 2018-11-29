@@ -8,6 +8,7 @@ import testcases.nameTest.connfigs.initbuild_config
 import utils.core.base_xtest
 from outputControl import logging_access as la
 from utils.test_utils import passed_or_failed, _reinit
+from outputControl import dom_objects as do
 
 
 class InitTest(utils.core.base_xtest.BaseTest):
@@ -21,6 +22,8 @@ class InitTest(utils.core.base_xtest.BaseTest):
         _reinit(self)
         java = config.runtime_config.RuntimeConfig().getRpmList().getJava()
         self.log("prefix is: " + java)
+        testcase = do.Testcase("InitTest", "test_java")
+        do.Tests().add_testcase(testcase)
         passed_or_failed(self, java is not None)
         self.csch.checkPrefix(java)
         return self.passed, self.failed
@@ -29,6 +32,8 @@ class InitTest(utils.core.base_xtest.BaseTest):
         _reinit(self)
         version = config.runtime_config.RuntimeConfig().getRpmList().getMajorVersion()
         self.log("Major version is: " + version)
+        testcase = do.Testcase("InitTest", "test_majorVersion")
+        do.Tests().add_testcase(testcase)
         passed_or_failed(self, version is not None)
         self.csch.checkMajorVersion(version)
         return self.passed, self.failed
@@ -37,6 +42,8 @@ class InitTest(utils.core.base_xtest.BaseTest):
         _reinit(self)
         version = config.runtime_config.RuntimeConfig().getRpmList().getMajorVersionSimplified()
         self.log("Major version simplified is: " + str(version))
+        testcase = do.Testcase("InitTest", "test_majorVersionSimplified")
+        do.Tests().add_testcase(testcase)
         passed_or_failed(self, version is not None)
         self.csch.checkMajorVersionSimplified(version)
         return self.passed, self.failed
@@ -45,6 +52,8 @@ class InitTest(utils.core.base_xtest.BaseTest):
         _reinit(self)
         vendor = config.runtime_config.RuntimeConfig().getRpmList().getVendor()
         self.log("Vendor is: " + vendor)
+        testcase = do.Testcase("InitTest", "test_vendor")
+        do.Tests().add_testcase(testcase)
         passed_or_failed(self, vendor is not None)
         self.csch.checkVendor(vendor)
         return self.passed, self.failed
@@ -53,6 +62,8 @@ class InitTest(utils.core.base_xtest.BaseTest):
         _reinit(self)
         pkgs = config.runtime_config.RuntimeConfig().getRpmList().getPackages()
         self.log("Found pacakges are: " + ",".join(pkgs))
+        testcase = do.Testcase("InitTest", "test_package")
+        do.Tests().add_testcase(testcase)
         passed_or_failed(self, len(pkgs) > 0)
         return self.passed, self.failed
 
@@ -60,6 +71,8 @@ class InitTest(utils.core.base_xtest.BaseTest):
         _reinit(self)
         java = config.runtime_config.RuntimeConfig().getRpmList().getMajorPackage()
         self.log("Package is: " + java)
+        testcase = do.Testcase("InitTest", "test_majorPackage")
+        do.Tests().add_testcase(testcase)
         passed_or_failed(self, java is not None)
         return self.passed, self.failed
 
@@ -67,6 +80,8 @@ class InitTest(utils.core.base_xtest.BaseTest):
         _reinit(self)
         subpkgs = config.runtime_config.RuntimeConfig().getRpmList().getSubpackageOnly()
         self.log("found subpackages only are: `" + "`,`".join(subpkgs) + "`")
+        testcase = do.Testcase("InitTest", "test_subpackage")
+        do.Tests().add_testcase(testcase)
         passed_or_failed(self, len(subpkgs) > 0)
         return self.passed, self.failed
 
@@ -74,6 +89,8 @@ class InitTest(utils.core.base_xtest.BaseTest):
         _reinit(self)
         java = config.runtime_config.RuntimeConfig().getRpmList().getVersion()
         self.log("Version is: " + java)
+        testcase = do.Testcase("InitTest", "test_version")
+        do.Tests().add_testcase(testcase)
         passed_or_failed(self, java is not None)
         return self.passed, self.failed
 
@@ -81,6 +98,8 @@ class InitTest(utils.core.base_xtest.BaseTest):
         _reinit(self)
         java = config.runtime_config.RuntimeConfig().getRpmList().getRelease()
         self.log("Release is: " + java)
+        testcase = do.Testcase("InitTest", "test_release")
+        do.Tests().add_testcase(testcase)
         passed_or_failed(self, java is not None)
         return self.passed, self.failed
 
@@ -88,6 +107,8 @@ class InitTest(utils.core.base_xtest.BaseTest):
         _reinit(self)
         java = config.runtime_config.RuntimeConfig().getRpmList().getDist()
         self.log("Dist is: " + java)
+        testcase = do.Testcase("InitTest", "test_dist")
+        do.Tests().add_testcase(testcase)
         passed_or_failed(self, java is not None)
         return self.passed, self.failed
 
@@ -95,6 +116,8 @@ class InitTest(utils.core.base_xtest.BaseTest):
         _reinit(self)
         arches = config.runtime_config.RuntimeConfig().getRpmList().getAllArches()
         self.log("All arches are: " + ",".join(arches))
+        testcase = do.Testcase("InitTest", "test_arches")
+        do.Tests().add_testcase(testcase)
         passed_or_failed(self, len(arches) > 1)
         return self.passed, self.failed
 
@@ -102,6 +125,8 @@ class InitTest(utils.core.base_xtest.BaseTest):
         _reinit(self)
         nativeArches = config.runtime_config.RuntimeConfig().getRpmList().getNativeArches()
         self.log("All native arches: " + ",".join(nativeArches))
+        testcase = do.Testcase("InitTest", "test_nativeArches")
+        do.Tests().add_testcase(testcase)
         passed_or_failed(self, len(nativeArches) > 0)
         return self.passed, self.failed
 
@@ -117,6 +142,8 @@ class InitTest(utils.core.base_xtest.BaseTest):
         noarches = config.runtime_config.RuntimeConfig().getRpmList().getNoArchesPackages()
         self.log("all no arches packages are: ")
         for pkg in noarches:
+            testcase = do.Testcase("InitTest", "test_noarchesPackages")
+            do.Tests().add_testcase(testcase)
             self.log("  " + pkg)
             passed_or_failed(self, len(noarches) > 0)
         return self.passed, self.failed
@@ -129,6 +156,8 @@ class InitTest(utils.core.base_xtest.BaseTest):
             self.log("all " + na + " packages are: ")
             for pkg in arches:
                 self.log("  " + pkg)
+            testcase = do.Testcase("InitTest", "test_nativeArchesPackages")
+            do.Tests().add_testcase(testcase)
             passed_or_failed(self, len(arches) > 0)
         return self.passed, self.failed
 
@@ -140,6 +169,8 @@ class InitTest(utils.core.base_xtest.BaseTest):
             self.log("build for " + na + " without srpm: ")
             for pkg in arches:
                 self.log("  " + pkg)
+            testcase = do.Testcase("InitTest", "test_builds")
+            do.Tests().add_testcase(testcase)
             passed_or_failed(self, len(arches) > 0)
         return self.passed, self.failed
 
@@ -151,6 +182,8 @@ class InitTest(utils.core.base_xtest.BaseTest):
             self.log("build for " + na + ": ")
             for pkg in arches:
                 self.log("  " + pkg)
+            testcase = do.Testcase("InitTest", "test_completeBuilds")
+            do.Tests().add_testcase(testcase)
             passed_or_failed(self, len(arches) > 0)
         return self.passed, self.failed
 
@@ -160,10 +193,20 @@ class InitTest(utils.core.base_xtest.BaseTest):
         self.log("Os: " + l.getOs())
         self.log("Version: " + l.getOsVersion())
         self.log("Version major: " + str(l.getOsVersionMajor()))
+        testcase = do.Testcase("InitTest", "test_os")
+        do.Tests().add_testcase(testcase)
         passed_or_failed(self, l.isFedora() | l.isRhel())
+        testcase = do.Testcase("InitTest", "test_os")
+        do.Tests().add_testcase(testcase)
         passed_or_failed(self, l.isFedora() != l.isRhel())
+        testcase = do.Testcase("InitTest", "test_os")
+        do.Tests().add_testcase(testcase)
         passed_or_failed(self, l.getOs() is not None)
+        testcase = do.Testcase("InitTest", "test_os")
+        do.Tests().add_testcase(testcase)
         passed_or_failed(self, l.getOsVersion() is not None)
+        testcase = do.Testcase("InitTest", "test_os")
+        do.Tests().add_testcase(testcase)
         passed_or_failed(self, l.getOsVersionMajor() is not None)
         return self.passed, self.failed
 

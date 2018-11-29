@@ -13,6 +13,7 @@ from utils.mock.mock_executor import DefaultMock
 from config.global_config import get_32b_arch_identifiers_in_scriptlets as get_id
 from utils.test_utils import rename_default_subpkg, passed_or_failed, get_arch
 from utils.test_constants import *
+from outputControl import dom_objects as do
 
 # TODO check if the masters are directories + doc that those are directories
 
@@ -114,11 +115,17 @@ class CheckPostinstallScript(BasePackages):
                                            " : " + ", ".join(expected_masters), la.Verbosity.TEST)
         PostinstallScriptTest.instance.log("Postinstall present in " + str(len(actual_masters)) + " : " +
                                            ", ".join(actual_masters), la.Verbosity.TEST)
-
+        testcase = do.Testcase("MainPackagePresent", "check_post_in_script")
+        do.Tests().add_testcase(testcase)
         passed_or_failed(self, set(expected_masters.keys()) == set(actual_masters.keys()))
 
         for subpkg in expected_masters.keys():
             if subpkg not in actual_masters.keys():
+                testcase = do.Testcase("MainPackagePresent", "check_post_in_script")
+                do.Tests().add_testcase(testcase)
+                testcase.set_log_file("none")
+                testcase.set_view_file_stub("There is no such subpackage as " + subpkg + " that contains masters." 
+                                                                                                "The test fails.")
                 PostinstallScriptTest.instance.log("There is no such subpackage as " + subpkg + " that contains masters." 
                                                                                                 "The test fails.")
                 self.failed += 1
@@ -129,6 +136,8 @@ class CheckPostinstallScript(BasePackages):
             PostinstallScriptTest.instance.log("Presented masters for " + subpkg + " : " +
                                                ", ".join(sorted(actual_masters[subpkg])), la.Verbosity.TEST)
 
+            testcase = do.Testcase("MainPackagePresent", "check_post_in_script")
+            do.Tests().add_testcase(testcase)
             passed_or_failed(self, sorted(expected_masters[subpkg]) == sorted(actual_masters[subpkg]))
 
         return self.passed, self.failed

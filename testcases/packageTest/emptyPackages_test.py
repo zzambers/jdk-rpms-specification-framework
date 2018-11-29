@@ -7,6 +7,7 @@ import config.runtime_config
 import utils.core.base_xtest
 from outputControl import logging_access as la
 from utils.test_utils import passed_or_failed
+from outputControl import dom_objects as do
 
 
 class EmptyPackageTest(utils.core.base_xtest.BaseTest):
@@ -15,10 +16,11 @@ class EmptyPackageTest(utils.core.base_xtest.BaseTest):
         self.passed = 0
         self.failed = 0
 
-
     def test_checkNoPacakgeEmpty(self):
         pkgs= config.runtime_config.RuntimeConfig().getRpmList().getAllFiles()
         for pkg in pkgs:
+            testcase = do.Testcase("EmptyPackageTest", "test_checkNoPacakgeEmpty")
+            do.Tests().add_testcase(testcase)
             self.log("checking: " + pkg)
             files = utils.rpmbuild_utils.listFilesInPackage(pkg)
             self.log("got: " + str(len(files)) + " files")
@@ -28,11 +30,8 @@ class EmptyPackageTest(utils.core.base_xtest.BaseTest):
                 passed_or_failed(self, len(files) > 2)
         return self.passed, self.failed
 
-
-
     def getTestedArchs(self):
         return None
-
 
 
 def testAll():

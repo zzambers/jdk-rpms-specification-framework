@@ -2,15 +2,16 @@ import inspect
 import sys
 import time
 import traceback
+import datetime as dt
 from collections import OrderedDict
 
 import utils.test_utils as tu
-
+import utils.process_utils as pu
 import config.global_config
 import config.runtime_config
 import utils.core.configuration_specific as cs
 from outputControl import logging_access as la
-
+from outputControl import dom_objects as do
 
 def lsort(someList):
     if config.global_config.leSort:
@@ -92,6 +93,7 @@ class BaseTestRunner:
 
     def execute_tests(self):
         """Call all test_ prefixed methods in overwritting class"""
+        pu.executeShell("rm -rf jtregLogs/*")
         passed = 0
         failed = 0
         methodOnlyCounter = 0
@@ -100,10 +102,11 @@ class BaseTestRunner:
         self.log("started tests in suite: " + type(self).__name__ + ":")
         archs = self._cleanArchs()
         methods = lsort(inspect.getmembers(self, predicate=inspect.ismethod))
-        for a, b in methods:
-            methodOnly = False
-            for i, arch in enumerate(archs):
-                self.current_arch = arch
+        for i, arch in enumerate(archs):
+            la.LoggingAccess().log("", la.Verbosity.JTREG, type(self).__name__ + "_" + arch)
+            self.current_arch = arch
+            for a, b in methods:
+                methodOnly = False
                 if str(a).startswith("test_"):
                     methodStart = time.clock()
                     if not methodOnly:
@@ -139,8 +142,22 @@ class BaseTestRunner:
                         # traceback.print_exc()
                     methodEnd = time.clock()
                     ms = (methodEnd)*1000-(methodStart*1000)
-                    self.indent = "    "
-                    self.log("finished: " + a + "[" + self.current_arch + "] " + str(i + 1) + "/" + str(len(archs)) + " in "+str(round(ms,3))+"ms")
+            rpms = config.runtime_config.RuntimeConfig().getRpmList()
+            la.LoggingAccess().log("<?xml version=\"1.0\"?>\n<testsuites>", la.Verbosity.JTREG,
+                                           type(self).__name__)
+            la.LoggingAccess().log(
+                    tu.xmltestsuite(0, failed, passed, passed + failed, 0, type(self).__name__, rpms.getOs()
+                                    + rpms.getOsVersion() + "-vagrant", ms, dt.datetime.now().isoformat()),
+                    la.Verbosity.JTREG, type(self).__name__)
+            for testcase in do.Tests().get_tests():
+                    la.LoggingAccess().log(testcase.print_test_case(), la.Verbosity.JTREG, type(self).__name__)
+            la.LoggingAccess().log("    <system-out></system-out>\n    " +
+                                       "<system-err></system-err>\n  </testsuite>\n</testsuites>",
+                                       la.Verbosity.JTREG, type(self).__name__)
+            self.indent = "    "
+            self.log("finished: " + a + "[" + self.current_arch + "] " + str(i + 1) + "/" + str(len(archs)) +
+                         " in "+str(round(ms,3))+"ms")
+            do.Tests().clear_tests()
         suiteEnd = time.clock()
         ms = (suiteEnd) * 1000 - (suiteStart * 1000)
         la.LoggingAccess().log(

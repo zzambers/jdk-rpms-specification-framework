@@ -8,6 +8,7 @@ import config.runtime_config
 import utils.core.base_xtest
 from outputControl import logging_access as la
 from utils.test_utils import passed_or_failed
+from outputControl import dom_objects as do
 
 
 class Base(JdkConfiguration):
@@ -37,6 +38,8 @@ class Openjdk8Fedora(Base):
         for obsolete in obsoletes:
             if obsolete in Openjdk8Fedora.jreRequiredObsolete:
                 obsoleteJdk7 += 1
+        testcase = do.Testcase("Base", "checkJreObsolete")
+        do.Tests().add_testcase(testcase)
         passed_or_failed(self, obsoleteJdk7 == len(Openjdk8Fedora.jreRequiredObsolete))
         return self.passed, self.failed
 
@@ -48,6 +51,8 @@ class JdkRhel(Base):
     ]
     def _checkJreObsolete(self, obsoletes=None):
         self._document("Jdks in rhel must NOT obsolete anything. Possible exceptions: " +",".join(JdkRhel.jreExceptionsObsolete))
+        testcase = do.Testcase("Base", "checkJreObsolete")
+        do.Tests().add_testcase(testcase)
         passed_or_failed(self, len(set(obsoletes)-set(JdkRhel.jreExceptionsObsolete)) == 0)
         return self.passed, self.failed
 

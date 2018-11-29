@@ -10,6 +10,7 @@ from utils.test_utils import two_lists_diff as diff
 import utils.pkg_name_split as pkgsplit
 from utils.test_constants import subpackages_without_alternatives
 from enum import Enum
+from outputControl import dom_objects as do
 
 OPENJFXDIR = "/usr/lib/jvm/openjfx"
 
@@ -116,11 +117,15 @@ class BaseMethods(JdkConfiguration):
                                      "of this dependency would hurt the test suite, therefore this hardcoded check.")
             valid_link = True
 
+        testcase = do.Testcase("BaseMethods","check_dangling_symlinks")
+        do.Tests().add_testcase(testcase)
         if valid_link:
             SymlinkTest.instance.log("Link {} pointing at {} is valid.".format(link.path_to_symlink, link.points_at))
             self.passed += 1
         else:
             log_failed_test(self, " Subpackage {}: link {} pointing at {} is invalid.".format(subpackage, link.path_to_symlink, link.points_at))
+            testcase.set_log_file("none")
+            testcase.set_view_file_stub(" Subpackage {}: link {} pointing at {} is invalid.".format(subpackage, link.path_to_symlink, link.points_at))
             self.failed +=1
 
     def a_symlink_test(self, pkgs):
@@ -160,6 +165,8 @@ class BaseMethods(JdkConfiguration):
                 else:
                     # TODO: Must check if the link does not point on other link, if it does, check whether that one is
                     # TODO: not broken
+                    testcase = do.Testcase("BaseMethods","a_symlink_test " + subpackage)
+                    do.Tests().add_testcase(testcase)
                     self.passed += 1
                     SymlinkTest.instance.log("Found valid link in {}: ".format(subpackage) + link.__str__(),
                                               la.Verbosity.TEST)

@@ -36,3 +36,12 @@ class DefaultLog(metaclass=Singleton):
         self.target.flush()
 
 
+class JtregLog(metaclass=Singleton):
+    def __init__(self, testsuite=""):
+        if testsuite:
+            self.target = open("./jtregLogs/" + testsuite + "_jtreglog.xml", "w")
+
+    def println(self, arg2):
+        self.target.write(arg2)
+        self.target.write("\n")
+        self.target.flush()

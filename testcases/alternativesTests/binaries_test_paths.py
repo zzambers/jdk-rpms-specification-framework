@@ -8,6 +8,7 @@ import os
 from utils.test_constants import *
 from utils.test_utils import get_32bit_id_in_nvra, passed_or_failed
 from outputControl import logging_access as la
+from outputControl import dom_objects as do
 
 
 
@@ -82,12 +83,16 @@ class BaseTest(JdkConfiguration):
             "{} must be present in {} binaries. It has no slave in alternatives.".format(JAVA_RMI_CGI, DEVEL))
         # java-rmi.cgi binary check
         for subpackage in self._get_sdk_subpackage():
+            testcase = do.Testcase("BaseTest", "check_java_cgi_" + subpackage)
+            do.Tests().add_testcase(testcase)
             try:
                 self.installed_binaries[subpackage].remove(JAVA_RMI_CGI)
                 self.passed += 1
             except ValueError or KeyError:
                 self.failed += 1
                 log_failed_test(self, "Missing {} in {}.".format(JAVA_RMI_CGI, DEVEL))
+                testcase.set_log_file("none")
+                testcase.set_view_file_stub("Missing {} in {}.".format(JAVA_RMI_CGI, DEVEL))
         return self.installed_binaries
 
     def _get_32bit_id_in_nvra(self, nvra):
@@ -130,10 +135,14 @@ class PathTest(BaseTest):
             self.binaries_test.log("Validating binaries paths for {} subpackage: ".format(_subpkg), la.Verbosity.TEST)
             for binary in self.installed_binaries[_subpkg]:
                 found_paths = self._binary_in_path_contents(path_contents, binary)
+                testcase = do.Testcase("PathTest", binary + "_in_" + pkg)
+                do.Tests().add_testcase(testcase)
                 if passed_or_failed(self, found_paths is not None):
                     self.binaries_test.log("Binary {} found in {} for "
                                            "{}".format(binary, ", ".join(found_paths), _subpkg), la.Verbosity.TEST)
                 else:
+                    testcase.set_log_file("none")
+                    testcase.set_view_file_stub("not found in any path given for " + _subpkg)
                     log_failed_test(self, binary + " not found in any path given for " + _subpkg)
 
         self.binaries_test.log("Path test finished.", la.Verbosity.TEST)
@@ -159,16 +168,25 @@ class PathTest(BaseTest):
             return None
         result = set()
         for p in paths:
+            testcase = do.Testcase("PathTest", binary + "_" + p)
+            do.Tests().add_testcase(testcase)
             tg = "readlink " + p + "/" + binary
             res = DefaultMock().executeCommand([tg])
             if passed_or_failed(self, res[1] == 0):
                 result.add(res)
             else:
                 log_failed_test(self, "Command readlink " + p + "/" + binary + " failed.")
+                testcase.set_log_file("none")
+                testcase.set_view_file_stub("not found in a path: " + p)
+        testcase = do.Testcase("PathTest", binary)
+        do.Tests().add_testcase(testcase)
         if not passed_or_failed(self, len(result) == 1):
+            testcase.set_log_file("none")
             if len(result) > 1:
+                testcase.set_view_file_stub("Links of {} do not point on same target".format(p))
                 log_failed_test(self, "Links of one binary do not point on same target: " + ",".join(result))
             else:
+                testcase.set_view_file_stub("Links of {} do not point on any target".format(p))
                 log_failed_test(self, "Links do not point on any target.")
         return paths
 

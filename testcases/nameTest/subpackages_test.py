@@ -11,6 +11,7 @@ from utils.test_constants import *
 from outputControl import logging_access as la
 from utils import pkg_name_split as split
 from utils.test_utils import passed_or_failed
+from outputControl import dom_objects as do
 
 
 class MainPackagePresent(JdkConfiguration):
@@ -33,8 +34,12 @@ class MainPackagePresent(JdkConfiguration):
                                      + str(len(subpkgSetExpected)), la.Verbosity.TEST)
         SubpackagesTest.instance.log("Presented: " + str(ssGiven), la.Verbosity.TEST)
         SubpackagesTest.instance.log("Expected:  " + str(subpkgSetExpected), la.Verbosity.TEST)
+        testcase = do.Testcase("MainPackagePresent", "mainCheck")
+        do.Tests().add_testcase(testcase)
         passed_or_failed(self, len(ssGiven) == len(subpkgSetExpected))
         for subpkg in subpkgSetExpected:
+            testcase = do.Testcase("MainPackagePresent", "mainCheck " + subpkg)
+            do.Tests().add_testcase(testcase)
             SubpackagesTest.instance.log(
                 "Checking `" + subpkg + "` of " + SubpackagesTest.instance.current_arch, la.Verbosity.TEST)
             passed_or_failed(self, subpkg in ssGiven)

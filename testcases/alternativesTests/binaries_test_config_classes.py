@@ -4,6 +4,7 @@ import testcases.alternativesTests.binaries_test_paths as btp
 import utils.test_constants as tc
 import utils.test_utils as tu
 import utils.mock.mock_executor as mexe
+from outputControl import dom_objects as do
 
 # This script should contain only configuration specific implemetation of the method and overriden methods code.
 # Default methods should be always placed in methods or paths files.
@@ -26,6 +27,8 @@ class OpenJdk6(bsm.BinarySlaveTestMethods):
                                     "subpackages.".format(" and ".join(self._policytool_binary_subpackages()),
                                                           " and ".join(self._policytool_slave_subpackages())))
         for subpackage in self._policytool_binary_subpackages():
+            testcase = do.Testcase("BinarySlaveTestMethods", "handle_policytool_" + subpackage)
+            do.Tests().add_testcase(testcase)
             try:
                 self.installed_binaries[subpackage].remove(tc.POLICYTOOL)
                 self.passed += 1
@@ -33,8 +36,12 @@ class OpenJdk6(bsm.BinarySlaveTestMethods):
             except KeyError:
                 tu.log_failed_test(self, tc.POLICYTOOL + " binary not present in " + subpackage)
                 self.failed += 1
+                testcase.set_log_file("none")
+                testcase.set_view_file_stub(tc.POLICYTOOL + " binary not present in " + subpackage)
                 continue
         for subpkg in self._policytool_slave_subpackages():
+            testcase = do.Testcase("BinarySlaveTestMethods", "handle_policytool_" + subpkg)
+            do.Tests().add_testcase(testcase)
             try:
                 self.installed_slaves[subpkg].remove(tc.POLICYTOOL)
                 self.passed += 1
@@ -44,6 +51,8 @@ class OpenJdk6(bsm.BinarySlaveTestMethods):
             except ValueError:
                 tu.log_failed_test(self, tc.POLICYTOOL + " slave not present in " + subpkg)
                 self.failed += 1
+                testcase.set_log_file("none")
+                testcase.set_view_file_stub(tc.POLICYTOOL + " binary not present in " + subpkg)
         return
 
     def _policytool_slave_subpackages(self):
@@ -103,12 +112,16 @@ class OpenJDK8JFX(OpenJdk8Debug):
         """
         jfx_bins = tc.get_openjfx_binaries()
         for jfxbin in jfx_bins:
+            testcase = do.Testcase("BinarySlaveTestMethods", "jfx_check_" + jfxbin)
+            do.Tests().add_testcase(testcase)
             try:
                 list_of_elements[subpackage].remove(jfxbin)
                 self.passed += 1
             except ValueError:
                 tu.log_failed_test(self, jfxbin + " " + slave_or_bin + " not found in " + subpackage)
                 self.failed += 1
+                testcase.set_log_file("none")
+                testcase.set_view_file_stub(jfxbin + " " + slave_or_bin + " not found in " + subpackage)
         return
 
     def remove_binaries_without_slaves(self, args=None):
@@ -165,14 +178,22 @@ class OpenJdk9(OpenJdk8):
 
     def _check_binaries_against_hardcoded_list(self, binaries, subpackage):
         hardcoded_binaries = self._get_binaries_as_dict()
+        testcase = do.Testcase("BinariesTest", "check_binaries_against_hardcoded_list")
+        do.Tests().add_testcase(testcase)
         if not tu.passed_or_failed(self, subpackage in hardcoded_binaries.keys()):
             tu.log_failed_test(self, "Binaries in unexpected subpackage: " + subpackage)
+            testcase.set_log_file("none")
+            testcase.set_view_file_stub("Binaries in unexpected subpackage: " + subpackage)
             return
+        testcase = do.Testcase("BinariesTest", "check_binaries_against_hardcoded_list")
+        do.Tests().add_testcase(testcase)
         if not tu.passed_or_failed(self, sorted(binaries) == sorted(hardcoded_binaries[subpackage])):
             tu.log_failed_test(self, "Hardcode check: binaries are not as expected. Missing binaries: {}."
                             " Extra binaries: "
                             "{}".format(tu.two_lists_diff(hardcoded_binaries[subpackage], binaries),
                                         tu.two_lists_diff(binaries, hardcoded_binaries[subpackage])))
+            testcase.set_log_file("none")
+            testcase.set_view_file_stub("Hardcode check: binaries are not as expected.")
         return
 
     def check_exports_slaves(self, args=None):
@@ -361,12 +382,16 @@ class Ibm(bsm.BinarySlaveTestMethods):
                                                 "and have no slaves in alternatives.".format(subpackage,
                                                                                            self._get_sdk_subpackage()[0]))
         for e in excludes:
+            testcase = do.Testcase("BinarySlaveTestMethods", "remove_binaries_without_slaves " + e)
+            do.Tests().add_testcase(testcase)
             try:
                 self.installed_binaries[subpackage].remove(e)
                 self.passed += 1
             except ValueError:
                 tu.log_failed_test(self, e + " not present in " + subpackage + " binaries.")
                 self.failed += 1
+                testcase.set_log_file("none")
+                testcase.set_view_file_stub(e + " not present in " + subpackage + " binaries.")
         return
 
     def handle_plugin_binaries(self, args=None):
@@ -383,23 +408,43 @@ class Ibm(bsm.BinarySlaveTestMethods):
     def _check_plugin_binaries_and_slaves_are_present(self, bsubpackages, ssubpackages):
         for pbinary in tc.get_plugin_binaries():
             for subpackage in bsubpackages:
+                testcase = do.Testcase("BinarySlaveTestMethods",
+                                       "check_plugin_binaries_and_slaves_are_present - " + pbinary)
+                do.Tests().add_testcase(testcase)
                 if not tu.passed_or_failed(self, pbinary in self.installed_binaries[subpackage]):
                     tu.log_failed_test(self, "Missing plugin binary " + pbinary + " in " + subpackage)
+                    testcase.set_log_file("none")
+                    testcase.set_view_file_stub("Missing binary in " + subpackage)
             for subpackage in ssubpackages:
+                testcase = do.Testcase("BinarySlaveTestMethods",
+                                       "check_plugin_binaries_and_slaves_are_present - " + pbinary)
+                do.Tests().add_testcase(testcase)
                 if not tu.passed_or_failed(self, pbinary not in self.installed_slaves[subpackage]):
                     tu.log_failed_test(self, "Missing plugin slave " + pbinary + " in " + subpackage)
+                    testcase.set_log_file("none")
+                    testcase.set_view_file_stub("Missing slave in " + subpackage)
 
     def _check_plugin_bins_and_slaves_are_not_present(self, subpackages):
         for pbinary in tc.get_plugin_binaries():
             for subpackage in subpackages:
+                testcase = do.Testcase("BinarySlaveTestMethods",
+                                       "check_plugin_binaries_and_slaves_are_not_present - " + pbinary)
+                do.Tests().add_testcase(testcase)
                 if not tu.passed_or_failed(self, pbinary not in self.installed_binaries[subpackage]):
                     tu.log_failed_test(self, pbinary + " should not be in " + subpackage +
                                     " because this subpackage must not contain any plugin binaries.")
                     self.installed_binaries[subpackage].remove(pbinary)
+                    testcase.set_log_file("none")
+                    testcase.set_view_file_stub("Extra binary in " + subpackage)
+                testcase = do.Testcase("BinarySlaveTestMethods",
+                                           "check_plugin_binaries_and_slaves_are_not_present - " + pbinary)
+                do.Tests().add_testcase(testcase)
                 if not tu.passed_or_failed(self, pbinary not in self.installed_slaves[subpackage]):
                     tu.log_failed_test(self, pbinary + " should not be in " + subpackage +
                                     " because this subpackage must not contain plugin slaves.")
                     self.installed_slaves[subpackage].remove(pbinary)
+                    testcase.set_log_file("none")
+                    testcase.set_view_file_stub("Extra slave in " + subpackage)
         return
 
 
@@ -485,6 +530,8 @@ class Oracle7(Oracle6ArchPlugin):
     def _remove_excludes(self):
         exclude_list = tc.oracle_exclude_list()
         for exclude in exclude_list:
+            testcase = do.Testcase("BinarySlaveTestMethods", "remove_excludes " + exclude)
+            do.Tests().add_testcase(testcase)
             self._document("{} is not a binary. It is present in {} subpackages binaries. It has "
                            "no slave in alternatives.".format(exclude, tc.DEVEL))
             try:
@@ -493,6 +540,8 @@ class Oracle7(Oracle6ArchPlugin):
             except ValueError:
                 tu.log_failed_test(self, exclude + " not present in " + tc.DEVEL)
                 self.failed += 1
+                testcase.set_log_file("none")
+                testcase.set_view_file_stub(exclude + " not present in " + tc.DEVEL)
         return
 
     def _get_subpackages_with_binaries(self):
@@ -553,6 +602,8 @@ class Itw(bsm.BinarySlaveTestMethods):
             bins.append(b.replace(".itweb", ""))
         installed_binaries[tc.DEFAULT] = bins
 
+        testcase = do.Testcase("BinarySlaveTestMethods", "get_all_binaries_and_slaves " + settings)
+        do.Tests().add_testcase(testcase)
         try:
             installed_binaries[tc.DEFAULT].remove(settings)
             installed_binaries[tc.DEFAULT].append(tc.CONTROL_PANEL)
@@ -561,6 +612,8 @@ class Itw(bsm.BinarySlaveTestMethods):
         except ValueError:
             tu.log_failed_test(self, settings + " binary not in " + tc.DEFAULT + " subpackage")
             self.failed += 1
+            testcase.set_log_file("none")
+            testcase.set_view_file_stub(settings + " binary not in " + tc.DEFAULT + " subpackage")
         return installed_binaries, installed_slaves
     
     def _get_binary_directory_path(self, name):

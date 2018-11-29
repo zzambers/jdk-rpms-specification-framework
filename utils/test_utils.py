@@ -187,3 +187,10 @@ def _reinit(instance):
     instance.failed = 0
     instance.passed = 0
 
+
+def xmltestsuite(errors, failures, passed, tests, skipped, name, hostname, time, timestamp):
+    text = "<testsuite errors=\"{}\" failures=\"{}\" passed=\"{}\" tests=\"{}\" ".format(errors, failures, passed, tests)
+    text += "skipped=\"{}\" name=\"{}\" hostname=\"{}\" time=\"{}\" timestamp=\"{}\">".format(skipped, name, hostname, time, timestamp)
+    return text
+
+

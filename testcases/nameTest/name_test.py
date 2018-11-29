@@ -11,6 +11,7 @@ import testcases.nameTest.connfigs.nametest_config
 import utils.core.base_xtest
 from outputControl import logging_access as la
 from utils.test_utils import _reinit
+from outputControl import dom_objects as do
 
 def aInB(a, b):
     return a in b
@@ -51,10 +52,14 @@ class NameTest(utils.core.base_xtest.BaseTest):
             self.log("checking: " + file)
             val = function(file)
             self.log("have: " + val)
+            testcase = do.Testcase("NameTest", "checkFilesAgainstComparator")
+            do.Tests().add_testcase(testcase)
             if comparator(val, values):
                 self.log("... is ok")
                 self.passed += 1
             else:
+                testcase.set_log_file("none")
+                testcase.set_view_file_stub(file + " is BAD")
                 self.log("... is BAD")
                 self.failed += 1
         return self.passed, self.failed

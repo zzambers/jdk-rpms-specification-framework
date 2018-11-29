@@ -12,6 +12,7 @@ import utils.pkg_name_split
 import utils.mock.mock_execution_exception
 from utils.test_constants import *
 from utils.test_utils import log_failed_test, rename_default_subpkg, passed_or_failed
+from outputControl import dom_objects as do
 
 PREFIX_160 = "160"
 PREFIX_170 = "170"
@@ -22,7 +23,7 @@ LEN_6 = 6
 LEN_7 = 7
 
 
-class CommonMethods(JdkConfiguration):
+class PriorityTest(JdkConfiguration):
 
     _success_list = []
     _debug_check_fail_list = []
@@ -30,7 +31,7 @@ class CommonMethods(JdkConfiguration):
     rpms = config.runtime_config.RuntimeConfig().getRpmList()
 
     def __init__(self, length, prefix):
-        super(CommonMethods, self).__init__()
+        super(PriorityTest, self).__init__()
         self.length = length
         self.prefix = prefix
         self.list_of_failed_tests = []
@@ -51,9 +52,13 @@ class CommonMethods(JdkConfiguration):
         self._document("Priority for {} should be ".format(self.rpms.getMajorPackage()) + str(self.length) + " digit.")
         PriorityCheck.instance.log("Checking priority length.", la.Verbosity.TEST)
 
+        testcase = do.Testcase("PriorityTest", "check_length")
+        do.Tests().add_testcase(testcase)
         if not passed_or_failed(self, len(priority) == self.length):
             PriorityCheck.instance.log("Priority should be {}-digit, but is {}.".format(self.length, len(priority)),
                                        la.Verbosity.ERROR)
+            testcase.set_log_file("none")
+            testcase.set_view_file_stub("Priority should be {}-digit, but is {}.".format(self.length, len(priority)))
             return False
 
         return True
@@ -63,9 +68,13 @@ class CommonMethods(JdkConfiguration):
         self._document("Prefix is based on major version, in this case it should be " + self.prefix + ".")
         PriorityCheck.instance.log("Checking priority prefix.", la.Verbosity.TEST)
 
+        testcase = do.Testcase("PriorityTest", "check_prefix")
+        do.Tests().add_testcase(testcase)
         if not passed_or_failed(self, priority.startswith(self.prefix, 0, len(self.prefix))):
             PriorityCheck.instance.log("Priority prefix not as expected, should be {}.".format(self.prefix),
                                        la.Verbosity.TEST)
+            testcase.set_log_file("none")
+            testcase.set_view_file_stub("Priority prefix not as expected, should be {}.".format(self.prefix))
             return False
 
         return True
@@ -90,14 +99,18 @@ class CommonMethods(JdkConfiguration):
                 master = master_and_priority.keys()
 
                 for m in master:
+                    testcase = do.Testcase("PriorityTest", "check_debug_packages " + m)
+                    do.Tests().add_testcase(testcase)
                     if not passed_or_failed(self, int(master_and_priority[m]) > int(master_and_priority_debug[m])):
                         log_failed_test(self, "Debug subpackage priority check failed for " + name +
                                         ", master " + master + ". Debug package should have lower priority. " +
                                         "Main package priority: {} Debug package"
                                         " priority: {}".format(master_and_priority[m], master_and_priority_debug[m]))
+                        testcase.set_log_file("none")
+                        testcase.set_view_file_stub("Debug subpackage priority check failed for " + name)
 
 
-class MajorCheck(CommonMethods):
+class MajorCheck(PriorityTest):
     def _check_priorities(self, pkgs):
 
         _default_masters = DefaultMock().get_default_masters()
@@ -147,7 +160,6 @@ class MajorCheck(CommonMethods):
         PriorityCheck.instance.log("Failed for: " + str(self.list_of_failed_tests), la.Verbosity.ERROR)
         PriorityCheck.instance.log("Debug package priority check failed for: " + str(self._debug_check_fail_list),
                                    la.Verbosity.ERROR)
-
         return self.passed, self.failed
 
 
