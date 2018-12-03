@@ -213,6 +213,22 @@ class OpenJdk10DebugDebuginfo(OpenJdk9DebugDebuginfo):
         return ["javadoc-slowdebug", "javadoc-zip-slowdebug"]
 
 
+class OpenJdk11(OpenJdk9):
+    def _getSubPackages(self):
+        subpackages = super()._getSubPackages()
+        subpackages.remove("accessibility")
+        return subpackages
+
+
+class OpenJdk11Debug(OpenJdk8Debug):
+    def _getSubPackages(self):
+        subpackages = super()._getSubPackages()
+        subpackages.remove("accessibility")
+        subpackages.remove("accessibility" + DEBUG_SUFFIX)
+        subpackages.append("jmods")
+        subpackages.append("jmods" + DEBUG_SUFFIX)
+        return subpackages
+
 
 class OpenJdk9Debug(OpenJdk8Debug):
     def _getSubPackages(self):
@@ -299,43 +315,22 @@ class SubpackagesTest(utils.core.base_xtest.BaseTest):
 
                 else:
                     raise ex.UnknownJavaVersionException("Unrecognized OS.")
-            elif rpms.getMajorVersionSimplified() == "9":
-                if rpms.isFedora():
-                    if int(rpms.getOsVersion()) < 27:
-                        if self.getCurrentArch() in gc.getArm32Achs():
-                            self.csch = OpenJdk9()
-                            return
-                        elif self.getCurrentArch() in gc.getAarch64Arch() + gc.getPower64Achs():
-                            self.csch = OpenJdk9Debug()
-                            return
-                        # jfx in the future?
-                        elif self.getCurrentArch() in gc.getIx86archs() + gc.getX86_64Arch():
-                            self.csch = OpenJdk9Debug()
-                            return
-                        else:
-                            raise ex.UnknownJavaVersionException("Check for this arch is not implemented for given OS.")
-                    if int(rpms.getOsVersion()) > 26:
-                        # jfx in the future?
-                        if self.getCurrentArch() in gc.getIx86archs() + gc.getX86_64Arch():
-                            self.csch = OpenJdk9DebugDebuginfo()
-                            return
-                        elif self.getCurrentArch() in gc.getArm32Achs():
-                            self.csch = OpenJdk9Debuginfo()
-                            return
-                        elif self.getCurrentArch() in gc.getAarch64Arch() + gc.getPower64Achs() + gc.getS390xArch():
-                            self.csch = OpenJdk9DebugDebuginfo()
-                            return
-                        else:
-                            raise ex.UnknownJavaVersionException("Check for this arch is not implemented for given OS.")
-                else:
-                    raise ex.UnknownJavaVersionException("Unrecognized OS.")
+
             elif int(rpms.getMajorVersionSimplified()) >= 10:
-                if self.getCurrentArch() in gc.getArm32Achs():
-                    self.csch = OpenJdk10()
-                    return
+                if rpms.getDist() == gc.FEDORA or rpms.getOsVersionMajor() > 7:
+                    if self.getCurrentArch() in gc.getArm32Achs():
+                        self.csch = OpenJdk10()
+                        return
+                    else:
+                        self.csch = OpenJdk10DebugDebuginfo()
+                        return
                 else:
-                    self.csch = OpenJdk10DebugDebuginfo()
-                    return
+                    if self.getCurrentArch() in gc.getArm32Achs() + gc.getPpc32Arch() + gc.getS390Arch():
+                        self.csch = OpenJdk11()
+                        return
+                    else:
+                        self.csch = OpenJdk11Debug()
+                        return
 
             else:
                 raise ex.UnknownJavaVersionException("Unknown OpenJDK version.")
