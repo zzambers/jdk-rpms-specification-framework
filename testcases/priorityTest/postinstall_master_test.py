@@ -347,12 +347,21 @@ class PostinstallScriptTest(bt.BaseTest):
                     self.csch = OpenJdk8OtherArchs()
                     return
             elif int(rpms.getMajorVersionSimplified()) >= 9:
-                if self.getCurrentArch() in gc.getArm32Achs():
-                    self.csch = OpenJdk9Armvhl()
-                    return
+                if rpms.getOs() == gc.RHEL and rpms.getOsVersionMajor() == 7:
+                    if self.getCurrentArch() in gc.getArm32Achs() + gc.getPpc32Arch() + gc.getS390Arch():
+                        self.csch = OpenJdk9Armvhl()
+                        return
+                    else:
+                        self.csch = OpenJdk9OtherArchs()
+                        return
                 else:
-                    self.csch = OpenJdk9OtherArchs()
-                    return
+                    if self.getCurrentArch() in gc.getArm32Achs():
+                        self.csch = OpenJdk9Armvhl()
+                        return
+                    else:
+                        self.csch = OpenJdk9OtherArchs()
+                        return
+
             else:
                 raise ex.UnknownJavaVersionException("Unknown JDK version.")
 
