@@ -86,7 +86,7 @@ def identify_debug_suffix():
     rpms = conf.RuntimeConfig().getRpmList()
     version = rpms.getMajorVersionSimplified()
     dist = rpms.getDist()
-    if int(version) < 9 or rpms.getDist() == gc.ITW or dist == "el7":
+    if int(version) < 9 or rpms.getDist() == gc.ITW or(rpms.getOs() == gc.RHEL and rpms.getOsVersionMajor() == 7):
         return "-debug"
     else:
         return "-slowdebug"

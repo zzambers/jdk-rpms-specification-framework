@@ -65,20 +65,22 @@ class GetAllBinariesAndSlaves(PathTest):
             try:
                 self.installed_slaves[jsubpkg].remove(jre_slave)
                 self.passed += 1
-            except ValueError:
+            except (ValueError,KeyError) as e:
                 self.list_of_failed_tests.append(jre_slave + " slave missing in " + jsubpkg)
                 self.failed += 1
                 testcase.set_log_file("none")
                 testcase.set_view_file_stub(sdk_slave + " slave missing in " + jsubpkg)
+                self.binaries_test.log(str(e))
         for ssubpkg in sdk_subpackages:
             testcase = do.Testcase("GetAllBinariesAndSlaves", "check_subdirectory_slaves_" + ssubpkg)
             do.Tests().add_testcase(testcase)
             try:
                 self.installed_slaves[ssubpkg].remove(sdk_slave)
                 self.passed += 1
-            except ValueError:
+            except (ValueError, KeyError) as e:
                 self.list_of_failed_tests.append(sdk_slave + " slave missing in " + ssubpkg)
                 self.failed += 1
+                self.binaries_test.log(str(e))
                 testcase.set_log_file("none")
                 testcase.set_view_file_stub(sdk_slave + " slave missing in " + ssubpkg)
         return
