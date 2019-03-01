@@ -40,8 +40,8 @@ def result(boolval):
         return 'FAILED'
 
 
-def get_rpms(directory):
-    return get_files(directory, "rpm")
+def get_rpms(directory, logging=True):
+    return get_files(directory, "rpm", logging)
 
 
 def get_files(directory, file_suffix="", logging = True):
@@ -193,4 +193,5 @@ def xmltestsuite(errors, failures, passed, tests, skipped, name, hostname, time,
     text += "skipped=\"{}\" name=\"{}\" hostname=\"{}\" time=\"{}\" timestamp=\"{}\">".format(skipped, name, hostname, time, timestamp)
     return text
 
-
+def has_headless_pkg():
+    return "headless" in "".join(get_rpms("rpms", False))

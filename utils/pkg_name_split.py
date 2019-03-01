@@ -156,3 +156,11 @@ def simplify_version(vers):
     if old_naming_regex.match(vers):
         return vers.split(".")[1]
     return vers
+
+
+def get_version_full(name):
+    return get_version(name) + "." + get_dist(name)
+
+
+def get_version(name):
+    return "1:" + get_minor_ver(name) + "-" + get_release(name)

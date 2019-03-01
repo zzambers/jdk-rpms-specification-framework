@@ -59,21 +59,21 @@ def _exec(args, err=False, cwd=None):
     if err:
         # args, bufsize=-1, executable=None, stdin=None, stdout=None, stderr=None, preexec_fn=None,
         # close_fds=_PLATFORM_DEFAULT_CLOSE_FDS, shell=False, cwd=None, env=None ...
-        proc = Popen(args, stdout=PIPE, stderr=PIPE, cwd=cwd)
+        proc = Popen(args, stdin=PIPE, stdout=PIPE, stderr=PIPE, cwd=cwd)
     else:
-        proc = Popen(args, stdout=PIPE)
+        proc = Popen(args, stdin=PIPE, stdout=PIPE)
     return proc
 
 
 def executeShell(command):
     la.LoggingAccess().log("executing shell : " + command, la.Verbosity.MOCK)
-    shell = Popen(command, stdin=PIPE, stderr=PIPE, shell=True)
+    shell = Popen(command, stdin=PIPE, stdout=PIPE, stderr=PIPE, shell=True)
     o, e = shell.communicate()
     if o is not None:
         o = o.decode('utf-8').strip()
     else:
         o=""
-    if 3 is not None:
+    if e is not None:
         e = e.decode('utf-8').strip()
     else:
         e = ""

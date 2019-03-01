@@ -6,7 +6,8 @@ import config.runtime_config
 from outputControl import logging_access as la
 from utils import pkg_name_split as split
 import utils.test_utils
-from utils import pkg_name_split as ns
+import utils.pkg_name_split as ns
+
 
 class RpmList:
     """Class to hold list of file, providing various operations above them like get bny arch, get by build (arch+noarch)
