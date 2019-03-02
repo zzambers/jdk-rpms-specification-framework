@@ -22,6 +22,9 @@ class Tests(metaclass=Singleton):
     def get_tests(self):
         return self.testcases
 
+    def count_failed(self):
+        return len([a for a in self.testcases if a.logFile != ""])
+
 
 class Testcase:
     def __init__(self, classname, name):

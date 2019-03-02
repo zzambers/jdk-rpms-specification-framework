@@ -145,8 +145,11 @@ class BaseTestRunner:
             rpms = config.runtime_config.RuntimeConfig().getRpmList()
             la.LoggingAccess().log("<?xml version=\"1.0\"?>\n<testsuites>", la.Verbosity.JTREG,
                                            type(self).__name__)
+            failed_for_architecture = do.Tests().count_failed()
+            passed_for_architecture = len(do.Tests().get_tests()) - do.Tests().count_failed()
             la.LoggingAccess().log(
-                    tu.xmltestsuite(0, failed, passed, passed + failed, 0, type(self).__name__, rpms.getOs()
+                    tu.xmltestsuite(0, failed_for_architecture, passed_for_architecture, passed_for_architecture +
+                                    failed_for_architecture, 0, type(self).__name__, rpms.getOs()
                                     + rpms.getOsVersion() + "-vagrant", ms, dt.datetime.now().isoformat()),
                     la.Verbosity.JTREG, type(self).__name__)
             for testcase in do.Tests().get_tests():

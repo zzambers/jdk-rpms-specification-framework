@@ -40,6 +40,9 @@ class NonITW(cs.JdkConfiguration):
     def check_artificial_provides(self, this):
         files = self.rpms.files
         documentation = ""
+        files = [x.replace("rpms/", "") for x in files]
+        if not self.documenting:
+            files = [x for x in files if this.current_arch in x]
         for filename in files:
             filename = filename.split("/")[-1]
             expected_provides = self._get_expected_artificial_provides(filename)
@@ -120,8 +123,7 @@ class NonITW(cs.JdkConfiguration):
         files = self.rpms.files
         self._document("according to Jvanek every provide should be provided only once per set of rpms with exception "
                        + "of javadoc-zip having common provides with javadoc")
-        for i in range(len(files)):
-            files[i] = files[i].replace("rpms/", "")
+        files = [x.replace("rpms/", "") for x in files if this.current_arch in x]
         if files:
             la.LoggingAccess().log("  Testing VersionRelease: " + ns.get_version_full(files[0]), la.Verbosity.TEST)
         for i in range(len(files) - 1):
@@ -198,9 +200,6 @@ class ProvidesTest(bt.BaseTest):
         else:
             self.log("Set OthersVersionCheck")
             self.csch = NonITW(ProvidesTest.instance)
-
-    def getTestedArchs(self):
-        pass
 
 
 class Empty:
