@@ -73,10 +73,10 @@ class NonITW(cs.JdkConfiguration):
             testcase = do.Testcase("NonITW", "check_artificial_provides")
             do.Tests().add_testcase(testcase)
             if not tu.passed_or_failed(self, len(actual_provides) == 0):
-                la.LoggingAccess().log("found extra provides in rpm \"" + make_rpm_readable(filename) + "\": " +
+                la.LoggingAccess().log("found extra provides in rpm " + make_rpm_readable(filename) + ": " +
                                        str(list(actual_provides.keys())))
                 testcase.set_log_file("none")
-                testcase.set_view_file_stub("found extra provides in rpm \"" + make_rpm_readable(filename) + "\": " +
+                testcase.set_view_file_stub("found extra provides in rpm " + make_rpm_readable(filename) + ": " +
                                             str(list(actual_provides.keys())))
         self._document(documentation)
         return self.passed, self.failed

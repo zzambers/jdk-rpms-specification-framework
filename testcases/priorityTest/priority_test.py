@@ -111,6 +111,9 @@ class PriorityTest(JdkConfiguration):
 
 
 class MajorCheck(PriorityTest):
+    def _prepare_for_check(self, pkg):
+        return DefaultMock().postinstall_exception_checked(pkg)
+
     def _check_priorities(self, pkgs):
 
         _default_masters = DefaultMock().get_default_masters()
@@ -126,7 +129,7 @@ class MajorCheck(PriorityTest):
                 continue
 
             # must be here anyway, since it creates the snapshot
-            if not DefaultMock().postinstall_exception_checked(pkg):
+            if not self._prepare_for_check(pkg):
                 # logs itself in mock
                 continue
 
@@ -136,8 +139,13 @@ class MajorCheck(PriorityTest):
             for m in masters:
                 if m in _default_masters:
                     continue
-
-                priority = self._get_priority(m)
+                try:
+                    priority = self._get_priority(m)
+                except utils.mock.mock_execution_exception.MockExecutionException as e:
+                    if "failed " in str(e):
+                        log_failed_test(self, str(e))
+                    else:
+                        raise e
                 if priority is None:
                     PriorityCheck.instance.log("Failed to get priority, skipping check for " + pkg_name)
                     continue
@@ -207,6 +215,14 @@ class IcedTeaWeb(MajorCheck):
         super().__init__(LEN_5, PREFIX_180)
 
 
+class Ibm8Rhel8Java(ProprietaryJava8):
+    def _prepare_for_check(self, pkg):
+        output = True
+        if "plugin" in pkg:
+            output = DefaultMock().postinstall_exception_checked(pkg.replace("plugin", "webstart"))
+        return DefaultMock().postinstall_exception_checked(pkg) and output
+
+
 class PriorityCheck(utils.core.base_xtest.BaseTest):
     instance = None
 
@@ -244,6 +260,8 @@ class PriorityCheck(utils.core.base_xtest.BaseTest):
                 return
             elif rpms.getMajorVersionSimplified() == "8":
                 self.csch = ProprietaryJava8()
+                if rpms.getVendor() == gc.IBM and rpms.getOs() == gc.RHEL and rpms.getOsVersionMajor() == 8:
+                    self.csch = Ibm8Rhel8Java()
                 return
             else:
                 raise ex.UnknownJavaVersionException("Unknown " + rpms.getVendor() + " version.")

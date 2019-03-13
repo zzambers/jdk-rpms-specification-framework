@@ -120,6 +120,10 @@ class PathTest(BaseTest):
             if (_subpkg == DEFAULT or _subpkg == DEFAULT + DEBUG_SUFFIX) and int(pkgsplit.simplify_version(pkgsplit.get_major_ver(name))) >= 10:
                 self.binaries_test.log("Skipping default package, it has no binaries.")
                 continue
+            if _subpkg == PLUGIN and pkgsplit.get_vendor(name) == "ibm" and \
+                     int(pkgsplit.simplify_version(pkgsplit.get_major_ver(name))) == 8 and pkgsplit.get_dist(name) == "el8":
+                self.binaries_test.log("Skipping plugin package, it has no binaries.")
+                continue
 
             paths = self._get_paths()
             self.binaries_test.log("Given paths: " + ", ".join(paths), la.Verbosity.TEST)

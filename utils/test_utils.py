@@ -162,6 +162,7 @@ def get_32bit_id_in_nvra(nvra):
 # this method expects your testsuite has a "list_of_failed_tests" list, if you do not,
 # just use logging_access methods
 def log_failed_test(instance, fail):
+    instance.failed += 1
     instance.list_of_failed_tests.append(fail)
     la.LoggingAccess().log("        " + fail, la.Verbosity.TEST)
     return
