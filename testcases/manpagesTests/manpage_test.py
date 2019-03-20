@@ -371,6 +371,22 @@ class OpenJdk11s390x(OpenJdk11Debug):
         self.missing_manpages = ["jdeprscan", "jimage", "jlink", "jmod", "jshell"]
 
 
+class OpenJdk12(OpenJdk11):
+    pass
+
+
+class OpenJdk12Debug(OpenJdk11Debug):
+    pass
+
+
+class OpenJdk12Debugx64(OpenJdk11Debugx64):
+    pass
+
+
+class OpenJdk12s390x(OpenJdk11s390x):
+    pass
+
+
 class ITW(ManpageTestMethods):
     def _clean_sdk_from_jre(self, bins, packages):
         return bins
@@ -547,7 +563,19 @@ class ManpageTests(bt.BaseTest):
                     else:
                         self.csch = OpenJdk11Debug()
                     return
-
+            elif int(rpms.getMajorVersionSimplified()) == 12:
+                if self.getCurrentArch() in gc.getArm32Achs():
+                    self.csch = OpenJdk12()
+                    return
+                elif self.getCurrentArch() in gc.getX86_64Arch() + gc.getAarch64Arch():
+                    self.csch = OpenJdk12Debugx64()
+                    return
+                else:
+                    if rpms.isRhel() and self.getCurrentArch() in gc.getS390Arch() + gc.getPpc32Arch():
+                        self.csch = OpenJdk12()
+                    else:
+                        self.csch = OpenJdk12Debug()
+                    return
             else:
                 raise ex.UnknownJavaVersionException("Unknown java version.")
 

@@ -28,7 +28,7 @@ SDK = "java_sdk"
 OJDK8 = "ojdk8"
 OJDK8JFX = "ojdk8JFX"
 OJDK8DEBUG = "ojdk8debug"
-TECHPREVIEWS = ["11"]
+TECHPREVIEWS = ["11", "12"]
 
 
 # exports jre binaries
