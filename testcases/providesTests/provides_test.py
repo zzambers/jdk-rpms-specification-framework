@@ -87,6 +87,21 @@ class NonITW(cs.JdkConfiguration):
         # have to look at this with Jvanek/list through provides myself in future
         if "src" in end:
             provides = Empty(name, java_ver, vendor, pkg, version, end, arch, filename)
+        elif tu.is_rolling(filename):
+            if "debuginfo" in pkg or "debugsource" in pkg:
+                provides = DebugInfoRolling(name, java_ver, vendor, pkg, version, end, arch, filename)
+            elif "headless" in pkg or (not tu.has_headless_pkg() and self._is_pkg_default(pkg)):
+                provides = HeadlessRolling(name, java_ver, vendor, pkg, version, end, arch, filename)
+            elif self._is_pkg_default(pkg):
+                provides = JreRolling(name, java_ver, vendor, pkg, version, end, arch, filename)
+            elif "devel" in pkg:
+                provides = SdkRolling(name, java_ver, vendor, pkg, version, end, arch, filename)
+            elif "javadoc-zip" in pkg:
+                provides = JavaDocZipRolling(name, java_ver, vendor, pkg, version, end, arch, filename)
+            elif "javadoc" in pkg:
+                provides = JavaDocRolling(name, java_ver, vendor, pkg, version, end, arch, filename)
+            else:
+                provides = DefaultRolling(name, java_ver, vendor, pkg, version, end, arch, filename)
         elif "debuginfo" in pkg or "debugsource" in pkg:
             provides = DebugInfo(name, java_ver, vendor, pkg, version, end, arch, filename)
         elif java_ver not in tc.TECHPREVIEWS:
@@ -209,6 +224,14 @@ class Empty:
     def get_expected_artificial_provides(self):
         return self.expected_provides
 
+    def convert_to_rolling(self):
+        keys = list(self.expected_provides.keys())
+        for key in keys:
+            print(key)
+            splitted = key.split("-", 2)
+            if len(splitted) > 2 and splitted[1].isdigit():
+                self.expected_provides[splitted[0] + "-" + ("openjdk" if "openjdk" not in splitted[2] else "") +
+                                       (("-" + splitted[2]) if (len(splitted) > 2) else "")] = self.expected_provides.pop(key)
 
 class DebugInfo(Empty):
     def __init__(self, name, java_ver, vendor, pkg, version, end, arch, filename):
@@ -318,6 +341,61 @@ class JavaDocZipTechPreview(JavaDocTechPreview):
         for provide in list(self.expected_provides):
             if "(" not in provide:
                 self.expected_provides[(provide.replace("-zip", ""))] = ns.get_version_full(filename)
+
+
+class DebugInfoRolling(Empty):
+    def __init__(self, name, java_ver, vendor, pkg, version, end, arch, filename):
+        super(DebugInfoRolling, self).__init__(name, java_ver, vendor, pkg, version, end, arch, filename)
+        self.expected_provides[("{}-{}".format(name, vendor) + (("-" + pkg) if pkg else pkg) +
+                                "({})".format(arch))] = ns.get_version_full(filename)
+
+
+class DefaultRolling(DebugInfoRolling):
+    def __init__(self, name, java_ver, vendor, pkg, version, end, arch, filename):
+        super(DefaultRolling, self).__init__(name, java_ver, vendor, pkg, version, end, arch, filename)
+        self.expected_provides[(name + "-" + java_ver + (("-" + pkg) if pkg else pkg))] = ns.get_version_full(filename)
+        self.expected_provides[(name + "-" + java_ver + "-" + vendor + (("-" + pkg) if pkg else pkg))] = \
+            ns.get_version_full(filename)
+
+
+class SdkRolling(DefaultRolling):
+    def __init__(self, name, java_ver, vendor, pkg, version, end, arch, filename):
+        super(SdkRolling, self).__init__(name, java_ver, vendor, pkg, version, end, arch, filename)
+        pkg = pkg.replace("devel", "")
+        self.expected_provides[(name + "-sdk" + "-" + java_ver + pkg)] = ns.get_version_full(filename)
+        self.expected_provides[(name + "-sdk" + "-" + java_ver + "-" + vendor + pkg)] = \
+            ns.get_version_full(filename)
+
+
+class JreRolling(DefaultRolling):
+    def __init__(self, name, java_ver, vendor, pkg, version, end, arch, filename):
+        super(JreRolling, self).__init__(name, java_ver, vendor, pkg, version, end, arch, filename)
+        self.expected_provides[("jre" + "-" + java_ver + (("-" + pkg) if pkg else pkg))] = ns.get_version_full(filename)
+        self.expected_provides[("jre" + "-" + java_ver + "-" + vendor + (("-" + pkg) if pkg else pkg))] = \
+            ns.get_version_full(filename)
+
+
+class HeadlessRolling(JreRolling):
+    def __init__(self, name, java_ver, vendor, pkg, version, end, arch, filename):
+        super(HeadlessRolling, self).__init__(name, java_ver, vendor, pkg, version, end, arch, filename)
+        self.expected_provides["config({})".format("-".join([name, vendor, pkg]))] = \
+            ns.get_version_full(filename)
+
+
+class JavaDocRolling(DefaultRolling):
+    def __init__(self, name, java_ver, vendor, pkg, version, end, arch, filename):
+        super(JavaDocRolling, self).__init__(name, java_ver, vendor, pkg, version, end, arch, filename)
+
+
+class JavaDocZipRolling(JavaDocRolling):
+    def __init__(self, name, java_ver, vendor, pkg, version, end, arch, filename):
+        super(JavaDocZipRolling, self).__init__(name, java_ver, vendor, pkg, version, end, arch, filename)
+        for provide in list(self.expected_provides):
+            if "(" not in provide:
+                self.expected_provides[(provide.replace("-zip", ""))] = ns.get_version_full(filename)
+                self.expected_provides.pop(provide)
+
+
 
 
 def make_rpm_readable(name):

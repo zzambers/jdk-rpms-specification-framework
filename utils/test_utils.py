@@ -194,5 +194,12 @@ def xmltestsuite(errors, failures, passed, tests, skipped, name, hostname, time,
     text += "skipped=\"{}\" name=\"{}\" hostname=\"{}\" time=\"{}\" timestamp=\"{}\">".format(skipped, name, hostname, time, timestamp)
     return text
 
+
+#tells whether rpms set has headless pkg
 def has_headless_pkg():
     return "headless" in "".join(get_rpms("rpms", False))
+
+
+#tells whether current rpm is rolling release
+def is_rolling(name):
+    return "rolling" in name
