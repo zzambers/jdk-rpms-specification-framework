@@ -141,8 +141,8 @@ class BaseTest(JdkConfiguration):
                                      "Regular files should have 644 permissions",
                                      "Symbolic links should have 777 permissions.",
                                      "Permissions of a file classes.jsa must be 444."
-                                     "Binary jexec is an exception and must be in lib directory and has "
-                                     "755 permissions.",
+                                     "Binary jexec and jspawnhelper are exceptions and must be in lib directory and has"
+                                     " 755 permissions.",
                                      "Other types of files with different permissions should not be present."]))
         for target in valid_targets:
             out, res = DefaultMock().executeCommand(['stat -c "%F" ' + target])
@@ -178,6 +178,8 @@ class BaseTest(JdkConfiguration):
                     self._test_fill_in(target, "file classes.jsa", "444")
                 elif "/lib/jexec" in target:
                     self._test_fill_in(target, "binary jexec", "755")
+                elif "/lib/jspawnhelper" in target:
+                    self._test_fill_in(target, "binary jspawnhelper", "755")
                 else:
                     self._test_fill_in(target, out, "644")
             elif out == "symbolic link":
