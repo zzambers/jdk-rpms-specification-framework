@@ -180,7 +180,7 @@ class NonITW(cs.JdkConfiguration):
             return "x86-32"
         elif arch == "armv7hl":
             return "armv7hl-32"
-        elif arch == "ppc64le":
+        elif arch == "ppc64le" or arch == "ppc64":
             return "ppc-64"
         elif arch == "x86_64":
             return "x86-64"
