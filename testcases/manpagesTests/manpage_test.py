@@ -68,7 +68,7 @@ class ManpageTestMethods(JdkConfiguration):
                 try:
                     binaries[subpackage].remove(item)
                 except ValueError:
-                    log_failed_test(self, item + "is not present in manpages! This is unexpected behaviour.")
+                    log_failed_test(self, item + " is not present in manpages! This is unexpected behaviour.")
 
         return binaries
 
@@ -573,6 +573,8 @@ class ManpageTests(bt.BaseTest):
                 else:
                     if rpms.isRhel() and self.getCurrentArch() in gc.getS390Arch() + gc.getPpc32Arch():
                         self.csch = OpenJdk12()
+                    elif self.getCurrentArch() in gc.getS390xArch() + gc.getPpc32Arch():
+                        self.csch = OpenJdk12s390x()
                     else:
                         self.csch = OpenJdk12Debug()
                     return
