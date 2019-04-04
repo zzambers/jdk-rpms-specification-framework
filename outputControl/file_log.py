@@ -39,7 +39,7 @@ class DefaultLog(metaclass=Singleton):
 class JtregLog(metaclass=Singleton):
     def __init__(self, testsuite=""):
         if testsuite:
-            self.target = open("./jtregLogs/" + testsuite + "_jtreglog.xml", "w")
+            self.target = open("./jtregLogs/" + testsuite + ".jtr.xml", "w")
 
     def println(self, arg2):
         self.target.write(arg2)
