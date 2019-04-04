@@ -67,6 +67,8 @@ class ManpageTestMethods(JdkConfiguration):
             for subpackage in subpackages_list:
                 try:
                     binaries[subpackage].remove(item)
+                except KeyError:
+                    log_failed_test(self, subpackage + " is not present.")
                 except ValueError:
                     log_failed_test(self, item + " is not present in manpages! This is unexpected behaviour.")
 
@@ -236,8 +238,16 @@ class ManpageTestMethods(JdkConfiguration):
             manpages_without_postscript[_subpkg] = self._clean_default_mpges(default_mans,
                                                                              DefaultMock().execute_ls(MAN_DIR)[0]
                                                                              .split("\n"))
-        bins = self._clean_sdk_from_jre(bins, self._get_subpackages())
-        bins = self.binaries_without_manpages(bins)
+        try:
+            bins = self._clean_sdk_from_jre(bins, self._get_subpackages())
+            bins = self.binaries_without_manpages(bins)
+        except KeyError as e:
+            testcase = do.Testcase("ManpageTests", "iced_tea_web_check")
+            do.Tests().add_testcase(testcase)
+            testcase.set_view_file_stub("This type of failure usually means missing package in tested rpm set."
+                                        " Text of the error: " + str(e))
+            log_failed_test(self, "This type of failure usually means missing package in tested rpm set."
+                                  " Text of the error: " + str(e))
 
         # then compare man files with binaries and man links with links
         for subpackage in bins.keys():
