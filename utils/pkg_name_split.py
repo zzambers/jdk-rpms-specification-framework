@@ -143,13 +143,14 @@ def get_nvra(name):
         n = n.replace(".rpm", "")
     # this hook is necessary because of the rolling release, everything but the package name contains
     # the version (manpages, subdirs, links etc.)
-    if n.startswith("java-openjdk"):
-        n = n.replace("java-openjdk", "java-" + get_major_ver(name) + "-openjdk")
+    if n.startswith("java-latest-openjdk"):
+        n = n.replace("java-latest-openjdk", "java-" + simplify_full_version(get_minor_ver(name)) + "-openjdk")
     return n
 
 
 def get_name_version_release(name):
     return get_nvra(name).replace("." + get_arch(name), "")
+
 
 def simplify_version(vers):
     old_naming_regex = re.compile("^[0-9].[0-9].[0-9]$")
@@ -164,3 +165,9 @@ def get_version_full(name):
 
 def get_version(name):
     return "1:" + get_minor_ver(name) + "-" + get_release(name)
+
+
+def simplify_full_version(vers):
+    if int(vers.split(".")[0]) > 1:
+        return vers.split(".")[0]
+    return simplify_version(vers)
