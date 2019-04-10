@@ -346,15 +346,17 @@ class JavaDocZipTechPreview(JavaDocTechPreview):
 class DebugInfoRolling(Empty):
     def __init__(self, name, java_ver, vendor, pkg, version, end, arch, filename):
         super(DebugInfoRolling, self).__init__(name, java_ver, vendor, pkg, version, end, arch, filename)
-        self.expected_provides[("{}-{}".format(name, vendor) + (("-" + pkg) if pkg else pkg) +
+        self.expected_provides[("{}-{}-{}".format(name, java_ver, vendor) + (("-" + pkg) if pkg else pkg) +
                                 "({})".format(arch))] = ns.get_version_full(filename)
+        self.expected_provides[("{}-{}-{}".format(name, java_ver, vendor) + (("-" + pkg) if pkg else pkg))] = \
+            ns.get_version_full(filename)
 
 
 class DefaultRolling(DebugInfoRolling):
     def __init__(self, name, java_ver, vendor, pkg, version, end, arch, filename):
         super(DefaultRolling, self).__init__(name, java_ver, vendor, pkg, version, end, arch, filename)
-        self.expected_provides[(name + "-" + java_ver + (("-" + pkg) if pkg else pkg))] = ns.get_version_full(filename)
-        self.expected_provides[(name + "-" + java_ver + "-" + vendor + (("-" + pkg) if pkg else pkg))] = \
+        self.expected_provides[(name + "-" + ns.simplify_full_version(version) + (("-" + pkg) if pkg else pkg))] = ns.get_version_full(filename)
+        self.expected_provides[(name + "-" + ns.simplify_full_version(version) + "-" + vendor + (("-" + pkg) if pkg else pkg))] = \
             ns.get_version_full(filename)
 
 
@@ -362,23 +364,23 @@ class SdkRolling(DefaultRolling):
     def __init__(self, name, java_ver, vendor, pkg, version, end, arch, filename):
         super(SdkRolling, self).__init__(name, java_ver, vendor, pkg, version, end, arch, filename)
         pkg = pkg.replace("devel", "")
-        self.expected_provides[(name + "-sdk" + "-" + java_ver + pkg)] = ns.get_version_full(filename)
-        self.expected_provides[(name + "-sdk" + "-" + java_ver + "-" + vendor + pkg)] = \
+        self.expected_provides[(name + "-sdk" + "-" + ns.simplify_full_version(version) + pkg)] = ns.get_version_full(filename)
+        self.expected_provides[(name + "-sdk" + "-" + ns.simplify_full_version(version) + "-" + vendor + pkg)] = \
             ns.get_version_full(filename)
 
 
 class JreRolling(DefaultRolling):
     def __init__(self, name, java_ver, vendor, pkg, version, end, arch, filename):
         super(JreRolling, self).__init__(name, java_ver, vendor, pkg, version, end, arch, filename)
-        self.expected_provides[("jre" + "-" + java_ver + (("-" + pkg) if pkg else pkg))] = ns.get_version_full(filename)
-        self.expected_provides[("jre" + "-" + java_ver + "-" + vendor + (("-" + pkg) if pkg else pkg))] = \
+        self.expected_provides[("jre" + "-" + ns.simplify_full_version(version) + (("-" + pkg) if pkg else pkg))] = ns.get_version_full(filename)
+        self.expected_provides[("jre" + "-" + ns.simplify_full_version(version) + "-" + vendor + (("-" + pkg) if pkg else pkg))] = \
             ns.get_version_full(filename)
 
 
 class HeadlessRolling(JreRolling):
     def __init__(self, name, java_ver, vendor, pkg, version, end, arch, filename):
         super(HeadlessRolling, self).__init__(name, java_ver, vendor, pkg, version, end, arch, filename)
-        self.expected_provides["config({})".format("-".join([name, vendor, pkg]))] = \
+        self.expected_provides["config({})".format("-".join([name, java_ver, vendor, pkg]))] = \
             ns.get_version_full(filename)
 
 
@@ -391,7 +393,7 @@ class JavaDocZipRolling(JavaDocRolling):
     def __init__(self, name, java_ver, vendor, pkg, version, end, arch, filename):
         super(JavaDocZipRolling, self).__init__(name, java_ver, vendor, pkg, version, end, arch, filename)
         for provide in list(self.expected_provides):
-            if "(" not in provide:
+            if "(" not in provide and java_ver not in provide:
                 self.expected_provides[(provide.replace("-zip", ""))] = ns.get_version_full(filename)
                 self.expected_provides.pop(provide)
 
