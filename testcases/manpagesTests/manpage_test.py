@@ -176,7 +176,7 @@ class ManpageTestMethods(JdkConfiguration):
             do.Tests().add_testcase(testcase)
             if not passed_or_failed(self, link in manpage_links):
                 log_failed_test(self, link + " man page link not in " + subpackage)
-                testcase.set_view_file_stub(link + " man page file not in " + subpackage)
+                testcase.set_view_file_stub(link + " man page link not in " + subpackage)
 
     def man_page_test(self, pkgs):
         self._document("Every binary must have a man page. If binary has a slave, then man page has also its slave."
@@ -382,19 +382,27 @@ class OpenJdk11s390x(OpenJdk11Debug):
 
 
 class OpenJdk12(OpenJdk11):
-    pass
+    def __init__(self):
+        super().__init__()
+        self.missing_manpages.append("jfr")
 
 
 class OpenJdk12Debug(OpenJdk11Debug):
-    pass
+    def __init__(self):
+        super().__init__()
+        self.missing_manpages.append("jfr")
 
 
 class OpenJdk12Debugx64(OpenJdk11Debugx64):
-    pass
+    def __init__(self):
+        super().__init__()
+        self.missing_manpages.append("jfr")
 
 
 class OpenJdk12s390x(OpenJdk11s390x):
-    pass
+    def __init__(self):
+        super().__init__()
+        self.missing_manpages.append("jfr")
 
 
 class ITW(ManpageTestMethods):
