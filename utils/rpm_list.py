@@ -1,12 +1,12 @@
 import ntpath
 import re
-
+from utils import pkg_name_split as ns
 import config.global_config
 import config.runtime_config
 from outputControl import logging_access as la
 from utils import pkg_name_split as split
 import utils.test_utils
-import utils.pkg_name_split as ns
+
 
 
 class RpmList:
@@ -57,12 +57,22 @@ class RpmList:
         return props[0]
 
     def getMajorVersion(self):
-        return self.expectSingleMeberSet(split.get_major_ver, "version")
+        return ns.simplify_full_version(".".join(self.getVersion().split(".")[:3]))
 
     def getMajorVersionSimplified(self):
         """Returns just number. instead of 1.7.1 or 1.8.0 return 7 or 8. Of course for 9 and more returns 9 and more"""
         vers = self.getMajorVersion()
         return ns.simplify_version(vers)
+
+    #must be thoroughfully tested whether its a problem when it returns empty string given no debug/slowdebug rpms
+    def getDebugSuffix(self):
+        for file in self.files:
+            if "-slowdebug" in file:
+                return "-slowdebug"
+        for file in self.files:
+            if "-debug" in file:
+                return "-debug"
+        return ""
 
     def getJava(self):
         return self.expectSingleMeberSet(split.get_javaprefix, "java prefix")
