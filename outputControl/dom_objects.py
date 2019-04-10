@@ -23,7 +23,7 @@ class Tests(metaclass=Singleton):
         return self.testcases
 
     def count_failed(self):
-        return len([a for a in self.testcases if a.logFile != ""])
+        return len([a for a in self.testcases if a.viewFileStub != ""])
 
 
 class Testcase:
@@ -42,7 +42,7 @@ class Testcase:
 
     def print_test_case(self):
         text = "    <testcase classname=\"{}\" name=\"{}\" time=\"{}\"".format(self.classname, self.name, self.time)
-        if self.logFile == "":
+        if self.viewFileStub == "":
             text += "/>"
         else:
             text += ">\n"
