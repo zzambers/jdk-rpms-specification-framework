@@ -91,7 +91,7 @@ class BinariesTest(bt.BaseTest):
                     self.csch = tcc.OpenJdk10Debug(BinariesTest.instance)
                     return
 
-            elif rpms.getMajorVersionSimplified() == "11" or rpms.getMajorVersionSimplified() == "12":
+            elif rpms.getMajorVersionSimplified() == "11":
                 if self.getCurrentArch() in gc.getArm32Achs():
                     self.csch = tcc.OpenJdk11(BinariesTest.instance)
                     return
@@ -106,6 +106,22 @@ class BinariesTest(bt.BaseTest):
                         self.csch = tcc.OpenJdk11NoDebugNoJhsdb(BinariesTest.instance)
                     else:
                         self.csch = tcc.OpenJdk11Debug(BinariesTest.instance)
+                    return
+            elif rpms.getMajorVersionSimplified() == "12":
+                if self.getCurrentArch() in gc.getArm32Achs():
+                    self.csch = tcc.OpenJdk12(BinariesTest.instance)
+                    return
+                elif self.getCurrentArch() in gc.getX86_64Arch() + gc.getAarch64Arch():
+                    self.csch = tcc.OpenJdk12x64(BinariesTest.instance)
+                    return
+                elif self.getCurrentArch() in gc.getS390xArch():
+                    self.csch = tcc.OpenJdk12NoJhsdb(BinariesTest.instance)
+                    return
+                else:
+                    if rpms.isRhel() and self.getCurrentArch() in gc.getS390Arch() + gc.getPpc32Arch():
+                        self.csch = tcc.OpenJdk12NoDebugNoJhsdb(BinariesTest.instance)
+                    else:
+                        self.csch = tcc.OpenJdk12Debug(BinariesTest.instance)
                     return
             else:
                 raise ex.UnknownJavaVersionException("Unknown OpenJDK version.")
