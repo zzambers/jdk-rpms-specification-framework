@@ -170,4 +170,4 @@ def get_version(name):
 def simplify_full_version(vers):
     if int(vers.split(".")[0]) > 1:
         return vers.split(".")[0]
-    return simplify_version(vers)
+    return simplify_version(".".join(vers.split(".")[:3]))
