@@ -58,7 +58,6 @@ class BaseTest(JdkConfiguration):
         if not passed_or_failed(self, res == 0):
             log_failed_test(self, "Default manpages extraction has failed. Manpage tests will be invalid: " + str(res) +
                             str(default_manpages))
-            testcase.set_log_file("none")
             testcase.set_view_file_stub("Extraction failed. Manpage tests will be invalid.")
 
         for pkg in pkgs:
@@ -81,7 +80,6 @@ class BaseTest(JdkConfiguration):
             if not passed_or_failed(self, result == 0):
                 log_failed_test(self, "Java directory not found for " + subpackage + ", for desired directory "
                                 + jvm_dir)
-                testcase.set_log_file("none")
                 testcase.set_view_file_stub("java dir not found for " + subpackage + ", for desired dir")
                 continue
             valid_targets = self._parse_output(out, subpackage)
@@ -119,7 +117,6 @@ class BaseTest(JdkConfiguration):
                     PermissionTest.instance.log("Unexpected filetype. Needs manual inspection.")
                     log_failed_test(self, "In subpackage {} following was found: ".format(subpackage) + line)
                     self.failed += 1
-                    testcase.set_log_file("none")
                     testcase.set_view_file_stub("Unexpected filetype in {}. Needs manual inspection.".format(subpackage))
                 continue
             elif header.search(line):
@@ -189,7 +186,6 @@ class BaseTest(JdkConfiguration):
                 do.Tests().add_testcase(testcase)
                 if not passed_or_failed(self, res == 0):
                     log_failed_test(self, "Target of symbolic link {} does not exist.".format(target) + " Error " + out)
-                    testcase.set_log_file("none")
                     testcase.set_view_file_stub("Target of symbolic link {} does not exist.".format(target) + " Error " + out)
                 elif "../" in out:
                     parts = target.split("/")
@@ -219,7 +215,6 @@ class BaseTest(JdkConfiguration):
                         self.invalid_file_candidates.append(
                             "Target: " + target + " with result: " + res.__str__() + " and output: " + out)
                         self.failed += 1
-                        testcase.set_log_file("none")
                         testcase.set_view_file_stub("In subpackage {} following was found: Command stat -c '%F' {} finished"
                                               " with message: {}. ".format(subpackage, target, res, out))
                         continue
@@ -230,13 +225,11 @@ class BaseTest(JdkConfiguration):
 
                     log_failed_test(self, "In subpackage {} following was found: Command stat -c '%F' {} finished"
                                     " with message: {}. ".format(subpackage, target, res, out))
-                    testcase.set_log_file("none")
                     testcase.set_view_file_stub("In subpackage {} following was found: Command stat -c '%F' {} finished"
                                               " with message: {}. ".format(subpackage, target, res, out))
 
                 self.invalid_file_candidates.append(target)
                 self.failed += 1
-                testcase.set_log_file("none")
                 testcase.set_view_file_stub("invalid file candidate " + target)
 
     def _test_fill_in(self, file, filetype, expected_permission):
@@ -249,7 +242,6 @@ class BaseTest(JdkConfiguration):
         out, res = DefaultMock().executeCommand(['stat -c "%a" ' + file])
         if res != 0:
             log_failed_test(self, filetype + " link is broken, could not find " + file)
-            testcase.set_log_file("none")
             testcase.set_view_file_stub(filetype + " link is broken, could not find " + file)
             self.failed += 1
             return
@@ -261,7 +253,6 @@ class BaseTest(JdkConfiguration):
                 log_failed_test(self, "Permissions of {} not as expected, should be {} but is "
                                       "{}.".format(file, expected_permission, out))
                 self.failed += 1
-                testcase.set_log_file("none")
                 testcase.set_view_file_stub("Permissions of {} not as expected, should be {} but is "
                                       "{}.".format(file, expected_permission, out))
                 return

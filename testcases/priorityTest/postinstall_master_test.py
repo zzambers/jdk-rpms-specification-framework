@@ -123,7 +123,6 @@ class CheckPostinstallScript(BasePackages):
             if subpkg not in actual_masters.keys():
                 testcase = do.Testcase("MainPackagePresent", "check_post_in_script")
                 do.Tests().add_testcase(testcase)
-                testcase.set_log_file("none")
                 testcase.set_view_file_stub("There is no such subpackage as " + subpkg + " that contains masters." 
                                                                                                 "The test fails.")
                 PostinstallScriptTest.instance.log("There is no such subpackage as " + subpkg + " that contains masters." 

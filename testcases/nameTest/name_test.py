@@ -58,7 +58,6 @@ class NameTest(utils.core.base_xtest.BaseTest):
                 self.log("... is ok")
                 self.passed += 1
             else:
-                testcase.set_log_file("none")
                 testcase.set_view_file_stub(file + " is BAD")
                 self.log("... is BAD")
                 self.failed += 1

@@ -76,14 +76,12 @@ class BaseMethods(JdkConfiguration):
             if not passed_or_failed(self, subdirectory in subdirectories):
                 log_failed_test(self, "Missing {} subdirectory in {} "
                                       "subpackage".format(subdirectory, _subpkg))
-                testcase.set_log_file("none")
                 testcase.set_view_file_stub("Missing {} subdirectory in {} subpackage".format(subdirectory, _subpkg))
         for subdirectory in subdirectories:
             testcase = do.Testcase("BaseMethods", "test_subdirectories_equals " + subdirectory)
             do.Tests().add_testcase(testcase)
             if not passed_or_failed(self, subdirectory in expected_subdirectories):
                 log_failed_test(self, "Extra {} subdirectory in {} subpackage".format(subdirectory, _subpkg))
-                testcase.set_log_file("none")
                 testcase.set_view_file_stub("Missing {} subdirectory in {} subpackage".format(subdirectory, _subpkg))
 
     def _test_links_are_correct(self, subdirectories, name, _subpkg):
@@ -107,7 +105,6 @@ class BaseMethods(JdkConfiguration):
             if readlink[1] != 0:
                 log_failed_test(self, subdirectory + " is not a link! Subdirectory test link failed for " +
                                 _subpkg)
-                testcase.set_log_file("none")
                 testcase.set_view_file_stub(subdirectory + " is not a link! Subdirectory test link failed for " +
                                 _subpkg)
                 self.failed += 1
@@ -115,7 +112,6 @@ class BaseMethods(JdkConfiguration):
                 log_failed_test(self, " {} should point at {} but points at {} ".format(subdirectory,
                                                                                         expected_link,
                                                                                         readlink[0]))
-                testcase.set_log_file("none")
                 testcase.set_view_file_stub(" {} should point at {} but points at {} ".format(subdirectory,
                                                                                         expected_link,
                                                                                         readlink[0]))

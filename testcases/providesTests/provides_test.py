@@ -56,7 +56,6 @@ class NonITW(cs.JdkConfiguration):
                 do.Tests().add_testcase(testcase)
                 if not tu.passed_or_failed(self, provide in actual_provides):
                     missing_provides.append(provide)
-                    testcase.set_log_file("none")
                     testcase.set_view_file_stub(make_rpm_readable(filename) + " is missing provide: " + provide)
                 else:
                     testcase = do.Testcase("NonITW", "check_artificial_provides")
@@ -64,7 +63,6 @@ class NonITW(cs.JdkConfiguration):
                     if not tu.passed_or_failed(self, expected_provides[provide] == actual_provides[provide]):
                         la.LoggingAccess().log("wrong version for provide " + provide + " in "
                                                + make_rpm_readable(filename), la.Verbosity.TEST)
-                        testcase.set_log_file("none")
                         testcase.set_view_file_stub("wrong version for provide " + provide + " in "
                                                     + make_rpm_readable(filename))
                     actual_provides.pop(provide)
@@ -75,7 +73,6 @@ class NonITW(cs.JdkConfiguration):
             if not tu.passed_or_failed(self, len(actual_provides) == 0):
                 la.LoggingAccess().log("found extra provides in rpm " + make_rpm_readable(filename) + ": " +
                                        str(list(actual_provides.keys())))
-                testcase.set_log_file("none")
                 testcase.set_view_file_stub("found extra provides in rpm " + make_rpm_readable(filename) + ": " +
                                             str(list(actual_provides.keys())))
         self._document(documentation)
@@ -153,7 +150,6 @@ class NonITW(cs.JdkConfiguration):
                     do.Tests().add_testcase(testcase)
                     if not tu.passed_or_failed(self, not(len(provides_intersection))):
                         la.LoggingAccess().log("{} and {} have common provides: {}".format(make_rpm_readable(files[i]), make_rpm_readable(files[j]), ", ".join(provides_intersection)))
-                        testcase.set_log_file("none")
                         testcase.set_view_file_stub(
                             "{} and {} have common provides: {}".format(make_rpm_readable(files[i]), make_rpm_readable(files[j]),
                                                                         ", ".join(provides_intersection)))

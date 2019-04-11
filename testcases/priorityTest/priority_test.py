@@ -57,7 +57,6 @@ class PriorityTest(JdkConfiguration):
         if not passed_or_failed(self, len(priority) == self.length):
             PriorityCheck.instance.log("Priority should be {}-digit, but is {}.".format(self.length, len(priority)),
                                        la.Verbosity.ERROR)
-            testcase.set_log_file("none")
             testcase.set_view_file_stub("Priority should be {}-digit, but is {}.".format(self.length, len(priority)))
             return False
 
@@ -73,7 +72,6 @@ class PriorityTest(JdkConfiguration):
         if not passed_or_failed(self, priority.startswith(self.prefix, 0, len(self.prefix))):
             PriorityCheck.instance.log("Priority prefix not as expected, should be {}.".format(self.prefix),
                                        la.Verbosity.TEST)
-            testcase.set_log_file("none")
             testcase.set_view_file_stub("Priority prefix not as expected, should be {}.".format(self.prefix))
             return False
 
@@ -106,7 +104,6 @@ class PriorityTest(JdkConfiguration):
                                         ", master " + master + ". Debug package should have lower priority. " +
                                         "Main package priority: {} Debug package"
                                         " priority: {}".format(master_and_priority[m], master_and_priority_debug[m]))
-                        testcase.set_log_file("none")
                         testcase.set_view_file_stub("Debug subpackage priority check failed for " + name)
 
 

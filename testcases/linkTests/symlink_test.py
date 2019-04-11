@@ -124,7 +124,6 @@ class BaseMethods(JdkConfiguration):
             self.passed += 1
         else:
             log_failed_test(self, " Subpackage {}: link {} pointing at {} is invalid.".format(subpackage, link.path_to_symlink, link.points_at))
-            testcase.set_log_file("none")
             testcase.set_view_file_stub(" Subpackage {}: link {} pointing at {} is invalid.".format(subpackage, link.path_to_symlink, link.points_at))
             self.failed +=1
 

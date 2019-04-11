@@ -36,7 +36,6 @@ class GetAllBinariesAndSlaves(PathTest):
                 except ValueError:
                     self.list_of_failed_tests.append(jslave + " export slave missing in " + jsubpkg)
                     self.failed += 1
-                    testcase.set_log_file("none")
                     testcase.set_view_file_stub("Missing " + jslave + " in " + jsubpkg)
 
         for ssubpkg in sdk_subpackages:
@@ -49,7 +48,6 @@ class GetAllBinariesAndSlaves(PathTest):
                 except ValueError:
                     self.list_of_failed_tests.append(sslave + " export slave missing in " + ssubpkg)
                     self.failed += 1
-                    testcase.set_log_file("none")
                     testcase.set_view_file_stub("Missing " + sslave + " in " + ssubpkg)
         return
 
@@ -68,7 +66,6 @@ class GetAllBinariesAndSlaves(PathTest):
             except (ValueError,KeyError) as e:
                 self.list_of_failed_tests.append(jre_slave + " slave missing in " + jsubpkg)
                 self.failed += 1
-                testcase.set_log_file("none")
                 testcase.set_view_file_stub(sdk_slave + " slave missing in " + jsubpkg)
                 self.binaries_test.log(str(e))
         for ssubpkg in sdk_subpackages:
@@ -81,7 +78,6 @@ class GetAllBinariesAndSlaves(PathTest):
                 self.list_of_failed_tests.append(sdk_slave + " slave missing in " + ssubpkg)
                 self.failed += 1
                 self.binaries_test.log(str(e))
-                testcase.set_log_file("none")
                 testcase.set_view_file_stub(sdk_slave + " slave missing in " + ssubpkg)
         return
 
@@ -175,7 +171,6 @@ class BinarySlaveTestMethods(GetAllBinariesAndSlaves):
                     except ValueError:
                         tu.log_failed_test(self, "Binary " + j + " is present in JRE, but is missing in SDK.")
                         self.failed += 1
-                        testcase.set_log_file("none")
                         testcase.set_view_file_stub("Binary " + j + " is present in JRE, but is missing in SDK.")
         return
 
@@ -183,7 +178,6 @@ class BinarySlaveTestMethods(GetAllBinariesAndSlaves):
         testcase = do.Testcase("BinarySlaveTestMethods", "perform_all_checks")
         do.Tests().add_testcase(testcase)
         if not passed_or_failed(self, sorted(self.installed_slaves.keys()) == sorted(self.installed_binaries.keys())):
-            testcase.set_log_file("none")
             testcase.set_view_file_stub("Subpackages that contain binaries and slaves do not match")
             tu.log_failed_test(self, "Subpackages that contain binaries and slaves do not match. Subpackages with"
                             "binaries: {}, Subpackages with slaves: {}".format(
@@ -196,7 +190,6 @@ class BinarySlaveTestMethods(GetAllBinariesAndSlaves):
                 testcase = do.Testcase("BinarySlaveTestMethods", "perform_all_checks_" + subpackage)
                 do.Tests().add_testcase(testcase)
                 if not passed_or_failed(self, sorted(binaries) == sorted(slaves)):
-                    testcase.set_log_file("none")
                     testcase.set_view_file_stub("Binaries do not match slaves in {}.".format(subpackage))
                     tu.log_failed_test(self, "Binaries do not match slaves in {}. Missing binaries: {}"
                                     " Missing slaves: {}".format(subpackage, diff(slaves, binaries),
@@ -206,7 +199,6 @@ class BinarySlaveTestMethods(GetAllBinariesAndSlaves):
         except KeyError as err:
             self.failed += 1
             tu.log_failed_test(self, err.__str__())
-            testcase.set_log_file("none")
             testcase.set_view_file_stub(err.__str__())
         return
 

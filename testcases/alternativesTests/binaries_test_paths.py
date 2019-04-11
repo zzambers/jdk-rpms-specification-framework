@@ -91,7 +91,6 @@ class BaseTest(JdkConfiguration):
             except ValueError or KeyError:
                 self.failed += 1
                 log_failed_test(self, "Missing {} in {}.".format(JAVA_RMI_CGI, DEVEL))
-                testcase.set_log_file("none")
                 testcase.set_view_file_stub("Missing {} in {}.".format(JAVA_RMI_CGI, DEVEL))
         return self.installed_binaries
 
@@ -145,7 +144,6 @@ class PathTest(BaseTest):
                     self.binaries_test.log("Binary {} found in {} for "
                                            "{}".format(binary, ", ".join(found_paths), _subpkg), la.Verbosity.TEST)
                 else:
-                    testcase.set_log_file("none")
                     testcase.set_view_file_stub("not found in any path given for " + _subpkg)
                     log_failed_test(self, binary + " not found in any path given for " + _subpkg)
 
@@ -180,12 +178,10 @@ class PathTest(BaseTest):
                 result.add(res)
             else:
                 log_failed_test(self, "Command readlink " + p + "/" + binary + " failed.")
-                testcase.set_log_file("none")
                 testcase.set_view_file_stub("not found in a path: " + p)
         testcase = do.Testcase("PathTest", binary)
         do.Tests().add_testcase(testcase)
         if not passed_or_failed(self, len(result) == 1):
-            testcase.set_log_file("none")
             if len(result) > 1:
                 testcase.set_view_file_stub("Links of {} do not point on same target".format(p))
                 log_failed_test(self, "Links of one binary do not point on same target: " + ",".join(result))
