@@ -167,7 +167,13 @@ def get_version(name):
     return "1:" + get_minor_ver(name) + "-" + get_release(name)
 
 
-def simplify_full_version(vers):
+def simplify_full_version(vers, keepLegacy = False):
     if int(vers.split(".")[0]) > 1:
         return vers.split(".")[0]
+    if keepLegacy:
+        return ".".join(vers.split(".")[:3])
     return simplify_version(".".join(vers.split(".")[:3]))
+
+
+def simplify_new_version(vers):
+    return simplify_full_version(vers, True)

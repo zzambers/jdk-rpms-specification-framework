@@ -57,7 +57,7 @@ class RpmList:
         return props[0]
 
     def getMajorVersion(self):
-        return ns.simplify_full_version(".".join(self.getVersion().split(".")[:3]))
+        return ns.simplify_new_version(".".join(self.getVersion().split(".")[:3]))
 
     def getMajorVersionSimplified(self):
         """Returns just number. instead of 1.7.1 or 1.8.0 return 7 or 8. Of course for 9 and more returns 9 and more"""
