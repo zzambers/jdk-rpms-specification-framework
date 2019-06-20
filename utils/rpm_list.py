@@ -6,11 +6,12 @@ import config.runtime_config
 from outputControl import logging_access as la
 from utils import pkg_name_split as split
 import utils.test_utils
+import utils.test_constants
 
 
 
 class RpmList:
-    """Class to hold list of file, providing various operations above them like get bny arch, get by build (arch+noarch)
+    """Class to hold list of file, providing various operations above them like get any arch, get by build (arch+noarch)
     , get srpm and so on"""
 
     def __init__(self, ddir):
@@ -64,7 +65,6 @@ class RpmList:
         vers = self.getMajorVersion()
         return ns.simplify_version(vers)
 
-    #must be thoroughfully tested whether its a problem when it returns empty string given no debug/slowdebug rpms
     def getDebugSuffix(self):
         for file in self.files:
             if "-slowdebug" in file:
@@ -72,7 +72,7 @@ class RpmList:
         for file in self.files:
             if "-debug" in file:
                 return "-debug"
-        return ""
+        return "-sethasnodebugsuffix"
 
     def getJava(self):
         return self.expectSingleMeberSet(split.get_javaprefix, "java prefix")
@@ -96,7 +96,7 @@ class RpmList:
         return self.expectSingleMeberSet(split.get_name_version_release, "name version release")
 
     def getPackages(self):
-        """This method is misleading and is getting nothing saying set of pacakges"""
+        """This method is misleading and is getting nothing saying set of packages"""
         pset, props = self.getSetProperty(split.get_package_name)
         return pset
 
@@ -176,6 +176,15 @@ class RpmList:
 
     def getOsVersionMajor(self):
         return int(re.sub("\..*","",self.getOsVersion()))
+
+    def getRpmWholeName(self, pkg, arch):
+        defaultrpm = "nonexistent"
+        for rpm in self.getPackagesByArch(arch):
+            if ns.get_subpackage_only(rpm) == "":
+                defaultrpm = rpm
+            if pkg in rpm and not pkg + utils.test_constants.DEBUG_SUFFIX in rpm:
+                return rpm
+        return defaultrpm.replace("rpms/", "")
 
 
 def isFedora(dist):
