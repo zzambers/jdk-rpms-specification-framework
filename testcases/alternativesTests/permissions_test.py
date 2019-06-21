@@ -17,7 +17,6 @@ from utils.core.unknown_java_exception import UnknownJavaVersionException
 from outputControl import dom_objects as do
 
 # TODO: is broken for ojdk10 rolling releases
-# TODO: jexec is broken, doc that it is binary in lib and it can not be moved
 
 
 class BaseTest(JdkConfiguration):
@@ -36,8 +35,8 @@ class BaseTest(JdkConfiguration):
     def _get_target_java_directory(self, name):
         """Returns a directory where jdk is installed (mostly name-version-release-arch)."""
         directory =  get_32bit_id_in_nvra(pkgsplit.get_nvra(name))
-        if DEBUG_SUFFIX in name:
-          directory = directory + DEBUG_SUFFIX
+        if get_debug_suffix() in name:
+          directory = directory + get_debug_suffix()
 
         return directory
 
@@ -73,16 +72,29 @@ class BaseTest(JdkConfiguration):
 
             # get content of jvm directory
             jvm_dir = self._get_target_java_directory(name)
-            out, result = DefaultMock().executeCommand(["ls -LR " + JVM_DIR + "/" + jvm_dir
-                                                       ])
+            out, result = DefaultMock().executeCommand(["ls -LR " + JVM_DIR + "/" + jvm_dir])
             testcase = do.Testcase("PermissionTest", pkg)
             do.Tests().add_testcase(testcase)
+            out = out.split("\n")
+            fails = []
+            clearedout = []
+            for line in out:
+                if line.startswith("ls: cannot access"):
+                    fails.append(line)
+                else:
+                    clearedout.append(line)
+            if len(fails) > 0:
+                la.LoggingAccess().log("Following warning produced while listing files for " + pkg + ":", la.Verbosity.TEST)
+                for line in fails:
+                    la.LoggingAccess().log("    " + line)
+            if len(clearedout) > 0:
+                result = 0
             if not passed_or_failed(self, result == 0):
-                log_failed_test(self, "Java directory not found for " + subpackage + ", for desired directory "
+                la.LoggingAccess().log("Java directory not found for " + subpackage + ", for desired directory "
                                 + jvm_dir)
                 testcase.set_view_file_stub("java dir not found for " + subpackage + ", for desired dir")
                 continue
-            valid_targets = self._parse_output(out, subpackage)
+            valid_targets = self._parse_output(clearedout, subpackage)
             self.sort_and_test(valid_targets, subpackage, name)
 
             manpages = two_lists_diff(DefaultMock().execute_ls(MAN_DIR)[0].split("\n"), default_manpages)
@@ -96,11 +108,10 @@ class BaseTest(JdkConfiguration):
 
     def _parse_output(self, out, subpackage):
         """Output of the file listing must be parsed into something more readable and easier to process."""
-        output_parts = out.split("\n")
         return_targets = []
         header = re.compile("/[^:]*:")
         current_header = ""
-        for line in output_parts:
+        for line in out:
             if line == "":
                 continue
             elif "cannot access" in line:
@@ -138,7 +149,7 @@ class BaseTest(JdkConfiguration):
                                      "Regular files should have 644 permissions",
                                      "Symbolic links should have 777 permissions.",
                                      "Permissions of a file classes.jsa must be 444."
-                                     "Binary jexec and jspawnhelper are exceptions and must be in lib directory and has"
+                                     "Binary jexec and jspawnhelper are exceptions and must be in lib directory and have"
                                      " 755 permissions.",
                                      "Other types of files with different permissions should not be present."]))
         for target in valid_targets:
@@ -155,7 +166,7 @@ class BaseTest(JdkConfiguration):
             # for now we cover it with this hook, but once reproducible, we will ask for official fix
             # since it behaves correctly so far, this is a PASS
             # TODO: reproduce and fix
-            if target == JVM_DIR + "/" + self._get_target_java_directory(name) + "/lib" and "devel" in subpackage:
+            if (target == JVM_DIR + "/" + self._get_target_java_directory(name) + "/lib" and "devel" in subpackage):
                 testcase = do.Testcase("BaseTest", "sort_and_test " + target)
                 do.Tests().add_testcase(testcase)
                 self.passed += 1
@@ -166,7 +177,7 @@ class BaseTest(JdkConfiguration):
                 continue
             if out == "directory":
                 self._test_fill_in(target, out, "755")
-            elif out == "regular file":
+            elif out == "regular file" or out == "regular empty file":
                 if "/bin/" in target:
                     self._test_fill_in(target, "binary", "755")
                 elif ".so" in target:
@@ -187,13 +198,8 @@ class BaseTest(JdkConfiguration):
                 if not passed_or_failed(self, res == 0):
                     log_failed_test(self, "Target of symbolic link {} does not exist.".format(target) + " Error " + out)
                     testcase.set_view_file_stub("Target of symbolic link {} does not exist.".format(target) + " Error " + out)
-                elif "../" in out:
-                    parts = target.split("/")
-                    for i in range(2):
-                        parts = parts[:-1]
-                    replace_dots = "/".join(parts)
-                    out = out.replace("../", replace_dots + "/")
-
+                    continue
+                out = self._get_link_full_path(target, out)
                 self.sort_and_test([out], subpackage, name)
             else:
                 testcase = do.Testcase("BaseTest", "sort_and_test " + target)
@@ -232,6 +238,22 @@ class BaseTest(JdkConfiguration):
                 self.failed += 1
                 testcase.set_view_file_stub("invalid file candidate " + target)
 
+    def _get_link_full_path(self, target, link):
+        if link.startswith("/"):
+            return link
+        parts = target.split("/")
+        parts = parts[:-1]
+        linkparts = link.split("/")
+        suffix = ""
+        for part in linkparts:
+            if part == "..":
+                parts = parts[:-1]
+            else:
+                suffix += "/" + part
+        prefix = "/" + "/".join(parts)
+        return prefix + suffix
+
+
     def _test_fill_in(self, file, filetype, expected_permission):
         """
         This method takes as an argument path to a file, type of the file for logs, expected permission and checks,
@@ -240,6 +262,11 @@ class BaseTest(JdkConfiguration):
         testcase = do.Testcase("BaseTest", "test_fill_in " + filetype)
         do.Tests().add_testcase(testcase)
         out, res = DefaultMock().executeCommand(['stat -c "%a" ' + file])
+        if out == "775" and "ibm" in file:
+            PermissionTest.instance.log("Skipping " + file + ". Some unzipped Ibm packages are acting wierdly in mock. "
+                                                             "Howewer, in installed JDK, the permissions are correct.",
+                                        Verbosity.TEST)
+            return
         if res != 0:
             log_failed_test(self, filetype + " link is broken, could not find " + file)
             testcase.set_view_file_stub(filetype + " link is broken, could not find " + file)
@@ -250,7 +277,7 @@ class BaseTest(JdkConfiguration):
                                         la.Verbosity.MOCK)
         for p in range(3):
             if not (int(out[p]) == int(expected_permission[p])):
-                log_failed_test(self, "Permissions of {} not as expected, should be {} but is "
+                la.LoggingAccess.log(self, "Permissions of {} not as expected, should be {} but is "
                                       "{}.".format(file, expected_permission, out))
                 self.failed += 1
                 testcase.set_view_file_stub("Permissions of {} not as expected, should be {} but is "
@@ -290,8 +317,8 @@ class OpenJdk7(OpenJdk6):
 
 class OpenJdk8(OpenJdk7):
     def _skipped_subpackages(self):
-        return super()._skipped_subpackages() + [JAVADOC + DEBUG_SUFFIX, DEFAULT + DEBUG_SUFFIX,
-                                                 JAVADOC + "-zip", JAVADOC + "-zip" + DEBUG_SUFFIX]
+        return super()._skipped_subpackages() + [JAVADOC + get_debug_suffix(), DEFAULT + get_debug_suffix(),
+                                                 JAVADOC + "-zip", JAVADOC + "-zip" + get_debug_suffix()]
 
 
 class OpenJdk9(OpenJdk8):

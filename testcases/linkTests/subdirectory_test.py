@@ -256,15 +256,15 @@ class Ibm8Rhel8(OpenJdk7):
 class OpenJdk8Debug(OpenJdk7):
     def _get_expected_subdirectories(self, name):
         subdirs = super()._get_expected_subdirectories(name)
-        subdirs[HEADLESS + DEBUG_SUFFIX] = copy.copy(subdirs[HEADLESS])
-        subdirs[DEFAULT + DEBUG_SUFFIX] = copy.copy(subdirs[DEFAULT])
-        subdirs[DEVEL + DEBUG_SUFFIX] = copy.copy(subdirs[DEVEL])
+        subdirs[HEADLESS + get_debug_suffix()] = copy.copy(subdirs[HEADLESS])
+        subdirs[DEFAULT + get_debug_suffix()] = copy.copy(subdirs[DEFAULT])
+        subdirs[DEVEL + get_debug_suffix()] = copy.copy(subdirs[DEVEL])
         return subdirs
 
     def _get_nvra_suffix(self, name):
         nvra = super()._get_nvra_suffix(name)
-        if DEBUG_SUFFIX in name:
-            nvra = nvra + DEBUG_SUFFIX
+        if get_debug_suffix() in name:
+            nvra = nvra + get_debug_suffix()
         return nvra
 
 

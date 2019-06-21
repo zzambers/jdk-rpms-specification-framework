@@ -49,12 +49,12 @@ class BaseTest(JdkConfiguration):
         return [DEVEL]
 
     def _get_sdk_debug_subpackage(self):
-        return [DEVEL + DEBUG_SUFFIX]
+        return [DEVEL + get_debug_suffix()]
 
     def _get_binary_directory_path(self, name):
         d = JVM_DIR + "/" + self._get_binary_directory(name)
-        if DEBUG_SUFFIX + "-" in name:
-            d += DEBUG_SUFFIX
+        if get_debug_suffix() + "-" in name:
+            d += get_debug_suffix()
         if DEVEL in name or JAVAFX in name:
             return d + SDK_DIRECTORY
         else:
@@ -62,6 +62,12 @@ class BaseTest(JdkConfiguration):
 
     def _check_binaries_against_harcoded_list(self, binaries, subpackage):
         return
+
+    def _get_exports_slaves_jre(self):
+        return get_exports_slaves_jre()
+
+    def _get_exports_slaves_sdk(self):
+        return get_exports_slaves_sdk()
 
     def _get_jre_subpackage(self):
         return [DEFAULT]
@@ -116,7 +122,7 @@ class PathTest(BaseTest):
             if not DefaultMock().postinstall_exception_checked(pkg):
                 self.binaries_test.log("Skipping path test because of missing post install scriptlet.")
                 continue
-            if (_subpkg == DEFAULT or _subpkg == DEFAULT + DEBUG_SUFFIX) and int(pkgsplit.simplify_full_version(pkgsplit.get_minor_ver(name))) >= 10:
+            if (_subpkg == DEFAULT or _subpkg == DEFAULT + get_debug_suffix()) and int(pkgsplit.simplify_full_version(pkgsplit.get_minor_ver(name))) >= 10:
                 self.binaries_test.log("Skipping default package, it has no binaries.")
                 continue
             if _subpkg == PLUGIN and pkgsplit.get_vendor(name) == "ibm" and \
@@ -144,7 +150,7 @@ class PathTest(BaseTest):
                     self.binaries_test.log("Binary {} found in {} for "
                                            "{}".format(binary, ", ".join(found_paths), _subpkg), la.Verbosity.TEST)
                 else:
-                    testcase.set_view_file_stub("not found in any path given for " + _subpkg)
+                    testcase.set_view_file_stub(binary + " not found in any path given for " + _subpkg)
                     log_failed_test(self, binary + " not found in any path given for " + _subpkg)
 
         self.binaries_test.log("Path test finished.", la.Verbosity.TEST)

@@ -14,8 +14,6 @@ import utils.test_utils as tu
 from outputControl import dom_objects as do
 
 
-
-
 class NonITW(cs.JdkConfiguration):
     def __init__(self, this):
         super().__init__()
@@ -23,8 +21,6 @@ class NonITW(cs.JdkConfiguration):
         self.this=this
         self.passed = 0
         self.failed = 0
-
-
 
     def _get_artificial_provides(self, filename):
             output, error, res = pu.executeShell("rpm -q --provides rpms/" + filename)
@@ -36,13 +32,12 @@ class NonITW(cs.JdkConfiguration):
                     provides_dict[actual_line[0].strip()] = actual_line[1].strip()
             return provides_dict
 
-
     def check_artificial_provides(self, this):
         files = self.rpms.files
         documentation = ""
         files = [x.replace("rpms/", "") for x in files]
         if not self.documenting:
-            files = [x for x in files if this.current_arch in x]
+            files = [x for x in files if this.current_arch == ns.get_arch(x)]
         for filename in files:
             filename = filename.split("/")[-1]
             expected_provides = self._get_expected_artificial_provides(filename)
@@ -99,7 +94,7 @@ class NonITW(cs.JdkConfiguration):
                 provides = JavaDocRolling(name, java_ver, vendor, pkg, version, end, arch, filename)
             else:
                 provides = DefaultRolling(name, java_ver, vendor, pkg, version, end, arch, filename)
-        elif "debuginfo" in pkg or "debugsource" in pkg:
+        elif "debuginfo" in pkg or "debugsource" in pkg or "jdbc" in pkg:
             provides = DebugInfo(name, java_ver, vendor, pkg, version, end, arch, filename)
         elif java_ver not in tc.TECHPREVIEWS:
             if "openjfx" in pkg:
@@ -114,6 +109,8 @@ class NonITW(cs.JdkConfiguration):
                 provides = JavaDocZip(name, java_ver, vendor, pkg, version, end, arch, filename)
             elif "javadoc" in pkg:
                 provides = JavaDoc(name, java_ver, vendor, pkg, version, end, arch, filename)
+            elif "webstart" in pkg:
+                provides = Webstart(name, java_ver, vendor, pkg, version, end, arch, filename)
             else:
                 provides = Default(name, java_ver, vendor, pkg, version, end, arch, filename)
         else:
@@ -160,14 +157,11 @@ class NonITW(cs.JdkConfiguration):
         self._document("")
         pass
 
-
     def _get_actual_ghosts(self, filename):
         pass
 
-
     def _get_expected_ghosts(self, filename):
         pass
-
 
     def _validate_arch_for_provides(self, arch):
         if arch == "aarch64":
@@ -392,6 +386,13 @@ class JavaDocZipRolling(JavaDocRolling):
             if "(" not in provide and java_ver not in provide:
                 self.expected_provides[(provide.replace("-zip", ""))] = ns.get_version_full(filename)
                 self.expected_provides.pop(provide)
+
+
+class Webstart(DebugInfo):
+    def __init__(self, name, java_ver, vendor, pkg, version, end, arch, filename):
+        super(Webstart, self).__init__(name, java_ver, vendor, pkg, version, end, arch, filename)
+        self.expected_provides["config({})".format("-".join([name, java_ver, vendor, pkg]))] = ns.get_version_full(filename)
+
 
 
 

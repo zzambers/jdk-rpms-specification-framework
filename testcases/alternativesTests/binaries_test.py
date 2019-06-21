@@ -163,6 +163,9 @@ class BinariesTest(bt.BaseTest):
                         self.csch = tcc.Ibm(BinariesTest.instance)
                         return
                 elif rpms.getOsVersionMajor() == 8:
+                    if self.getCurrentArch() in gc.getS390xArch() + gc.getS390Arch():
+                        self.csch = tcc.Ibm8Rhel8S390X(BinariesTest.instance)
+                        return
                     self.csch = tcc.Ibm8Rhel8(BinariesTest.instance)
                     return
             else:

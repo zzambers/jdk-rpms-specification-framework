@@ -20,8 +20,8 @@ class GetAllBinariesAndSlaves(PathTest):
                        ", ".join(self._get_subpackages_with_binaries()))
 
     def check_exports_slaves(self, args=None):
-        jre_slaves = get_exports_slaves_jre()
-        sdk_slaves = get_exports_slaves_sdk()
+        jre_slaves = self._get_exports_slaves_jre()
+        sdk_slaves = self._get_exports_slaves_sdk()
         jre_subpackages = self._get_jre_subpackage()
         sdk_subpackages = self._get_sdk_subpackage()
         self._document(" and ".join(jre_slaves + sdk_slaves) + " are slaves, that point at export "
@@ -153,10 +153,10 @@ class BinarySlaveTestMethods(GetAllBinariesAndSlaves):
 
         for subpkg in jre_subpackages:
             for sdk_subpkg in sdk_subpackages:
-                if DEBUG_SUFFIX in subpkg and DEBUG_SUFFIX in sdk_subpkg:
+                if get_debug_suffix() in subpkg and get_debug_suffix() in sdk_subpkg:
                     jre = self.installed_binaries[subpkg]
                     sdk = self.installed_binaries[sdk_subpkg]
-                elif DEBUG_SUFFIX not in subpkg and DEBUG_SUFFIX not in sdk_subpkg:
+                elif get_debug_suffix() not in subpkg and get_debug_suffix() not in sdk_subpkg:
                     sdk = self.installed_binaries[sdk_subpkg]
                     jre = self.installed_binaries[subpkg]
                 else:

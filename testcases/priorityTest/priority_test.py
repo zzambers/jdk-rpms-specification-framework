@@ -83,8 +83,8 @@ class PriorityTest(JdkConfiguration):
         pkgs = pkg_priorities.keys()
 
         for pkg in pkgs:
-            if DEBUG_SUFFIX in pkg:
-                name = pkg.replace(DEBUG_SUFFIX, "")
+            if get_debug_suffix() in pkg:
+                name = pkg.replace(get_debug_suffix(), "")
             else:
                 continue
 
@@ -101,7 +101,7 @@ class PriorityTest(JdkConfiguration):
                     do.Tests().add_testcase(testcase)
                     if not passed_or_failed(self, int(master_and_priority[m]) > int(master_and_priority_debug[m])):
                         log_failed_test(self, "Debug subpackage priority check failed for " + name +
-                                        ", master " + master + ". Debug package should have lower priority. " +
+                                        ", master " + m + ". Debug package should have lower priority. " +
                                         "Main package priority: {} Debug package"
                                         " priority: {}".format(master_and_priority[m], master_and_priority_debug[m]))
                         testcase.set_view_file_stub("Debug subpackage priority check failed for " + name)
@@ -134,17 +134,21 @@ class MajorCheck(PriorityTest):
 
             masters = DefaultMock().get_masters()
             for m in masters:
-                if m in _default_masters:
+                #ignoring libjavaplugin as Jvanek stated is unnecessary for us to check on.
+                if m in _default_masters or LIBJAVAPLUGIN in m:
                     continue
+                testcase = do.Testcase("PriorityCheck", "_check_priorities")
+                do.Tests().add_testcase(testcase)
                 try:
                     priority = self._get_priority(m)
                 except utils.mock.mock_execution_exception.MockExecutionException as e:
+                    testcase.set_view_file_stub(str(e))
                     if "failed " in str(e):
                         log_failed_test(self, str(e))
                     else:
                         raise e
                 if priority is None:
-                    PriorityCheck.instance.log("Failed to get priority, skipping check for " + pkg_name)
+                    PriorityCheck.instance.log("Failed to get priority, skipping check for " + m + " in " + pkg_name)
                     continue
 
                 if (self.check_length(priority) and

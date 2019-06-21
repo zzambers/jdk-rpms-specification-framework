@@ -182,7 +182,7 @@ class RpmList:
         for rpm in self.getPackagesByArch(arch):
             if ns.get_subpackage_only(rpm) == "":
                 defaultrpm = rpm
-            if pkg in rpm and not pkg + utils.test_constants.DEBUG_SUFFIX in rpm:
+            if pkg in rpm and not pkg + utils.test_constants.get_debug_suffix() in rpm:
                 return rpm
         return defaultrpm.replace("rpms/", "")
 

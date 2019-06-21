@@ -26,6 +26,9 @@ class EmptyPackageTest(utils.core.base_xtest.BaseTest):
             self.log("got: " + str(len(files)) + " files")
             if split.get_arch(pkg) in config.global_config.getSrcrpmArch():
                 passed_or_failed(self, len(files) > 1)
+            #IBM8EL8 src and jdbc pkgs both contain single file
+            elif split.get_vendor(pkg) == "ibm" and split.simplify_full_version(split.get_major_ver(pkg)) == "8" and ("src" in pkg or "jdbc" in pkg):
+                passed_or_failed(self, len(files) == 1)
             else:
                 passed_or_failed(self, len(files) > 2)
         return self.passed, self.failed

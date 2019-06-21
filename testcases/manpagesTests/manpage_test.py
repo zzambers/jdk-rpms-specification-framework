@@ -264,13 +264,13 @@ class ManpageTestMethods(JdkConfiguration):
         rpms_by_arch = self.rpms.getPackagesByArch(ManpageTests.instance.getCurrentArch())
         has_debug = False
         for rpm in rpms_by_arch:
-            if HEADLESS + DEBUG_SUFFIX in rpm:
+            if HEADLESS + get_debug_suffix() in rpm:
                 has_debug = True
                 break
 
         if has_debug:
             self._document(" For debug subpackages, man page file is suffixed "
-                           "with {}.".format(replace_archs_with_general_arch((self._get_manpage_suffixes(DEBUG_SUFFIX)),
+                           "with {}.".format(replace_archs_with_general_arch((self._get_manpage_suffixes(get_debug_suffix())),
                                                                              self._get_arch())[FILE]))
         return
 
@@ -321,15 +321,15 @@ class OpenJdk8WithDebug(OpenJdk8):
         for b in bins[self._get_subpackages()[3]]:
             if b not in bins[self._get_subpackages()[2]]:
                 devel_bins.append(b)
-        bins[DEVEL + DEBUG_SUFFIX] = devel_bins
+        bins[DEVEL + get_debug_suffix()] = devel_bins
         return
 
     def _get_subpackages(self):
-        return [HEADLESS, DEVEL, HEADLESS + DEBUG_SUFFIX, DEVEL + DEBUG_SUFFIX]
+        return [HEADLESS, DEVEL, HEADLESS + get_debug_suffix(), DEVEL + get_debug_suffix()]
 
     def _get_manpage_suffixes(self, subpackage):
-        if DEBUG_SUFFIX in subpackage:
-            return [MANPAGE_SUFFIX, "-" + self.rpms.getNvr() + "." + self._get_arch() + DEBUG_SUFFIX + MANPAGE_SUFFIX]
+        if get_debug_suffix() in subpackage:
+            return [MANPAGE_SUFFIX, "-" + self.rpms.getNvr() + "." + self._get_arch() + get_debug_suffix() + MANPAGE_SUFFIX]
         else:
             return super()._get_manpage_suffixes(subpackage)
 
@@ -347,7 +347,7 @@ class OpenJdk10(OpenJdk8):
 class OpenJdk10Debug(OpenJdk8WithDebug):
     def __init__(self):
         super().__init__()
-        self.checked_subpackages = [DEVEL, DEVEL + DEBUG_SUFFIX]
+        self.checked_subpackages = [DEVEL, DEVEL + get_debug_suffix()]
         self.missing_manpages = ["jdeprscan", "jhsdb", "jimage", "jlink", "jmod", "jshell"]
 
     def _clean_up_binaries(self, binaries, master, usr_bin):
@@ -358,7 +358,7 @@ class OpenJdk10Debugx64(OpenJdk10Debug):
 
     def __init__(self):
         super().__init__()
-        self.checked_subpackages = [DEVEL, DEVEL + DEBUG_SUFFIX]
+        self.checked_subpackages = [DEVEL, DEVEL + get_debug_suffix()]
         self.missing_manpages = ["jdeprscan", "jhsdb", "jimage", "jlink", "jmod", "jshell", "jaotc"]
 
 

@@ -103,17 +103,17 @@ class OpenJdk8(OpenJdk7):
 
     def _get_debug_debuginfo(self):
         return ["debug-debuginfo",
-                "demo" + DEBUG_SUFFIX + "-debuginfo",
-                "devel" + DEBUG_SUFFIX + "-debuginfo",
-                "headless" + DEBUG_SUFFIX + "-debuginfo"]
+                "demo" + get_debug_suffix() + "-debuginfo",
+                "devel" + get_debug_suffix() + "-debuginfo",
+                "headless" + get_debug_suffix() + "-debuginfo"]
 
     def _get_debug_subpackages(self):
-        return ["accessibility" + DEBUG_SUFFIX,
+        return ["accessibility" + get_debug_suffix(),
                 "debug",
-                "demo" + DEBUG_SUFFIX,
-                "devel" + DEBUG_SUFFIX,
-                "headless" + DEBUG_SUFFIX,
-                "src" + DEBUG_SUFFIX]
+                "demo" + get_debug_suffix(),
+                "devel" + get_debug_suffix(),
+                "headless" + get_debug_suffix(),
+                "src" + get_debug_suffix()]
 
     def _get_javadoc_debug(self):
         return ["javadoc-debug", "javadoc-zip-debug"]
@@ -128,9 +128,9 @@ class OpenJdk8Debug(OpenJdk8):
 class OpenJdk8JFX(OpenJdk8Debug):
     def _getSubPackages(self):
         return super()._getSubPackages() + ["openjfx",
-                                            "openjfx" + DEBUG_SUFFIX,
+                                            "openjfx" + get_debug_suffix(),
                                             "openjfx-devel",
-                                            "openjfx-devel" + DEBUG_SUFFIX]
+                                            "openjfx-devel" + get_debug_suffix()]
 
 
 class OpenJdk8DebugDebuginfo(OpenJdk8Debug):
@@ -178,18 +178,18 @@ class OpenJdk10(OpenJdk9Debuginfo):
 
 class OpenJdk9DebugDebuginfo(OpenJdk8DebugDebuginfo):
     def _getSubPackages(self):
-        return super()._getSubPackages() + ["jmods", "jmods" + DEBUG_SUFFIX]
+        return super()._getSubPackages() + ["jmods", "jmods" + get_debug_suffix()]
 
     def _get_debug_debuginfo(self):
-        return ["devel" + DEBUG_SUFFIX + "-debuginfo",
-                "headless" + DEBUG_SUFFIX + "-debuginfo"]
+        return ["devel" + get_debug_suffix() + "-debuginfo",
+                "headless" + get_debug_suffix() + "-debuginfo"]
 
 
 class OpenJdk10DebugDebuginfo(OpenJdk9DebugDebuginfo):
     def _getSubPackages(self):
         subpackages = super()._getSubPackages()
         subpackages.remove("accessibility")
-        subpackages.remove("accessibility" + DEBUG_SUFFIX)
+        subpackages.remove("accessibility" + get_debug_suffix())
         return subpackages
 
     def _get_debuginfo(self):
@@ -198,16 +198,16 @@ class OpenJdk10DebugDebuginfo(OpenJdk9DebugDebuginfo):
 
     def _get_debug_debuginfo(self):
         return ["slowdebug-debuginfo",
-                "devel" + DEBUG_SUFFIX + "-debuginfo",
-                "headless" + DEBUG_SUFFIX + "-debuginfo"]
+                "devel" + get_debug_suffix() + "-debuginfo",
+                "headless" + get_debug_suffix() + "-debuginfo"]
 
     def _get_debug_subpackages(self):
-        return ["accessibility" + DEBUG_SUFFIX,
+        return ["accessibility" + get_debug_suffix(),
                 "slowdebug",
-                "demo" + DEBUG_SUFFIX,
-                "devel" + DEBUG_SUFFIX,
-                "headless" + DEBUG_SUFFIX,
-                "src" + DEBUG_SUFFIX]
+                "demo" + get_debug_suffix(),
+                "devel" + get_debug_suffix(),
+                "headless" + get_debug_suffix(),
+                "src" + get_debug_suffix()]
 
     def _get_javadoc_debug(self):
         return ["javadoc-slowdebug", "javadoc-zip-slowdebug"]
@@ -224,15 +224,15 @@ class OpenJdk11Debug(OpenJdk8Debug):
     def _getSubPackages(self):
         subpackages = super()._getSubPackages()
         subpackages.remove("accessibility")
-        subpackages.remove("accessibility" + DEBUG_SUFFIX)
+        subpackages.remove("accessibility" + get_debug_suffix())
         subpackages.append("jmods")
-        subpackages.append("jmods" + DEBUG_SUFFIX)
+        subpackages.append("jmods" + get_debug_suffix())
         return subpackages
 
 
 class OpenJdk9Debug(OpenJdk8Debug):
     def _getSubPackages(self):
-        return super()._getSubPackages() + ["jmods", "jmods" + DEBUG_SUFFIX]
+        return super()._getSubPackages() + ["jmods", "jmods" + get_debug_suffix()]
 
 
 class OracleAndIbmBase(JDKBase):
@@ -245,6 +245,11 @@ class OracleAndIbmBase(JDKBase):
 class OracleAndIbmAddPlugin(OracleAndIbmBase):
     def _getSubPackages(self):
         return super()._getSubPackages() + [PLUGIN]
+
+
+class Ibm8withWS(OracleAndIbmAddPlugin):
+    def _getSubPackages(self):
+        return super()._getSubPackages() + ["webstart", HEADLESS]
 
 
 class Oracle7and8(OracleAndIbmAddPlugin):
@@ -352,7 +357,7 @@ class SubpackagesTest(utils.core.base_xtest.BaseTest):
             elif rpms.getMajorVersionSimplified() == "8":
                 if self.getCurrentArch() in gc.getPpc32Arch() + gc.getIx86archs() + gc.getX86_64Arch() +\
                                             gc.getPower64BeAchs():
-                    self.csch = OracleAndIbmAddPlugin()
+                    self.csch = Ibm8withWS()
                     return
                 else:
                     self.csch = OracleAndIbmBase()

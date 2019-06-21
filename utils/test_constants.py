@@ -1,3 +1,5 @@
+from config.global_config import Singleton
+
 PLUGIN = "plugin"
 JAVA = "java"
 JAVAC = "javac"
@@ -69,15 +71,15 @@ def get_openjfx_binaries():
 
 
 def subpackages_without_alternatives():
-    return ["accessibility", "debuginfo", "demo", "src", "accessibility" + DEBUG_SUFFIX,
-            "src" + DEBUG_SUFFIX, "demo" + DEBUG_SUFFIX, "headless-debuginfo", "devel-debuginfo", "demo-debuginfo",
-            "debug-debuginfo", "devel" + DEBUG_SUFFIX + "-debuginfo", "debugsource",
-            "headless" + DEBUG_SUFFIX + "-debuginfo",
-            "demo" + DEBUG_SUFFIX + "-debuginfo", "jdbc"]
+    return ["accessibility", "debuginfo", "demo", "src", "accessibility" + get_debug_suffix(),
+            "src" + get_debug_suffix(), "demo" + get_debug_suffix(), "headless-debuginfo", "devel-debuginfo", "demo-debuginfo",
+            "debug-debuginfo", "devel" + get_debug_suffix() + "-debuginfo", "debugsource",
+            "headless" + get_debug_suffix() + "-debuginfo",
+            "demo" + get_debug_suffix() + "-debuginfo", "jdbc"]
 
 
 def get_javadoc_dirs():
-    return [JAVADOC, JAVADOC + DEBUG_SUFFIX, "javadoc-zip" + DEBUG_SUFFIX, "javadoc-zip"]
+    return [JAVADOC, JAVADOC + get_debug_suffix(), "javadoc-zip" + get_debug_suffix(), "javadoc-zip"]
 
 
 # slowdebug/debug suffixes in various jdk are not trivial task to do, this is very bad hack and can not stay this way
@@ -87,4 +89,13 @@ def identify_debug_suffix():
     return rpms.getDebugSuffix()
 
 
-DEBUG_SUFFIX = identify_debug_suffix()
+def get_debug_suffix():
+    if DebugSuffixHolder().debug_suffix == "":
+        DebugSuffixHolder().debug_suffix = identify_debug_suffix()
+    return DebugSuffixHolder().debug_suffix
+
+class DebugSuffixHolder(metaclass=Singleton):
+    def __init__(self):
+        self.debug_suffix = ""
+
+

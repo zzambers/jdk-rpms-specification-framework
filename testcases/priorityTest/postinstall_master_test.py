@@ -163,19 +163,19 @@ class OpenJdk7(OpenJdk6):
 class OpenJdk8OtherArchs(OpenJdk7):
     def _generate_masters(self):
         masters = super(OpenJdk8OtherArchs, self)._generate_masters()
-        masters[JAVADOC + DEBUG_SUFFIX] = [JAVADOCDIR]
+        masters[JAVADOC + get_debug_suffix()] = [JAVADOCDIR]
         masters[JAVADOC_ZIP] = [JAVADOCZIP]
-        masters[JAVADOC_ZIP + DEBUG_SUFFIX] = [JAVADOCZIP]
+        masters[JAVADOC_ZIP + get_debug_suffix()] = [JAVADOCZIP]
         return masters
 
 
 class OpenJdk8Intel(OpenJdk8OtherArchs):
     def _generate_masters(self):
         masters = super(OpenJdk8Intel, self)._generate_masters()
-        masters[DEVEL + DEBUG_SUFFIX] = masters[DEVEL]
-        masters[HEADLESS + DEBUG_SUFFIX] = masters[HEADLESS]
-        masters[JAVADOC + DEBUG_SUFFIX] = masters[JAVADOC]
-        masters[DEFAULT + DEBUG_SUFFIX] = []
+        masters[DEVEL + get_debug_suffix()] = masters[DEVEL]
+        masters[HEADLESS + get_debug_suffix()] = masters[HEADLESS]
+        masters[JAVADOC + get_debug_suffix()] = masters[JAVADOC]
+        masters[DEFAULT + get_debug_suffix()] = []
         return masters
 
 
@@ -189,11 +189,11 @@ class OpenJdk9Armvhl(OpenJdk7):
 class OpenJdk9OtherArchs(OpenJdk9Armvhl):
     def _generate_masters(self):
         masters = super()._generate_masters()
-        masters[JAVADOC_ZIP + DEBUG_SUFFIX] = [JAVADOCZIP]
-        masters[DEVEL + DEBUG_SUFFIX] = masters[DEVEL]
-        masters[HEADLESS + DEBUG_SUFFIX] = masters[HEADLESS]
-        masters[JAVADOC + DEBUG_SUFFIX] = masters[JAVADOC]
-        masters[DEFAULT + DEBUG_SUFFIX] = []
+        masters[JAVADOC_ZIP + get_debug_suffix()] = [JAVADOCZIP]
+        masters[DEVEL + get_debug_suffix()] = masters[DEVEL]
+        masters[HEADLESS + get_debug_suffix()] = masters[HEADLESS]
+        masters[JAVADOC + get_debug_suffix()] = masters[JAVADOC]
+        masters[DEFAULT + get_debug_suffix()] = []
         return masters
 
 
@@ -391,6 +391,9 @@ class PostinstallScriptTest(bt.BaseTest):
                 else:
                     raise ex.UnknownJavaVersionException("Unknown IBM java version.")
             else:
+                if self.getCurrentArch() in gc.getS390xArch() + gc.getS390Arch() + gc.getPower64LeAchs():
+                    self.csch = ProprietaryJavaRhel8s390x()
+                    return
                 self.csch = ProprietaryJavaRhel8()
                 return
 
