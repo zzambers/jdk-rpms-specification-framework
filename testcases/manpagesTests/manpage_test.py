@@ -377,7 +377,7 @@ class OpenJdk11Debugx64(OpenJdk10Debugx64):
 class OpenJdk11s390x(OpenJdk11Debug):
     def __init__(self):
         super().__init__()
-        self.checked_subpackages = [DEVEL, DEVEL + DEBUG_SUFFIX]
+        self.checked_subpackages = [DEVEL, DEVEL + get_debug_suffix()]
         self.missing_manpages = ["jdeprscan", "jimage", "jlink", "jmod", "jshell"]
 
 
