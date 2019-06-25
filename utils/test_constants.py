@@ -1,5 +1,3 @@
-from config.global_config import Singleton
-
 PLUGIN = "plugin"
 JAVA = "java"
 JAVAC = "javac"
@@ -32,6 +30,14 @@ OJDK8JFX = "ojdk8JFX"
 OJDK8DEBUG = "ojdk8debug"
 TECHPREVIEWS = ["11", "12"]
 
+#unable to import singleton from global_config
+class Singleton(type):
+    _instances = {}
+
+    def __call__(cls, *args, **kwargs):
+        if cls not in cls._instances:
+            cls._instances[cls] = super(Singleton, cls).__call__(*args, **kwargs)
+        return cls._instances[cls]
 
 # exports jre binaries
 def get_exports_slaves_jre():
@@ -93,6 +99,7 @@ def get_debug_suffix():
     if DebugSuffixHolder().debug_suffix == "":
         DebugSuffixHolder().debug_suffix = identify_debug_suffix()
     return DebugSuffixHolder().debug_suffix
+
 
 class DebugSuffixHolder(metaclass=Singleton):
     def __init__(self):

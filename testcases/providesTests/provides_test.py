@@ -37,7 +37,7 @@ class NonITW(cs.JdkConfiguration):
         documentation = ""
         files = [x.replace("rpms/", "") for x in files]
         if not self.documenting:
-            files = [x for x in files if this.current_arch == ns.get_arch(x)]
+            files = [x for x in files if tu.validate_arch_for_rpms(this.current_arch) == ns.get_arch(x)]
         for filename in files:
             filename = filename.split("/")[-1]
             expected_provides = self._get_expected_artificial_provides(filename)
@@ -75,7 +75,7 @@ class NonITW(cs.JdkConfiguration):
 
     def _get_expected_artificial_provides(self, filename):
         name, java_ver, vendor, pkg, version, end = ns._hyphen_split(filename)
-        arch = self._validate_arch_for_provides(ns.get_arch(filename))
+        arch = tu.validate_arch_for_provides(ns.get_arch(filename))
         # have to look at this with Jvanek/list through provides myself in future
         if "src" in end:
             provides = Empty(name, java_ver, vendor, pkg, version, end, arch, filename)
@@ -132,7 +132,7 @@ class NonITW(cs.JdkConfiguration):
         files = self.rpms.files
         self._document("according to Jvanek every provide should be provided only once per set of rpms with exception "
                        + "of javadoc-zip having common provides with javadoc")
-        files = [x.replace("rpms/", "") for x in files if this.current_arch in x]
+        files = [x.replace("rpms/", "") for x in files if tu.validate_arch_for_rpms(this.current_arch) in x]
         if files:
             la.LoggingAccess().log("  Testing VersionRelease: " + ns.get_version_full(files[0]), la.Verbosity.TEST)
         for i in range(len(files) - 1):
@@ -163,26 +163,27 @@ class NonITW(cs.JdkConfiguration):
     def _get_expected_ghosts(self, filename):
         pass
 
-    def _validate_arch_for_provides(self, arch):
-        if arch == "aarch64":
-            return "aarch-64"
-        elif arch == "i386" or arch == "i686":
-            return "x86-32"
-        elif arch == "armv7hl":
-            return "armv7hl-32"
-        elif arch == "ppc64le" or arch == "ppc64":
-            return "ppc-64"
-        elif arch == "x86_64":
-            return "x86-64"
-        elif arch == "s390x":
-            return "s390-64"
-        else:
-            return arch
-
     def _is_pkg_default(self, pkg):
         return pkg == "" or pkg == "debug" or pkg == "slowdebug"
 
 ###
+
+class ITWeb(NonITW):
+    def _get_expected_artificial_provides(self, filename):
+        name, java_ver, vendor, pkg, version, end = ns._hyphen_split(filename)
+        arch = tu.validate_arch_for_provides(ns.get_arch(filename))
+        if pkg == "":
+            provides = ITWebDefault(name, java_ver, vendor, pkg, version, end, arch, filename)
+        else:
+            provides = ITWebNonDefault(name, java_ver, vendor, pkg, version, end, arch, filename)
+        return provides.get_expected_artificial_provides()
+
+    def _get_artificial_provides(self, filename):
+        provides = super(ITWeb, self)._get_artificial_provides(filename)
+        toremove = [x for x in provides.keys() if x.startswith("mvn")]
+        for x in toremove:
+            provides.pop(x)
+        return provides
 
 class ProvidesTest(bt.BaseTest):
     """ Framework class that runs the testcase. """
@@ -201,7 +202,7 @@ class ProvidesTest(bt.BaseTest):
         if rc.RuntimeConfig().getRpmList().getJava() == gc.ITW:
             self.log("Set ItwVersionCheck")
             #set ITW when finished
-            self.csch = NonITW(ProvidesTest.instance)
+            self.csch = ITWeb(ProvidesTest.instance)
         else:
             self.log("Set OthersVersionCheck")
             self.csch = NonITW(ProvidesTest.instance)
@@ -393,8 +394,19 @@ class Webstart(DebugInfo):
         super(Webstart, self).__init__(name, java_ver, vendor, pkg, version, end, arch, filename)
         self.expected_provides["config({})".format("-".join([name, java_ver, vendor, pkg]))] = ns.get_version_full(filename)
 
+class ITWebNonDefault(Empty):
+    def __init__(self,  name, java_ver, vendor, pkg, version, end, arch, filename):
+        super(ITWebNonDefault, self).__init__(name, java_ver, vendor, pkg, version, end, arch, filename)
+        self.expected_provides[name + (("-" + pkg) if pkg else pkg)] = ns.get_version_full(filename)
 
-
+#itw default provides also java plugin and ws versions hardcoded for now as well as version of the java
+class ITWebDefault(ITWebNonDefault):
+    def __init__(self,  name, java_ver, vendor, pkg, version, end, arch, filename):
+        super(ITWebDefault, self).__init__(name, java_ver, vendor, pkg, version, end, arch, filename)
+        ver = "1:1.8.0"
+        self.expected_provides["java-1.8.0-openjdk-plugin"] = ver
+        self.expected_provides["java-plugin"] = ver
+        self.expected_provides["javaws"] = ver
 
 
 def make_rpm_readable(name):

@@ -683,6 +683,9 @@ class Itw(bsm.BinarySlaveTestMethods):
     def doc_extra_binary(self, args=None):
         self._document(tc.ITWEB_SETTINGS + " is an iced-tea binary. Its slave is " + tc.CONTROL_PANEL)
 
+    def check_subdirectory_slaves(self, args=None):
+        return
+
     def _get_all_binaries_and_slaves(self, pkgs):
         mexe.DefaultMock().provideCleanUsefullRoot()
         original_binaries = mexe.DefaultMock().execute_ls(tc.USR_BIN)[0].split("\n")
@@ -701,13 +704,11 @@ class Itw(bsm.BinarySlaveTestMethods):
         testcase = do.Testcase("BinarySlaveTestMethods", "get_all_binaries_and_slaves " + settings)
         do.Tests().add_testcase(testcase)
         try:
-            installed_binaries[tc.DEFAULT].remove(settings)
             installed_binaries[tc.DEFAULT].append(tc.CONTROL_PANEL)
             self.passed += 1
 
         except ValueError:
             tu.log_failed_test(self, settings + " binary not in " + tc.DEFAULT + " subpackage")
-            self.failed += 1
             testcase.set_view_file_stub(settings + " binary not in " + tc.DEFAULT + " subpackage")
         return installed_binaries, installed_slaves
     
@@ -715,7 +716,7 @@ class Itw(bsm.BinarySlaveTestMethods):
         return tc.USR_BIN
 
     def _get_checked_masters(self):
-        return [tc.LIBJAVAPLUGIN + "." + self._get_arch()]
+        return [tc.JAVAWS + "." + tu.validate_arch_for_rpms(self._get_arch())]
 
     def _remove_links_from_usr_bin(self, installed_binaries):
         # perhaps doc

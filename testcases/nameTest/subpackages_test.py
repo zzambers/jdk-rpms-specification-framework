@@ -69,9 +69,9 @@ class JDKBase(BaseSubpackages):
         return super()._getSubPackages() + [DEVEL, "demo", "src"]
 
 
-class ItwSubpackages(BaseSubpackages):
+class ItwSubpackages(MainPackagePresent):
     def _getSubPackages(self):
-        return super(ItwSubpackages, self)._getSubPackages() + [JAVADOC]
+        return super(ItwSubpackages, self)._getSubPackages() + [JAVADOC, DEVEL]
 
     def checkSubpackages(self, subpackages=None):
         self._document("IcedTea-Web has exactly following subpackages: `" + "`,`".join(

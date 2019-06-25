@@ -63,7 +63,7 @@ class GetAllBinariesAndSlaves(PathTest):
             try:
                 self.installed_slaves[jsubpkg].remove(jre_slave)
                 self.passed += 1
-            except (ValueError,KeyError) as e:
+            except (ValueError, KeyError) as e:
                 self.list_of_failed_tests.append(jre_slave + " slave missing in " + jsubpkg)
                 self.failed += 1
                 testcase.set_view_file_stub(sdk_slave + " slave missing in " + jsubpkg)
@@ -197,7 +197,6 @@ class BinarySlaveTestMethods(GetAllBinariesAndSlaves):
                 self._check_binaries_against_hardcoded_list(binaries, subpackage)
 
         except KeyError as err:
-            self.failed += 1
             tu.log_failed_test(self, err.__str__())
             testcase.set_view_file_stub(err.__str__())
         return

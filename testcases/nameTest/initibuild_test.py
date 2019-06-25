@@ -118,7 +118,10 @@ class InitTest(utils.core.base_xtest.BaseTest):
         self.log("All arches are: " + ",".join(arches))
         testcase = do.Testcase("InitTest", "test_arches")
         do.Tests().add_testcase(testcase)
-        passed_or_failed(self, len(arches) > 1)
+        if not config.runtime_config.RuntimeConfig().getRpmList().getJava() == gc.ITW:
+            passed_or_failed(self, len(arches) > 1)
+        else:
+            passed_or_failed(self, len(arches) == 1)
         return self.passed, self.failed
 
     def test_nativeArches(self):
@@ -127,7 +130,10 @@ class InitTest(utils.core.base_xtest.BaseTest):
         self.log("All native arches: " + ",".join(nativeArches))
         testcase = do.Testcase("InitTest", "test_nativeArches")
         do.Tests().add_testcase(testcase)
-        passed_or_failed(self, len(nativeArches) > 0)
+        if not config.runtime_config.RuntimeConfig().getRpmList().getJava() == gc.ITW:
+            passed_or_failed(self, len(nativeArches) > 0)
+        else:
+            passed_or_failed(self, len(nativeArches) == 0)
         return self.passed, self.failed
 
     def test_srpmPackage(self):

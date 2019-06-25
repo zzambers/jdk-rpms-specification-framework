@@ -467,7 +467,7 @@ class ITW(ManpageTestMethods):
         return links
 
     def iced_tea_web_check(self, manpages_with_postcript=None, manpages_without_postscript=None):
-        itw_manpage_link = "IcedTea-Web.1.gz"
+        itw_manpage_link = "icedtea-web.1.gz"
         itw_manpage_file = "icedtea-web.1.gz"
         self._document("IcedTea Web has an " + itw_manpage_file + " man page, that has no binary and " +
                        itw_manpage_link + " man page, that has no slave.")

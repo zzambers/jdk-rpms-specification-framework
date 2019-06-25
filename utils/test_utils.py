@@ -203,3 +203,26 @@ def has_headless_pkg():
 #tells whether current rpm is rolling release
 def is_rolling(name):
     return "rolling" in name
+
+
+def validate_arch_for_provides(arch):
+    if arch == "aarch64":
+        return "aarch-64"
+    elif arch == "i386" or arch == "i686":
+        return "x86-32"
+    elif arch == "armv7hl":
+        return "armv7hl-32"
+    elif arch == "ppc64le" or arch == "ppc64":
+        return "ppc-64"
+    elif arch == "x86_64":
+        return "x86-64"
+    elif arch == "s390x":
+        return "s390-64"
+    return arch
+
+
+def validate_arch_for_rpms(arch):
+    if arch == "Non_Arch":
+        return "noarch"
+    return arch
+

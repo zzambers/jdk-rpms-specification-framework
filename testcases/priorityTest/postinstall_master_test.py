@@ -200,7 +200,7 @@ class OpenJdk9OtherArchs(OpenJdk9Armvhl):
 class IcedTeaWeb(CheckPostinstallScript):
     def _generate_masters(self):
         masters = super()._generate_masters()
-        masters[DEFAULT] = [self._get_masters_arch_copy(LIBJAVAPLUGIN)]
+        masters[DEFAULT] = [JAVAWS + ".noarch"]
         return masters
 
 
