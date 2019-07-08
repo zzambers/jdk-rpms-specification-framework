@@ -117,7 +117,8 @@ class CheckPostinstallScript(BasePackages):
                                            ", ".join(actual_masters), la.Verbosity.TEST)
         testcase = do.Testcase("MainPackagePresent", "check_post_in_script")
         do.Tests().add_testcase(testcase)
-        passed_or_failed(self, set(expected_masters.keys()) == set(actual_masters.keys()))
+        if not passed_or_failed(self, set(expected_masters.keys()) == set(actual_masters.keys())):
+            testcase.set_view_file_stub("expected subpkgs do not match actual ones: " + str(expected_masters) + " != " + str(actual_masters))
 
         for subpkg in expected_masters.keys():
             if subpkg not in actual_masters.keys():
@@ -137,7 +138,8 @@ class CheckPostinstallScript(BasePackages):
 
             testcase = do.Testcase("MainPackagePresent", "check_post_in_script")
             do.Tests().add_testcase(testcase)
-            passed_or_failed(self, sorted(expected_masters[subpkg]) == sorted(actual_masters[subpkg]))
+            if not passed_or_failed(self, sorted(expected_masters[subpkg]) == sorted(actual_masters[subpkg])):
+                testcase.set_view_file_stub("expected masters do not match actual ones for {}: ".format(subpkg) + str(sorted(expected_masters[subpkg])) + " != " + str(sorted(actual_masters[subpkg])))
 
         return self.passed, self.failed
 
