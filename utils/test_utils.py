@@ -218,6 +218,10 @@ def validate_arch_for_provides(arch):
         return "x86-64"
     elif arch == "s390x":
         return "s390-64"
+    elif arch == "ppc":
+        return "ppc-32"
+    elif arch == "s390":
+        return "s390-32"
     return arch
 
 

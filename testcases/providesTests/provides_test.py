@@ -47,13 +47,13 @@ class NonITW(cs.JdkConfiguration):
             actual_provides = self._get_artificial_provides(filename)
             missing_provides = []
             for provide in expected_provides:
-                testcase = do.Testcase("NonITW", "check_artificial_provides")
+                testcase = do.Testcase(this.csch.__class__.__name__, "check_artificial_provides")
                 do.Tests().add_testcase(testcase)
                 if not tu.passed_or_failed(self, provide in actual_provides):
                     missing_provides.append(provide)
                     testcase.set_view_file_stub(make_rpm_readable(filename) + " is missing provide: " + provide)
                 else:
-                    testcase = do.Testcase("NonITW", "check_artificial_provides")
+                    testcase = do.Testcase(this.csch.__class__.__name__, "check_artificial_provides")
                     do.Tests().add_testcase(testcase)
                     if not tu.passed_or_failed(self, expected_provides[provide] == actual_provides[provide]):
                         la.LoggingAccess().log("wrong version for provide " + provide + " in "
@@ -63,7 +63,7 @@ class NonITW(cs.JdkConfiguration):
                     actual_provides.pop(provide)
             if missing_provides:
                 la.LoggingAccess().log("missing provide in {}: ".format(make_rpm_readable(filename)) + str(list(missing_provides)), la.Verbosity.TEST)
-            testcase = do.Testcase("NonITW", "check_artificial_provides")
+            testcase = do.Testcase(this.csch.__class__.__name__, "check_artificial_provides")
             do.Tests().add_testcase(testcase)
             if not tu.passed_or_failed(self, len(actual_provides) == 0):
                 la.LoggingAccess().log("found extra provides in rpm " + make_rpm_readable(filename) + ": " +
@@ -143,7 +143,7 @@ class NonITW(cs.JdkConfiguration):
                         continue
                     compared_provides = self._get_artificial_provides(files[j])
                     provides_intersection = [provide for provide in actual_provides if provide in compared_provides]
-                    testcase = do.Testcase("NonITW", "cross_check_artificial_provides")
+                    testcase = do.Testcase(this.csch.__class__.__name__, "cross_check_artificial_provides")
                     do.Tests().add_testcase(testcase)
                     if not tu.passed_or_failed(self, not(len(provides_intersection))):
                         la.LoggingAccess().log("{} and {} have common provides: {}".format(make_rpm_readable(files[i]), make_rpm_readable(files[j]), ", ".join(provides_intersection)))
@@ -398,6 +398,8 @@ class ITWebNonDefault(Empty):
     def __init__(self,  name, java_ver, vendor, pkg, version, end, arch, filename):
         super(ITWebNonDefault, self).__init__(name, java_ver, vendor, pkg, version, end, arch, filename)
         self.expected_provides[name + (("-" + pkg) if pkg else pkg)] = ns.get_version_full(filename)
+        self.expected_provides[name + (("-" + pkg) if pkg else pkg) +
+                               "({})".format(tu.validate_arch_for_provides(arch))] = ns.get_version_full(filename)
 
 #itw default provides also java plugin and ws versions hardcoded for now as well as version of the java
 class ITWebDefault(ITWebNonDefault):
