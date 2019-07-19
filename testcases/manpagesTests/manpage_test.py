@@ -581,7 +581,7 @@ class ManpageTests(bt.BaseTest):
                     else:
                         self.csch = OpenJdk11Debug()
                     return
-            elif int(rpms.getMajorVersionSimplified()) == 12:
+            elif int(rpms.getMajorVersionSimplified()) >= 12:
                 if self.getCurrentArch() in gc.getArm32Achs():
                     self.csch = OpenJdk12()
                     return

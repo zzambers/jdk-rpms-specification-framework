@@ -107,7 +107,7 @@ class BinariesTest(bt.BaseTest):
                     else:
                         self.csch = tcc.OpenJdk11Debug(BinariesTest.instance)
                     return
-            elif rpms.getMajorVersionSimplified() == "12":
+            elif int(rpms.getMajorVersionSimplified()) >= 12:
                 if self.getCurrentArch() in gc.getArm32Achs():
                     self.csch = tcc.OpenJdk12(BinariesTest.instance)
                     return
