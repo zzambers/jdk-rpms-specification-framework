@@ -1,4 +1,5 @@
 import datetime as dt
+import os
 
 import config.runtime_config
 
@@ -18,6 +19,7 @@ class FileLog(metaclass=Singleton):
     def __init__(self):
         self.target = open(config.runtime_config.RuntimeConfig().getLogsFile(), 'w')
         self.println("#" + dt.datetime.today().strftime("%Y-%m-%d %H:%M:%S"))
+        os.chmod(config.runtime_config.RuntimeConfig().getLogsFile(), 0o777)
 
     def println(self, arg2):
         self.target.write(arg2)
