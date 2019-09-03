@@ -34,15 +34,12 @@ class MainPackagePresent(JdkConfiguration):
                                      + str(len(subpkgSetExpected)), la.Verbosity.TEST)
         SubpackagesTest.instance.log("Presented: " + str(ssGiven), la.Verbosity.TEST)
         SubpackagesTest.instance.log("Expected:  " + str(subpkgSetExpected), la.Verbosity.TEST)
-        testcase = do.Testcase("MainPackagePresent", "mainCheck")
-        do.Tests().add_testcase(testcase)
-        passed_or_failed(self, len(ssGiven) == len(subpkgSetExpected))
-        for subpkg in subpkgSetExpected:
-            testcase = do.Testcase("MainPackagePresent", "mainCheck " + subpkg)
-            do.Tests().add_testcase(testcase)
-            SubpackagesTest.instance.log(
-                "Checking `" + subpkg + "` of " + SubpackagesTest.instance.current_arch, la.Verbosity.TEST)
-            passed_or_failed(self, subpkg in ssGiven)
+        if not passed_or_failed(self, len(ssGiven) == len(subpkgSetExpected),
+                                "Set of subpkgs not as expected. Differences will follow."):
+            for subpkg in subpkgSetExpected:
+                SubpackagesTest.instance.log(
+                    "Checking `" + subpkg + "` of " + SubpackagesTest.instance.current_arch, la.Verbosity.TEST)
+                passed_or_failed(self, subpkg in ssGiven, subpkg + " is missing in given set of rpms.")
 
 
 

@@ -6,6 +6,7 @@ import sys
 import config.global_config
 from outputControl import logging_access as la
 import config.runtime_config
+import outputControl.dom_objects as do
 
 
 def closeTestSuite(passed, failed, mtc):
@@ -175,11 +176,22 @@ def get_arch(instance):
 
 # this method is shortcut for getting your passes or fails for the sum-up, give two arguments - instance of object
 # (usually self, and a bool-result condition)
-def passed_or_failed(instance, bool):
+def passed_or_failed(instance, bool, iffailed, ifpassed=""):
+    try:
+        classname = sys._getframe(1).f_locals['self'].__class__.__name__
+    except Exception:
+        classname = "NoClass"
+    callermethod = sys._getframe().f_back.f_code.co_name
+    testcase = do.Testcase(classname, callermethod)
+    do.Tests().add_testcase(testcase)
     if bool:
         instance.passed += 1
+        if ifpassed != "":
+            la.LoggingAccess().log("        " + ifpassed, la.Verbosity.TEST)
     else:
         instance.failed += 1
+        la.LoggingAccess().log("        " + iffailed, la.Verbosity.TEST)
+        testcase.set_view_file_stub(iffailed)
     return bool
 
 

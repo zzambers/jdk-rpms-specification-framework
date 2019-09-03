@@ -115,31 +115,19 @@ class CheckPostinstallScript(BasePackages):
                                            " : " + ", ".join(expected_masters), la.Verbosity.TEST)
         PostinstallScriptTest.instance.log("Postinstall present in " + str(len(actual_masters)) + " : " +
                                            ", ".join(actual_masters), la.Verbosity.TEST)
-        testcase = do.Testcase("MainPackagePresent", "check_post_in_script")
-        do.Tests().add_testcase(testcase)
-        if not passed_or_failed(self, set(expected_masters.keys()) == set(actual_masters.keys())):
-            testcase.set_view_file_stub("expected subpkgs do not match actual ones: " + str(expected_masters) + " != " + str(actual_masters))
-
+        passed_or_failed(self, set(expected_masters.keys()) == set(actual_masters.keys()), "expected subpkgs do not match actual ones: " + str(expected_masters) + " != " + str(actual_masters))
         for subpkg in expected_masters.keys():
-            if subpkg not in actual_masters.keys():
-                testcase = do.Testcase("MainPackagePresent", "check_post_in_script")
-                do.Tests().add_testcase(testcase)
-                testcase.set_view_file_stub("There is no such subpackage as " + subpkg + " that contains masters." 
-                                                                                                "The test fails.")
-                PostinstallScriptTest.instance.log("There is no such subpackage as " + subpkg + " that contains masters." 
-                                                                                                "The test fails.")
-                self.failed += 1
+            if not passed_or_failed(self, subpkg in actual_masters.keys(), "There is no such subpackage as " +
+                                                                           subpkg + " that contains masters."
+                                                                                    "The test fails."):
                 continue
-
             PostinstallScriptTest.instance.log("Expected masters for " + subpkg + " : " +
                                                ", ".join(sorted(expected_masters[subpkg])), la.Verbosity.TEST)
             PostinstallScriptTest.instance.log("Presented masters for " + subpkg + " : " +
                                                ", ".join(sorted(actual_masters[subpkg])), la.Verbosity.TEST)
-
-            testcase = do.Testcase("MainPackagePresent", "check_post_in_script")
-            do.Tests().add_testcase(testcase)
-            if not passed_or_failed(self, sorted(expected_masters[subpkg]) == sorted(actual_masters[subpkg])):
-                testcase.set_view_file_stub("expected masters do not match actual ones for {}: ".format(subpkg) + str(sorted(expected_masters[subpkg])) + " != " + str(sorted(actual_masters[subpkg])))
+            passed_or_failed(self, sorted(expected_masters[subpkg]) == sorted(actual_masters[subpkg]),
+                             "expected masters do not match actual ones for {}: ".format(subpkg) +
+                             str(sorted(expected_masters[subpkg])) + " != " + str(sorted(actual_masters[subpkg])))
 
         return self.passed, self.failed
 

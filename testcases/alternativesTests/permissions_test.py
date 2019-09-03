@@ -52,13 +52,8 @@ class BaseTest(JdkConfiguration):
         DefaultMock().provideCleanUsefullRoot()
         default_manpages, res = DefaultMock().execute_ls(MAN_DIR)
         default_manpages = default_manpages.split("\n")
-        testcase = do.Testcase("PermissionTest", "defaultManpages")
-        do.Tests().add_testcase(testcase)
-        if not passed_or_failed(self, res == 0):
-            log_failed_test(self, "Default manpages extraction has failed. Manpage tests will be invalid: " + str(res) +
+        passed_or_failed(self, res == 0, "Default manpages extraction has failed. Manpage tests will be invalid: " + str(res) +
                             str(default_manpages))
-            testcase.set_view_file_stub("Extraction failed. Manpage tests will be invalid.")
-
         for pkg in pkgs:
             name = os.path.basename(pkg)
             subpackage = rename_default_subpkg(pkgsplit.get_subpackage_only(name))
@@ -73,8 +68,6 @@ class BaseTest(JdkConfiguration):
             # get content of jvm directory
             jvm_dir = self._get_target_java_directory(name)
             out, result = DefaultMock().executeCommand(["ls -LR " + JVM_DIR + "/" + jvm_dir])
-            testcase = do.Testcase("PermissionTest", pkg)
-            do.Tests().add_testcase(testcase)
             out = out.split("\n")
             fails = []
             clearedout = []
@@ -89,10 +82,8 @@ class BaseTest(JdkConfiguration):
                     la.LoggingAccess().log("    " + line)
             if len(clearedout) > 0:
                 result = 0
-            if not passed_or_failed(self, result == 0):
-                la.LoggingAccess().log("Java directory not found for " + subpackage + ", for desired directory "
-                                + jvm_dir)
-                testcase.set_view_file_stub("java dir not found for " + subpackage + ", for desired dir")
+            if not passed_or_failed(self, result == 0, "Java directory not found for " + subpackage +
+                                                       ", for desired directory " + jvm_dir):
                 continue
             valid_targets = self._parse_output(clearedout, subpackage)
             self.sort_and_test(valid_targets, subpackage, name)
@@ -115,20 +106,15 @@ class BaseTest(JdkConfiguration):
             if line == "":
                 continue
             elif "cannot access" in line:
-                testcase = do.Testcase("BaseTest", "parse_output")
-                do.Tests().add_testcase(testcase)
-                if subpackage == DEVEL and "/bin/" in line:
+                if passed_or_failed(self, subpackage == DEVEL and "/bin/" in line,
+                                    "In subpackage {} following was found: ".format(subpackage) + line,
+                                    "In subpackage {} following was found: ".format(subpackage) + line +
+                                    "This might be expected behaviour and should be only sanity checked."):
                     self.invalid_file_candidates.append(line)
-                    PermissionTest.instance.log("In subpackage {} following was found: ".format(subpackage) + line)
-                    PermissionTest.instance.log("This might be expected behaviour and should be only sanity checked.")
-                    self.passed += 1
                     continue
                 else:
                     self.invalid_file_candidates.append(line)
                     PermissionTest.instance.log("Unexpected filetype. Needs manual inspection.")
-                    log_failed_test(self, "In subpackage {} following was found: ".format(subpackage) + line)
-                    self.failed += 1
-                    testcase.set_view_file_stub("Unexpected filetype in {}. Needs manual inspection.".format(subpackage))
                 continue
             elif header.search(line):
                 current_header = header.match(line)
@@ -155,11 +141,8 @@ class BaseTest(JdkConfiguration):
         for target in valid_targets:
             out, res = DefaultMock().executeCommand(['stat -c "%F" ' + target])
             if JVM_DIR not in target and MAN_DIR not in target and res == 0:
-                PermissionTest.instance.log("This target: " + target + " is located out of the jvm directory. "
-                                                                      "These files are not checked.")
-                testcase = do.Testcase("BaseTest", "sort_and_test " + target)
-                do.Tests().add_testcase(testcase)
-                self.passed += 1
+                passed_or_failed(self, True, "", "This target: " + target + " is located out of the jvm directory. "
+                                                                            "These files are not checked.")
                 continue
             # this is not easy to reproduce - there is an error in lib directory permissions, but since there is
             # jre subpackage present along with devel (default or headless), this keeps being hidden
@@ -167,13 +150,9 @@ class BaseTest(JdkConfiguration):
             # since it behaves correctly so far, this is a PASS
             # TODO: reproduce and fix
             if (target == JVM_DIR + "/" + self._get_target_java_directory(name) + "/lib" and "devel" in subpackage):
-                testcase = do.Testcase("BaseTest", "sort_and_test " + target)
-                do.Tests().add_testcase(testcase)
-                self.passed += 1
-                PermissionTest.instance.log(target + " in subpackage " + subpackage + ". This is an unknown bug in the"
+                passed_or_failed(self, True, "", target + " in subpackage " + subpackage + ". This is an unknown bug in the"
                                             " framework / jre, that is not reproducible "
-                                            "so far. Howewer, in installed JDK, the permissions are correct.",
-                                            Verbosity.TEST)
+                                            "so far. Howewer, in installed JDK, the permissions are correct.")
                 continue
             if out == "directory":
                 self._test_fill_in(target, out, "755")
@@ -193,17 +172,12 @@ class BaseTest(JdkConfiguration):
             elif out == "symbolic link":
                 self._test_fill_in(target, out, "777")
                 out, res = DefaultMock().executeCommand(["readlink " + target])
-                testcase = do.Testcase("PermissionTest", "sort_and_test")
-                do.Tests().add_testcase(testcase)
-                if not passed_or_failed(self, res == 0):
-                    log_failed_test(self, "Target of symbolic link {} does not exist.".format(target) + " Error " + out)
-                    testcase.set_view_file_stub("Target of symbolic link {} does not exist.".format(target) + " Error " + out)
+                if not passed_or_failed(self, res == 0,
+                                        "Target of symbolic link {} does not exist.".format(target) + " Error " + out):
                     continue
                 out = self._get_link_full_path(target, out)
                 self.sort_and_test([out], subpackage, name)
             else:
-                testcase = do.Testcase("BaseTest", "sort_and_test " + target)
-                do.Tests().add_testcase(testcase)
                 if res != 0:
                     PermissionTest.instance.log("Command stat -c '%F' {} finished with {} exit"
                                                 " code".format(target, res))
@@ -215,28 +189,21 @@ class BaseTest(JdkConfiguration):
                         self.passed += 1
                         continue
                     else:
-                        log_failed_test(self, "In subpackage {} following was found: Command stat -c '%F' {} finished"
-                                              " with message: {}. ".format(subpackage, target, res, out))
-
+                        passed_or_failed(self, False,
+                                         "In subpackage {} following was found: Command stat -c '%F' {} finished"
+                                         " with message: {}. ".format(subpackage, target, res, out))
                         self.invalid_file_candidates.append(
                             "Target: " + target + " with result: " + res.__str__() + " and output: " + out)
-                        self.failed += 1
-                        testcase.set_view_file_stub("In subpackage {} following was found: Command stat -c '%F' {} finished"
-                                              " with message: {}. ".format(subpackage, target, res, out))
                         continue
 
 
                 else:
                     PermissionTest.instance.log("Unexpected filetype. Needs manual inspection.", Verbosity.TEST)
-
-                    log_failed_test(self, "In subpackage {} following was found: Command stat -c '%F' {} finished"
+                    passed_or_failed(self, False,
+                                     "In subpackage {} following was found: Command stat -c '%F' {} finished"
                                     " with message: {}. ".format(subpackage, target, res, out))
-                    testcase.set_view_file_stub("In subpackage {} following was found: Command stat -c '%F' {} finished"
-                                              " with message: {}. ".format(subpackage, target, res, out))
 
                 self.invalid_file_candidates.append(target)
-                self.failed += 1
-                testcase.set_view_file_stub("invalid file candidate " + target)
 
     def _get_link_full_path(self, target, link):
         if link.startswith("/"):
@@ -259,8 +226,6 @@ class BaseTest(JdkConfiguration):
         This method takes as an argument path to a file, type of the file for logs, expected permission and checks,
         if it matches results from chroot. It also documents any fails or successful checks.
         """
-        testcase = do.Testcase("BaseTest", "test_fill_in " + filetype)
-        do.Tests().add_testcase(testcase)
         out, res = DefaultMock().executeCommand(['stat -c "%a" ' + file])
         if out == "775" and "ibm" in file:
             PermissionTest.instance.log("Skipping " + file + ". Some unzipped Ibm packages are acting wierdly in mock. "
@@ -268,24 +233,19 @@ class BaseTest(JdkConfiguration):
                                         Verbosity.TEST)
             return
         if res != 0:
-            log_failed_test(self, filetype + " link is broken, could not find " + file)
-            testcase.set_view_file_stub(filetype + " link is broken, could not find " + file)
-            self.failed += 1
+            passed_or_failed(self, False, filetype + " link is broken, could not find " + file)
             return
         else:
             PermissionTest.instance.log(filetype + " {} exists. Checking permissions... ".format(file),
                                         la.Verbosity.MOCK)
         for p in range(3):
             if not (int(out[p]) == int(expected_permission[p])):
-                la.LoggingAccess.log(self, "Permissions of {} not as expected, should be {} but is "
-                                      "{}.".format(file, expected_permission, out))
-                self.failed += 1
-                testcase.set_view_file_stub("Permissions of {} not as expected, should be {} but is "
+                passed_or_failed(self, False, "Permissions of {} not as expected, should be {} but is "
                                       "{}.".format(file, expected_permission, out))
                 return
         PermissionTest.instance.log(filetype + " {} with permissions {}. Check "
                                     "successful.".format(file, out), la.Verbosity.MOCK)
-        self.passed += 1
+        passed_or_failed(self, True, "")
         return
 
 

@@ -68,9 +68,9 @@ class ManpageTestMethods(JdkConfiguration):
                 try:
                     binaries[subpackage].remove(item)
                 except KeyError:
-                    log_failed_test(self, subpackage + " is not present.")
+                    passed_or_failed(self, False, subpackage + " is not present.")
                 except ValueError:
-                    log_failed_test(self, item + " is not present in manpages! This is unexpected behaviour.")
+                    passed_or_failed(self, False, item + " is not present in manpages! This is unexpected behaviour.")
 
         return binaries
 
@@ -153,11 +153,7 @@ class ManpageTestMethods(JdkConfiguration):
         # now check that every binary has a man file
         for b in binaries:
             manpage = b + self._get_manpage_suffixes(subpackage)[FILE]
-            testcase = do.Testcase("ManpageTests", "manpage_file_check")
-            do.Tests().add_testcase(testcase)
-            if not passed_or_failed(self, manpage in manpage_files):
-                log_failed_test(self, manpage + " man page file not in " + subpackage)
-                testcase.set_view_file_stub(manpage + " man page file not in " + subpackage)
+            passed_or_failed(self, manpage in manpage_files, manpage + " man page file not in " + subpackage)
         return manpage_files
 
     def manpage_links_check(self, bins, subpackage=None, manpages_with_postscript=None, manpage_files=None):
@@ -172,11 +168,8 @@ class ManpageTestMethods(JdkConfiguration):
 
         for l in links:
             link = l + self._get_manpage_suffixes(subpackage)[LINK]
-            testcase = do.Testcase("ManpageTests", "manpage_links_check")
-            do.Tests().add_testcase(testcase)
-            if not passed_or_failed(self, link in manpage_links):
-                log_failed_test(self, link + " man page link not in " + subpackage)
-                testcase.set_view_file_stub(link + " man page link not in " + subpackage)
+            link = l + self._get_manpage_suffixes(subpackage)[LINK]
+            passed_or_failed(self, link in manpage_links, link + " man page link not in " + subpackage)
 
     def man_page_test(self, pkgs):
         self._document("Every binary must have a man page. If binary has a slave, then man page has also its slave."
@@ -216,9 +209,8 @@ class ManpageTestMethods(JdkConfiguration):
                 try:
                     plugin_binaries = self._get_extra_bins(plugin_bin_content)
                 except NotADirectoryError:
-                    self.failed += 1
-                    log_failed_test(self, "/usr/bin directory not found, this is unexpected behaviour and the test will"
-                                          " not be executed.")
+                    passed_or_failed(self, False, "/usr/bin directory not found, this is unexpected "
+                                                  "behaviour and the test will not be executed.")
                     return
 
                 ManpageTests.instance.log("Binaries found for {}: ".format(tg) + ", ".join(binaries + plugin_binaries))
@@ -242,11 +234,7 @@ class ManpageTestMethods(JdkConfiguration):
             bins = self._clean_sdk_from_jre(bins, self._get_subpackages())
             bins = self.binaries_without_manpages(bins)
         except KeyError as e:
-            testcase = do.Testcase("ManpageTests", "iced_tea_web_check")
-            do.Tests().add_testcase(testcase)
-            testcase.set_view_file_stub("This type of failure usually means missing package in tested rpm set."
-                                        " Text of the error: " + str(e))
-            log_failed_test(self, "This type of failure usually means missing package in tested rpm set."
+            passed_or_failed(self, False, "This type of failure usually means missing package in tested rpm set."
                                   " Text of the error: " + str(e))
 
         # then compare man files with binaries and man links with links
@@ -471,16 +459,10 @@ class ITW(ManpageTestMethods):
         itw_manpage_file = "icedtea-web.1.gz"
         self._document("IcedTea Web has an " + itw_manpage_file + " man page, that has no binary and " +
                        itw_manpage_link + " man page, that has no slave.")
-        testcase = do.Testcase("ManpageTests", "iced_tea_web_check")
-        do.Tests().add_testcase(testcase)
-        if not passed_or_failed(self, itw_manpage_file in manpages_without_postscript[DEFAULT]):
-            log_failed_test(self, itw_manpage_file + " manpage file missing in " + DEFAULT)
-            testcase.set_view_file_stub(itw_manpage_file + " manpage file missing in " + DEFAULT)
-        testcase = do.Testcase("ManpageTests", "iced_tea_web_check")
-        do.Tests().add_testcase(testcase)
-        if not passed_or_failed(self, itw_manpage_link in manpages_with_postcript[DEFAULT]):
-            log_failed_test(self, itw_manpage_link + " manpage link missing in " + DEFAULT)
-            testcase.set_view_file_stub(itw_manpage_link + " manpage link missing in " + DEFAULT)
+        passed_or_failed(self, itw_manpage_file in manpages_without_postscript[DEFAULT],
+                         itw_manpage_file + " manpage file missing in " + DEFAULT)
+        passed_or_failed(self, itw_manpage_link in manpages_with_postcript[DEFAULT],
+                         itw_manpage_link + " manpage link missing in " + DEFAULT)
         return
 
 

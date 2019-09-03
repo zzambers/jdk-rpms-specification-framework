@@ -67,30 +67,20 @@ class BaseMethods(JdkConfiguration):
 
     def _test_subdirectories_equals(self, subdirectories, expected_subdirectories, _subpkg, name):
         """ Check whether the subdirectories in /usr/lib/jvm are as expected, logs and counts fails/passes"""
-        testcase = do.Testcase("BaseMethods", "test_subdirectories_equals")
-        do.Tests().add_testcase(testcase)
-        passed_or_failed(self, sorted(subdirectories) == sorted(expected_subdirectories))
-        for subdirectory in expected_subdirectories:
-            testcase = do.Testcase("BaseMethods", "test_subdirectories_equals " + subdirectory)
-            do.Tests().add_testcase(testcase)
-            if not passed_or_failed(self, subdirectory in subdirectories):
-                log_failed_test(self, "Missing {} subdirectory in {} "
-                                      "subpackage".format(subdirectory, _subpkg))
-                testcase.set_view_file_stub("Missing {} subdirectory in {} subpackage".format(subdirectory, _subpkg))
-        for subdirectory in subdirectories:
-            testcase = do.Testcase("BaseMethods", "test_subdirectories_equals " + subdirectory)
-            do.Tests().add_testcase(testcase)
-            if not passed_or_failed(self, subdirectory in expected_subdirectories):
-                log_failed_test(self, "Extra {} subdirectory in {} subpackage".format(subdirectory, _subpkg))
-                testcase.set_view_file_stub("Missing {} subdirectory in {} subpackage".format(subdirectory, _subpkg))
+        if not passed_or_failed(self, sorted(subdirectories) == sorted(expected_subdirectories),
+                                "Subdirectories are not as expected, list of differences will follow."):
+            for subdirectory in expected_subdirectories:
+                passed_or_failed(self, subdirectory in subdirectories,
+                                "Missing {} subdirectory in {} subpackage".format(subdirectory, _subpkg))
+            for subdirectory in subdirectories:
+                passed_or_failed(self, subdirectory in expected_subdirectories,
+                                 "Extra {} subdirectory in {} subpackage".format(subdirectory, _subpkg))
 
     def _test_links_are_correct(self, subdirectories, name, _subpkg):
         """ Tests if all the symlinks in /usr/lib/jvm ('fake subdirectories') are pointing at correct target (usually
         /usr/lib/jvm/nvr(a)) """
         SubdirectoryTest.instance.log("Testing subdirectory links: ")
         for subdirectory in subdirectories:
-            testcase = do.Testcase("BaseMethods", "test_links_are_correct " + subdirectory)
-            do.Tests().add_testcase(testcase)
             expected_link = JVM_DIR + "/" + self._get_nvra_suffix(name)
 
             # skipping created subdirs at mock init, are dirs, not links
@@ -103,22 +93,14 @@ class BaseMethods(JdkConfiguration):
 
             readlink = DefaultMock().executeCommand(["readlink -f {}".format(JVM_DIR + "/" + subdirectory)])
             if readlink[1] != 0:
-                log_failed_test(self, subdirectory + " is not a link! Subdirectory test link failed for " +
+                passed_or_failed(self, False, subdirectory + " is not a link! Subdirectory test link failed for " +
                                 _subpkg)
-                testcase.set_view_file_stub(subdirectory + " is not a link! Subdirectory test link failed for " +
-                                _subpkg)
-                self.failed += 1
             elif readlink[0] != expected_link:
-                log_failed_test(self, " {} should point at {} but points at {} ".format(subdirectory,
+                passed_or_failed(self, False, " {} should point at {} but points at {} ".format(subdirectory,
                                                                                         expected_link,
                                                                                         readlink[0]))
-                testcase.set_view_file_stub(" {} should point at {} but points at {} ".format(subdirectory,
-                                                                                        expected_link,
-                                                                                        readlink[0]))
-                self.failed += 1
             else:
-                SubdirectoryTest.instance.log("Subdirectory link check successful for " + subdirectory)
-                self.passed += 1
+                passed_or_failed(self, True, "", "Subdirectory link check successful for " + subdirectory)
 
     def _subdirectory_test(self, pkgs):
         """ Main method for the test, that is called when the test suite is started, does all the work """
@@ -133,9 +115,8 @@ class BaseMethods(JdkConfiguration):
 
             subdirectories = DefaultMock().execute_ls(JVM_DIR)
             if subdirectories[1] != 0:
-                log_failed_test(self, "Warning: " + JVM_DIR + " does not exist, skipping subdirectory test for"
+                passed_or_failed(self, False, "Warning: " + JVM_DIR + " does not exist, skipping subdirectory test for"
                                 " given subpackage {}".format(_subpkg))
-
                 continue
             subdirectories = subdirectories[0].split("\n")
             subdirectories = self._remove_fake_subdirectories(subdirectories)

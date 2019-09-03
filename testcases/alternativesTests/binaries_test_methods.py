@@ -28,27 +28,19 @@ class GetAllBinariesAndSlaves(PathTest):
                                                                "directories")
         for jsubpkg in jre_subpackages:
             for jslave in jre_slaves:
-                testcase = do.Testcase("GetAllBinariesAndSlaves", "check_exports_slaves_" + jsubpkg + "_" + jslave)
-                do.Tests().add_testcase(testcase)
                 try:
                     self.installed_slaves[jsubpkg].remove(jslave)
-                    self.passed += 1
+                    tu.passed_or_failed(self, True, "")
                 except ValueError:
-                    self.list_of_failed_tests.append(jslave + " export slave missing in " + jsubpkg)
-                    self.failed += 1
-                    testcase.set_view_file_stub("Missing " + jslave + " in " + jsubpkg)
+                    tu.passed_or_failed(self, False, jslave + " export slave missing in " + jsubpkg)
 
         for ssubpkg in sdk_subpackages:
             for sslave in sdk_slaves:
-                testcase = do.Testcase("GetAllBinariesAndSlaves", "check_exports_slaves_" + ssubpkg + "_" + sslave)
-                do.Tests().add_testcase(testcase)
                 try:
                     self.installed_slaves[ssubpkg].remove(sslave)
-                    self.passed += 1
+                    tu.passed_or_failed(self, True, "")
                 except ValueError:
-                    self.list_of_failed_tests.append(sslave + " export slave missing in " + ssubpkg)
-                    self.failed += 1
-                    testcase.set_view_file_stub("Missing " + sslave + " in " + ssubpkg)
+                    tu.passed_or_failed(self, False, sslave + " export slave missing in " + ssubpkg)
         return
 
     def check_subdirectory_slaves(self, args=None):
@@ -58,27 +50,19 @@ class GetAllBinariesAndSlaves(PathTest):
         jre_subpackages = self._get_jre_subpackage()
         sdk_subpackages = self._get_sdk_subpackage()
         for jsubpkg in jre_subpackages:
-            testcase = do.Testcase("GetAllBinariesAndSlaves", "check_subdirectory_slaves_" + jsubpkg)
-            do.Tests().add_testcase(testcase)
             try:
                 self.installed_slaves[jsubpkg].remove(jre_slave)
-                self.passed += 1
+                tu.passed_or_failed(self, True, "")
             except (ValueError, KeyError) as e:
-                self.list_of_failed_tests.append(jre_slave + " slave missing in " + jsubpkg)
-                self.failed += 1
-                testcase.set_view_file_stub(sdk_slave + " slave missing in " + jsubpkg)
+                tu.passed_or_failed(self, False, jre_slave + " slave missing in " + jsubpkg)
                 self.binaries_test.log(str(e))
         for ssubpkg in sdk_subpackages:
-            testcase = do.Testcase("GetAllBinariesAndSlaves", "check_subdirectory_slaves_" + ssubpkg)
-            do.Tests().add_testcase(testcase)
             try:
                 self.installed_slaves[ssubpkg].remove(sdk_slave)
-                self.passed += 1
+                tu.passed_or_failed(self, True, "")
             except (ValueError, KeyError) as e:
-                self.list_of_failed_tests.append(sdk_slave + " slave missing in " + ssubpkg)
-                self.failed += 1
+                tu.passed_or_failed(self, False, sdk_slave + " slave missing in " + ssubpkg)
                 self.binaries_test.log(str(e))
-                testcase.set_view_file_stub(sdk_slave + " slave missing in " + ssubpkg)
         return
 
     def get_slaves(self, _subpkg):
@@ -163,42 +147,31 @@ class BinarySlaveTestMethods(GetAllBinariesAndSlaves):
                     continue
 
                 for j in jre:
-                    testcase = do.Testcase("BinarySlaveTestMethods", "all_jre_in_sdk_check_" + subpkg + "_" + j)
-                    do.Tests().add_testcase(testcase)
                     try:
                         sdk.remove(j)
-                        self.passed += 1
+                        tu.passed_or_failed(self, True, "")
                     except ValueError:
-                        tu.log_failed_test(self, "Binary " + j + " is present in JRE, but is missing in SDK.")
-                        self.failed += 1
-                        testcase.set_view_file_stub("Binary " + j + " is present in JRE, but is missing in SDK.")
+                        tu.passed_or_failed(self, False, "Binary " + j + " is present in JRE, but is missing in SDK.")
         return
 
     def _perform_all_checks(self):
-        testcase = do.Testcase("BinarySlaveTestMethods", "perform_all_checks")
-        do.Tests().add_testcase(testcase)
-        if not passed_or_failed(self, sorted(self.installed_slaves.keys()) == sorted(self.installed_binaries.keys())):
-            testcase.set_view_file_stub("Subpackages that contain binaries and slaves do not match")
-            tu.log_failed_test(self, "Subpackages that contain binaries and slaves do not match. Subpackages with"
-                            "binaries: {}, Subpackages with slaves: {}".format(
+        passed_or_failed(self, sorted(self.installed_slaves.keys()) == sorted(self.installed_binaries.keys()),
+                                "Subpackages that contain binaries and slaves do not match. Subpackages with"
+                                "binaries: {}, Subpackages with slaves: {}".format(
                                                                 sorted(self.installed_binaries.keys()),
                                                                 sorted(self.installed_slaves.keys())))
         try:
             for subpackage in self._get_subpackages_with_binaries():
                 slaves = self.installed_slaves[subpackage]
                 binaries = self.installed_binaries[subpackage]
-                testcase = do.Testcase("BinarySlaveTestMethods", "perform_all_checks_" + subpackage)
-                do.Tests().add_testcase(testcase)
-                if not passed_or_failed(self, sorted(binaries) == sorted(slaves)):
-                    testcase.set_view_file_stub("Binaries do not match slaves in {}.".format(subpackage))
-                    tu.log_failed_test(self, "Binaries do not match slaves in {}. Missing binaries: {}"
-                                    " Missing slaves: {}".format(subpackage, diff(slaves, binaries),
-                                                                 diff(binaries, slaves)))
+                passed_or_failed(self, sorted(binaries) == sorted(slaves),
+                                        "Binaries do not match slaves in {}. Missing binaries: {}"
+                                        " Missing slaves: {}".format(subpackage, diff(slaves, binaries),
+                                                                     diff(binaries, slaves)))
                 self._check_binaries_against_hardcoded_list(binaries, subpackage)
 
         except KeyError as err:
-            tu.log_failed_test(self, err.__str__())
-            testcase.set_view_file_stub(err.__str__())
+            tu.passed_or_failed(self, False, err.__str__())
         return
 
     # main check, that includes all small checks and at the end compares the binaries with slaves

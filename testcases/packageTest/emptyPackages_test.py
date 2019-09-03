@@ -19,18 +19,18 @@ class EmptyPackageTest(utils.core.base_xtest.BaseTest):
     def test_checkNoPacakgeEmpty(self):
         pkgs= config.runtime_config.RuntimeConfig().getRpmList().getAllFiles()
         for pkg in pkgs:
-            testcase = do.Testcase("EmptyPackageTest", "test_checkNoPacakgeEmpty")
-            do.Tests().add_testcase(testcase)
             self.log("checking: " + pkg)
             files = utils.rpmbuild_utils.listFilesInPackage(pkg)
             self.log("got: " + str(len(files)) + " files")
             if split.get_arch(pkg) in config.global_config.getSrcrpmArch():
-                passed_or_failed(self, len(files) > 1)
-            #IBM8EL8 src and jdbc pkgs both contain single file
+                passed_or_failed(self, len(files) > 1, "Wrong number of files in package " + pkg +
+                                 " should be more than 1.")
+            # IBM8EL8 src and jdbc pkgs both contain single file
             elif split.get_vendor(pkg) == "ibm" and split.simplify_full_version(split.get_major_ver(pkg)) == "8" and ("src" in pkg or "jdbc" in pkg):
-                passed_or_failed(self, len(files) == 1)
+                passed_or_failed(self, len(files) == 1, "Wrong number of files in package " + pkg + " should be 1.")
             else:
-                passed_or_failed(self, len(files) > 2)
+                passed_or_failed(self, len(files) > 2, "Wrong number of files in package "
+                                 + pkg + " should be more than 2.")
         return self.passed, self.failed
 
     def getTestedArchs(self):

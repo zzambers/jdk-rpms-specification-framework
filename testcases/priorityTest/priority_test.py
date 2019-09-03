@@ -51,31 +51,14 @@ class PriorityTest(JdkConfiguration):
         """ This method checks whether the length of priority is as expected. """
         self._document("Priority for {} should be ".format(self.rpms.getMajorPackage()) + str(self.length) + " digit.")
         PriorityCheck.instance.log("Checking priority length.", la.Verbosity.TEST)
-
-        testcase = do.Testcase("PriorityTest", "check_length")
-        do.Tests().add_testcase(testcase)
-        if not passed_or_failed(self, len(priority) == self.length):
-            PriorityCheck.instance.log("Priority should be {}-digit, but is {}.".format(self.length, len(priority)),
-                                       la.Verbosity.ERROR)
-            testcase.set_view_file_stub("Priority should be {}-digit, but is {}.".format(self.length, len(priority)))
-            return False
-
-        return True
+        return passed_or_failed(self, len(priority) == self.length, "Priority should be {}-digit, but is {}.".format(self.length, len(priority)))
 
     def check_prefix(self, priority):
         """ This method checks if the prefix is as expected. In general, the prefix is based on major version. """
         self._document("Prefix is based on major version, in this case it should be " + self.prefix + ".")
         PriorityCheck.instance.log("Checking priority prefix.", la.Verbosity.TEST)
-
-        testcase = do.Testcase("PriorityTest", "check_prefix")
-        do.Tests().add_testcase(testcase)
-        if not passed_or_failed(self, priority.startswith(self.prefix, 0, len(self.prefix))):
-            PriorityCheck.instance.log("Priority prefix not as expected, should be {}.".format(self.prefix),
-                                       la.Verbosity.TEST)
-            testcase.set_view_file_stub("Priority prefix not as expected, should be {}.".format(self.prefix))
-            return False
-
-        return True
+        return passed_or_failed(self, priority.startswith(self.prefix, 0, len(self.prefix)),
+                                "Priority prefix not as expected, should be {}.".format(self.prefix))
 
     def check_debug_packages(self, pkg_priorities):
         """ Debug packages must have lower priority than normal packages. The standard difference is +-1."""
@@ -97,14 +80,12 @@ class PriorityTest(JdkConfiguration):
                 master = master_and_priority.keys()
 
                 for m in master:
-                    testcase = do.Testcase("PriorityTest", "check_debug_packages " + m)
-                    do.Tests().add_testcase(testcase)
-                    if not passed_or_failed(self, int(master_and_priority[m]) > int(master_and_priority_debug[m])):
-                        log_failed_test(self, "Debug subpackage priority check failed for " + name +
-                                        ", master " + m + ". Debug package should have lower priority. " +
-                                        "Main package priority: {} Debug package"
-                                        " priority: {}".format(master_and_priority[m], master_and_priority_debug[m]))
-                        testcase.set_view_file_stub("Debug subpackage priority check failed for " + name)
+                    passed_or_failed(self, int(master_and_priority[m]) > int(master_and_priority_debug[m]),
+                                     "Debug subpackage priority check failed for " + name +
+                                     ", master " + m + ". Debug package should have lower priority. " +
+                                     "Main package priority: {} Debug package"
+                                     " priority: {}".format(master_and_priority[m],
+                                                            master_and_priority_debug[m]))
 
 
 class MajorCheck(PriorityTest):
@@ -137,15 +118,11 @@ class MajorCheck(PriorityTest):
                 #ignoring libjavaplugin as Jvanek stated is unnecessary for us to check on.
                 if m in _default_masters or LIBJAVAPLUGIN in m:
                     continue
-                testcase = do.Testcase("PriorityCheck", "_check_priorities")
-                do.Tests().add_testcase(testcase)
                 try:
                     priority = self._get_priority(m)
                 except utils.mock.mock_execution_exception.MockExecutionException as e:
-                    testcase.set_view_file_stub(str(e))
-                    if "failed " in str(e):
-                        log_failed_test(self, str(e))
-                    else:
+                    passed_or_failed(self, False, str(e))
+                    if "failed " not in str(e):
                         raise e
                 if priority is None:
                     PriorityCheck.instance.log("Failed to get priority, skipping check for " + m + " in " + pkg_name)
@@ -160,8 +137,9 @@ class MajorCheck(PriorityTest):
                     _pkgPriorities[pkg_name].update({m : priority})
 
                 else:
-                    log_failed_test(self, "Priority " + priority + " invalid for " + os.path.basename(pkg) +
-                                    " package, master " + m)
+                    passed_or_failed(self, False, "Priority " + priority + " invalid for " + os.path.basename(pkg) +
+                                     " package, master " + m)
+
 
         PriorityCheck.instance.log("Checking debug packages priorities.", la.Verbosity.TEST)
         self.check_debug_packages(_pkgPriorities)

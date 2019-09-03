@@ -34,13 +34,10 @@ class Openjdk8Fedora(Base):
     ]
     def _checkJreObsolete(self, obsoletes=None):
         self._document("jre OpenJdk8 in Fedora must obsolate: " +",".join(Openjdk8Fedora.jreRequiredObsolete))
-        obsoleteJdk7 = 0
-        for obsolete in obsoletes:
-            if obsolete in Openjdk8Fedora.jreRequiredObsolete:
-                obsoleteJdk7 += 1
-        testcase = do.Testcase("Base", "checkJreObsolete")
-        do.Tests().add_testcase(testcase)
-        passed_or_failed(self, obsoleteJdk7 == len(Openjdk8Fedora.jreRequiredObsolete))
+        obsoleteJdk7Set = set(Openjdk8Fedora.jreRequiredObsolete).intersection(set(obsoletes))
+        passed_or_failed(self, len(obsoleteJdk7Set) == len(Openjdk8Fedora.jreRequiredObsolete),
+                         "Number of obsoletes and obsoleteExceptions is not same.",
+                         "this test is checking only count of obsoletes vs count of exceptions, needs rework")
         return self.passed, self.failed
 
 
@@ -50,10 +47,11 @@ class JdkRhel(Base):
         "sinjdoc"
     ]
     def _checkJreObsolete(self, obsoletes=None):
-        self._document("Jdks in rhel must NOT obsolete anything. Possible exceptions: " +",".join(JdkRhel.jreExceptionsObsolete))
-        testcase = do.Testcase("Base", "checkJreObsolete")
-        do.Tests().add_testcase(testcase)
-        passed_or_failed(self, len(set(obsoletes)-set(JdkRhel.jreExceptionsObsolete)) == 0)
+        self._document("Jdks in rhel must NOT obsolete anything. Possible exceptions: " +
+                       ",".join(JdkRhel.jreExceptionsObsolete))
+        passed_or_failed(self, len(set(obsoletes)-set(JdkRhel.jreExceptionsObsolete)) == 0,
+                         "Number of obsoletes and obsoleteExceptions is not same.",
+                         "this test is checking only count of obsoletes vs count of exceptions, needs rework")
         return self.passed, self.failed
 
 

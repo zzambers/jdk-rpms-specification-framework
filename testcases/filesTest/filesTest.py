@@ -44,10 +44,8 @@ class Ojdk11AndAbove(Default):
         for pkg in self.file_list.keys():
             for file in self.file_list[pkg]:
                 pkg_name = self.rpms.getRpmWholeName(pkg, current_arch).replace(".rpm", "")
-                testcase = do.Testcase("FileTest", "check_file_list")
-                do.Tests().add_testcase(testcase)
-                if not tu.passed_or_failed(self, self.check_file_existence(file.replace("**NVRA**", pkg_name))):
-                    testcase.set_view_file_stub("requested file {} not found in specified pkg {}".format(file, ""))
+                tu.passed_or_failed(self, self.check_file_existence(file.replace("**NVRA**", pkg_name)),
+                                    "requested file {} not found in specified pkg {}".format(file, ""))
         return self.passed, self.failed
 
 
