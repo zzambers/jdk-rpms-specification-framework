@@ -19,7 +19,10 @@ class RpmList:
         self.topDirs = utils.test_utils.get_top_dirs(ddir)
         self.names = []
         for file in self.files:
-            self.names.append(ntpath.basename(file))
+            name = ntpath.basename(file)
+            for part in utils.test_constants.IGNOREDNAMEPARTS:
+                name = name.replace(part, "")
+            self.names.append(name)
         allFiles = utils.test_utils.get_files(ddir)
         la.LoggingAccess().log("Loaded list of " + str(len(self.files)) + " rpms from  directory " + ddir,
                                la.Verbosity.TEST)
@@ -164,6 +167,9 @@ class RpmList:
     def isRhel(self):
         return isRhel(self.getDist())
 
+    def isEpel(self):
+        return isEpel(self.getDist())
+
     def getOs(self):
         return getOs(self.getDist())
 
@@ -172,10 +178,13 @@ class RpmList:
             return self.getDist()[2:]
         if self.isRhel():
             return str(self.getDist()[2:]).replace("_",".")
+        if self.isEpel():
+            return str(self.getDist()[4:]).replace("_",".")
         return None
 
     def getOsVersionMajor(self):
-        return int(re.sub("\..*","",self.getOsVersion()))
+        os = self.getOsVersion()
+        return int(re.sub("\..*","", os))
 
     def getRpmWholeName(self, pkg, arch):
         defaultrpm = "nonexistent"
@@ -194,6 +203,11 @@ def isFedora(dist):
 def isRhel(dist):
     return dist.startswith("el")
 
+
+def isEpel(dist):
+    return dist.startswith("epel")
+
+
 def isItw(dist):
     return dist == config.global_config.ITW
 
@@ -201,6 +215,6 @@ def isItw(dist):
 def getOs(dist):
     if isFedora(dist):
         return config.global_config.FEDORA
-    if isRhel(dist):
+    if isRhel(dist) or isEpel(dist):
         return config.global_config.RHEL
     return None

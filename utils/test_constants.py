@@ -29,6 +29,7 @@ OJDK8 = "ojdk8"
 OJDK8JFX = "ojdk8JFX"
 OJDK8DEBUG = "ojdk8debug"
 TECHPREVIEWS = ["11", "12"]
+IGNOREDNAMEPARTS = ["playground."]
 
 #unable to import singleton from global_config
 class Singleton(type):
