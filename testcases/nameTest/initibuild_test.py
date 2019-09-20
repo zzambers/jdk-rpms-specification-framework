@@ -125,7 +125,8 @@ class InitTest(utils.core.base_xtest.BaseTest):
         self.log("all no arches packages are: ")
         for pkg in noarches:
             self.log("  " + pkg)
-        passed_or_failed(self, len(noarches) > 0, "Number of noarch pkgs to test is less than 1")
+        sufficient_noarch_number = len(noarches) > 0 if int(config.runtime_config.RuntimeConfig().getRpmList().getMajorVersionSimplified()) < 11 else len(noarches) == 0
+        passed_or_failed(self, sufficient_noarch_number, "Number of noarch pkgs to test is less than 1")
         return self.passed, self.failed
 
     def test_nativeArchesPackages(self):
