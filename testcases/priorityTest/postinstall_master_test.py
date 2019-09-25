@@ -150,12 +150,21 @@ class OpenJdk7(OpenJdk6):
         return masters
 
 
-class OpenJdk8OtherArchs(OpenJdk7):
+class OpenJdk8S390(OpenJdk7):
+    def _generate_masters(self):
+        masters = super(OpenJdk8S390, self)._generate_masters()
+        masters[JAVADOC_ZIP] = [JAVADOCZIP]
+        return masters
+
+
+class OpenJdk8OtherArchs(OpenJdk8S390):
     def _generate_masters(self):
         masters = super(OpenJdk8OtherArchs, self)._generate_masters()
-        masters[JAVADOC + get_debug_suffix()] = [JAVADOCDIR]
-        masters[JAVADOC_ZIP] = [JAVADOCZIP]
-        masters[JAVADOC_ZIP + get_debug_suffix()] = [JAVADOCZIP]
+        masters[DEVEL + get_debug_suffix()] = masters[DEVEL]
+        masters[HEADLESS + get_debug_suffix()] = masters[HEADLESS]
+        masters[DEFAULT + get_debug_suffix()] = []
+        #masters[JAVADOC + get_debug_suffix()] = [JAVADOCDIR]
+        #masters[JAVADOC_ZIP + get_debug_suffix()] = [JAVADOCZIP]
         return masters
 
 
@@ -164,7 +173,7 @@ class OpenJdk8Intel(OpenJdk8OtherArchs):
         masters = super(OpenJdk8Intel, self)._generate_masters()
         masters[DEVEL + get_debug_suffix()] = masters[DEVEL]
         masters[HEADLESS + get_debug_suffix()] = masters[HEADLESS]
-        masters[JAVADOC + get_debug_suffix()] = masters[JAVADOC]
+        #masters[JAVADOC + get_debug_suffix()] = masters[JAVADOC]
         masters[DEFAULT + get_debug_suffix()] = []
         return masters
 
@@ -179,12 +188,30 @@ class OpenJdk9Armvhl(OpenJdk7):
 class OpenJdk9OtherArchs(OpenJdk9Armvhl):
     def _generate_masters(self):
         masters = super()._generate_masters()
-        masters[JAVADOC_ZIP + get_debug_suffix()] = [JAVADOCZIP]
         masters[DEVEL + get_debug_suffix()] = masters[DEVEL]
         masters[HEADLESS + get_debug_suffix()] = masters[HEADLESS]
-        masters[JAVADOC + get_debug_suffix()] = masters[JAVADOC]
         masters[DEFAULT + get_debug_suffix()] = []
         return masters
+
+
+class OpenJdk11OtherArches(OpenJdk8S390):
+    def _generate_masters(self):
+        masters = super(OpenJdk11OtherArches, self)._generate_masters()
+        masters[DEVEL + get_debug_suffix()] = masters[DEVEL]
+        masters[HEADLESS + get_debug_suffix()] = masters[HEADLESS]
+        masters[DEFAULT + get_debug_suffix()] = []
+        return masters
+
+
+
+class OpenJdk12OtherArches(OpenJdk9OtherArchs):
+    def _generate_masters(self):
+        masters = super(OpenJdk12OtherArches, self)._generate_masters()
+        masters[JAVADOC + get_debug_suffix()] = [JAVADOCDIR]
+        masters[JAVADOC_ZIP + get_debug_suffix()] = [JAVADOCZIP]
+        return masters
+
+
 
 
 class IcedTeaWeb(CheckPostinstallScript):
@@ -311,9 +338,11 @@ class Oracle7a8x86(Oracle7):
 class PostinstallScriptTest(bt.BaseTest):
     instance = None
 
+
     def test_contains_postscript(self):
         pkgs = self.getBuild()
         return self.csch._check_post_in_script(pkgs)
+
 
     def setCSCH(self):
         PostinstallScriptTest.instance = self
@@ -332,10 +361,13 @@ class PostinstallScriptTest(bt.BaseTest):
                         gc.getPower64Achs() + gc.getAarch64Arch():
                     self.csch = OpenJdk8Intel()
                     return
+                elif self.getCurrentArch() in gc.getS390xArch() + gc.getS390Arch():
+                    self.csch = OpenJdk8S390()
+                    return
                 else:
                     self.csch = OpenJdk8OtherArchs()
                     return
-            elif int(rpms.getMajorVersionSimplified()) >= 9:
+            elif rpms.getMajorVersionSimplified() in ["9", "10"]:
                 if rpms.getOs() == gc.RHEL and rpms.getOsVersionMajor() == 7:
                     if self.getCurrentArch() in gc.getArm32Achs() + gc.getPpc32Arch() + gc.getS390Arch():
                         self.csch = OpenJdk9Armvhl()
@@ -350,6 +382,11 @@ class PostinstallScriptTest(bt.BaseTest):
                     else:
                         self.csch = OpenJdk9OtherArchs()
                         return
+            elif rpms.getMajorVersionSimplified() == "11":
+                self.csch = OpenJdk11OtherArches()
+                return
+            elif int(rpms.getMajorVersionSimplified()) >= 12:
+                self.csch = OpenJdk12OtherArches()
 
             else:
                 raise ex.UnknownJavaVersionException("Unknown JDK version.")

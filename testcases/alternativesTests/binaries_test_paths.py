@@ -95,7 +95,7 @@ class BaseTest(JdkConfiguration):
                 self.passed += 1
             except ValueError or KeyError:
                 self.failed += 1
-                passed_or_failed(self, True, "Missing {} in {}.".format(JAVA_RMI_CGI, DEVEL))
+                passed_or_failed(self, False, "Missing {} in {}.".format(JAVA_RMI_CGI, DEVEL))
         return self.installed_binaries
 
     def _get_32bit_id_in_nvra(self, nvra):
