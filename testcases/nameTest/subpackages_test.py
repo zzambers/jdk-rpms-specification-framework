@@ -89,7 +89,7 @@ class OpenJdk7(OpenJdk6):
 
 class OpenJdk8(OpenJdk7):
     def _getSubPackages(self):
-        subpackages = super()._getSubPackages() + ["javadoc-zip"] + self._get_javadoc_debug()
+        subpackages = super()._getSubPackages() + ["javadoc-zip"]
 
         return subpackages
 
@@ -99,26 +99,26 @@ class OpenJdk8(OpenJdk7):
                 "headless-debuginfo"]
 
     def _get_debug_debuginfo(self):
-        return ["debug-debuginfo",
-                "demo" + get_debug_suffix() + "-debuginfo",
+        return ["demo" + get_debug_suffix() + "-debuginfo",
                 "devel" + get_debug_suffix() + "-debuginfo",
-                "headless" + get_debug_suffix() + "-debuginfo"]
+                "headless" + get_debug_suffix() + "-debuginfo",
+                get_debug_suffix().replace("-", "", 1) + "-debuginfo"]
 
     def _get_debug_subpackages(self):
         return ["accessibility" + get_debug_suffix(),
-                "debug",
                 "demo" + get_debug_suffix(),
                 "devel" + get_debug_suffix(),
                 "headless" + get_debug_suffix(),
-                "src" + get_debug_suffix()]
+                "src" + get_debug_suffix(),
+                get_debug_suffix().replace("-", "", 1)]
 
     def _get_javadoc_debug(self):
-        return ["javadoc-debug", "javadoc-zip-debug"]
+        return ["javadoc" + get_debug_suffix(), "javadoc-zip" + get_debug_suffix()]
 
 
 class OpenJdk8Debug(OpenJdk8):
     def _getSubPackages(self):
-        subpackages = super()._getSubPackages() + self._get_debug_subpackages()
+        subpackages = super()._getSubPackages() + super()._get_debug_subpackages()
         return subpackages
 
 
@@ -194,7 +194,7 @@ class OpenJdk10DebugDebuginfo(OpenJdk9DebugDebuginfo):
                 "headless-debuginfo"]
 
     def _get_debug_debuginfo(self):
-        return ["slowdebug-debuginfo",
+        return [get_debug_suffix().replace("-", "", 1) + "-debuginfo",
                 "devel" + get_debug_suffix() + "-debuginfo",
                 "headless" + get_debug_suffix() + "-debuginfo"]
 
@@ -210,7 +210,7 @@ class OpenJdk10DebugDebuginfo(OpenJdk9DebugDebuginfo):
         return ["javadoc-slowdebug", "javadoc-zip-slowdebug"]
 
 
-class OpenJdk11(OpenJdk9):
+class OpenJdk11(OpenJdk8):
     def _getSubPackages(self):
         subpackages = super()._getSubPackages()
         subpackages.remove("accessibility")
@@ -224,12 +224,51 @@ class OpenJdk11Debug(OpenJdk8Debug):
         subpackages.remove("accessibility" + get_debug_suffix())
         subpackages.append("jmods")
         subpackages.append("jmods" + get_debug_suffix())
+        subpackages.append("debugsource")
+        subpackages += self._get_debuginfo()  + self._get_debug_debuginfo()
+        return subpackages
+
+    def _get_debug_debuginfo(self):
+        subpackages = super()._get_debug_debuginfo()
+        subpackages.remove("demo" + get_debug_suffix() + "-debuginfo")
+        return subpackages
+
+    def _get_debuginfo(self):
+        subpackages = super(OpenJdk11Debug, self)._get_debuginfo()
+        subpackages.remove("demo-debuginfo")
         return subpackages
 
 
 class OpenJdk9Debug(OpenJdk8Debug):
     def _getSubPackages(self):
         return super()._getSubPackages() + ["jmods", "jmods" + get_debug_suffix()]
+
+
+class OpenJdk12(OpenJdk11):
+    def _getSubPackages(self):
+        subpackages = super()._getSubPackages() + super()._get_debuginfo()
+        subpackages.remove("demo-debuginfo")
+        subpackages.append("debugsource")
+        subpackages.append("jmods")
+        return subpackages
+
+class OpenJdk12Debug(OpenJdk11Debug):
+    def _getSubPackages(self):
+        subpackages = super()._getSubPackages()
+        subpackages += ["javadoc-zip" + get_debug_suffix(), "javadoc" + get_debug_suffix()]
+        subpackages += self._get_debug_subpackages()
+        subpackages += self._get_debug_debuginfo()
+        subpackages += self._get_debuginfo()
+        return subpackages
+
+    def _get_debug_subpackages(self):
+        subpackages = super(OpenJdk12Debug, self)._get_debug_subpackages()
+        subpackages.remove("accessibility" + get_debug_suffix())
+        return subpackages
+
+    def _get_debug_debuginfo(self):
+        subpackages = super(OpenJdk12Debug, self)._get_debug_debuginfo()
+        return subpackages
 
 
 class OracleAndIbmBase(JDKBase):
@@ -284,10 +323,10 @@ class SubpackagesTest(utils.core.base_xtest.BaseTest):
             elif rpms.getMajorVersionSimplified() == "8":
                 if rpms.isRhel():
                     if self.getCurrentArch() in gc.getPpc32Arch() + gc.getS390Arch() + gc.getS390xArch():
-                        self.csch = OpenJdk8()
+                        self.csch = OpenJdk8Debuginfo()
                         return
                     else:
-                        self.csch = OpenJdk8Debug()
+                        self.csch = OpenJdk8DebugDebuginfo()
                         return
                 elif rpms.isFedora():
                     if int(rpms.getOsVersion()) < 27:
@@ -318,7 +357,7 @@ class SubpackagesTest(utils.core.base_xtest.BaseTest):
                 else:
                     raise ex.UnknownJavaVersionException("Unrecognized OS.")
 
-            elif int(rpms.getMajorVersionSimplified()) >= 10:
+            elif rpms.getMajorVersionSimplified() == '10':
                 if rpms.getDist() == gc.FEDORA or rpms.getOsVersionMajor() > 7:
                     if self.getCurrentArch() in gc.getArm32Achs():
                         self.csch = OpenJdk10()
@@ -326,14 +365,19 @@ class SubpackagesTest(utils.core.base_xtest.BaseTest):
                     else:
                         self.csch = OpenJdk10DebugDebuginfo()
                         return
+            elif rpms.getMajorVersionSimplified() == '11':
+                if self.getCurrentArch() in gc.getArm32Achs() + gc.getPpc32Arch() + gc.getS390Arch():
+                    self.csch = OpenJdk11()
+                    return
                 else:
-                    if self.getCurrentArch() in gc.getArm32Achs() + gc.getPpc32Arch() + gc.getS390Arch():
-                        self.csch = OpenJdk11()
-                        return
-                    else:
-                        self.csch = OpenJdk11Debug()
-                        return
-
+                    self.csch = OpenJdk11Debug()
+                    return
+            elif int(rpms.getMajorVersionSimplified()) >= 12:
+                if self.getCurrentArch() in gc.getArm32Achs():
+                    self.csch = OpenJdk12()
+                    return
+                self.csch = OpenJdk12Debug()
+                return
             else:
                 raise ex.UnknownJavaVersionException("Unknown OpenJDK version.")
 
