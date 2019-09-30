@@ -34,7 +34,7 @@ class MainPackagePresent(JdkConfiguration):
                                      + str(len(subpkgSetExpected)), la.Verbosity.TEST)
         SubpackagesTest.instance.log("Presented: " + str(ssGiven), la.Verbosity.TEST)
         SubpackagesTest.instance.log("Expected:  " + str(subpkgSetExpected), la.Verbosity.TEST)
-        if not passed_or_failed(self, len(ssGiven) == len(subpkgSetExpected),
+        if not passed_or_failed(self, ssGiven == subpkgSetExpected,
                                 "Set of subpkgs not as expected. Differences will follow."):
             for subpkg in subpkgSetExpected:
                 SubpackagesTest.instance.log(
@@ -273,7 +273,7 @@ class OpenJdk12Debug(OpenJdk11Debug):
 
 class OracleAndIbmBase(JDKBase):
     def _getSubPackages(self):
-        subpackages = super()._getSubPackages() + ["jdbc"]
+        subpackages = super()._getSubPackages() + ["jdbc", HEADLESS]
         subpackages.remove("debuginfo")
         return subpackages
 
@@ -285,7 +285,7 @@ class OracleAndIbmAddPlugin(OracleAndIbmBase):
 
 class Ibm8withWS(OracleAndIbmAddPlugin):
     def _getSubPackages(self):
-        return super()._getSubPackages() + ["webstart", HEADLESS]
+        return super()._getSubPackages() + ["webstart"]
 
 
 class Oracle7and8(OracleAndIbmAddPlugin):
@@ -397,7 +397,7 @@ class SubpackagesTest(utils.core.base_xtest.BaseTest):
                     return
             elif rpms.getMajorVersionSimplified() == "8":
                 if self.getCurrentArch() in gc.getPpc32Arch() + gc.getIx86archs() + gc.getX86_64Arch() +\
-                                            gc.getPower64BeAchs():
+                                            gc.getPower64BeAchs() + gc.getPower64LeAchs():
                     self.csch = Ibm8withWS()
                     return
                 else:
