@@ -22,7 +22,7 @@ class InitTest(utils.core.base_xtest.BaseTest):
         _reinit(self)
         java = config.runtime_config.RuntimeConfig().getRpmList().getJava()
         self.log("prefix is: " + java)
-        passed_or_failed(self, java is not None, "Test failed")
+        passed_or_failed(self, java is not None, "Could not determine the tested java prefix")
         self.csch.checkPrefix(java)
         return self.passed, self.failed
 
@@ -30,7 +30,7 @@ class InitTest(utils.core.base_xtest.BaseTest):
         _reinit(self)
         version = config.runtime_config.RuntimeConfig().getRpmList().getMajorVersion()
         self.log("Major version is: " + version)
-        passed_or_failed(self, version is not None, "Test failed")
+        passed_or_failed(self, version is not None, "Could not determine major version of java")
         self.csch.checkMajorVersion(version)
         return self.passed, self.failed
 
@@ -38,7 +38,7 @@ class InitTest(utils.core.base_xtest.BaseTest):
         _reinit(self)
         version = config.runtime_config.RuntimeConfig().getRpmList().getMajorVersionSimplified()
         self.log("Major version simplified is: " + str(version))
-        passed_or_failed(self, version is not None, "Test failed")
+        passed_or_failed(self, version is not None, "Could not determine or simplify the tested java major version")
         self.csch.checkMajorVersionSimplified(version)
         return self.passed, self.failed
 
@@ -46,7 +46,7 @@ class InitTest(utils.core.base_xtest.BaseTest):
         _reinit(self)
         vendor = config.runtime_config.RuntimeConfig().getRpmList().getVendor()
         self.log("Vendor is: " + vendor)
-        passed_or_failed(self, vendor is not None, "Test failed")
+        passed_or_failed(self, vendor is not None, "Unable to resolve java vendor")
         self.csch.checkVendor(vendor)
         return self.passed, self.failed
 
@@ -61,7 +61,7 @@ class InitTest(utils.core.base_xtest.BaseTest):
         _reinit(self)
         java = config.runtime_config.RuntimeConfig().getRpmList().getMajorPackage()
         self.log("Package is: " + java)
-        passed_or_failed(self, java is not None, "Test failed")
+        passed_or_failed(self, java is not None, "Unable to resolve java package from rpms name")
         return self.passed, self.failed
 
     def test_subpackage(self):
@@ -75,21 +75,21 @@ class InitTest(utils.core.base_xtest.BaseTest):
         _reinit(self)
         java = config.runtime_config.RuntimeConfig().getRpmList().getVersion()
         self.log("Version is: " + java)
-        passed_or_failed(self, java is not None, "Test failed")
+        passed_or_failed(self, java is not None, "Unable to determine the tested java version")
         return self.passed, self.failed
 
     def test_release(self):
         _reinit(self)
         java = config.runtime_config.RuntimeConfig().getRpmList().getRelease()
         self.log("Release is: " + java)
-        passed_or_failed(self, java is not None, "Test failed")
+        passed_or_failed(self, java is not None, "unable to determine tested java release")
         return self.passed, self.failed
 
     def test_dist(self):
         _reinit(self)
         java = config.runtime_config.RuntimeConfig().getRpmList().getDist()
         self.log("Dist is: " + java)
-        passed_or_failed(self, java is not None, "Test failed")
+        passed_or_failed(self, java is not None, "unable to determine tested java distribution")
         return self.passed, self.failed
 
     def test_arches(self):
