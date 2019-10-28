@@ -216,6 +216,14 @@ class OpenJdk11(OpenJdk8):
         subpackages.remove("accessibility")
         return subpackages
 
+class OpenJdk11armv7hl(OpenJdk11):
+    def _getSubPackages(self):
+        subpackages = super()._getSubPackages()
+        subpackages.append("debugsource")
+        subpackages.append(DEVEL + "-debuginfo")
+        subpackages.append(HEADLESS + "-debuginfo")
+        subpackages.append("jmods")
+        return subpackages
 
 class OpenJdk11Debug(OpenJdk8Debug):
     def _getSubPackages(self):
@@ -366,8 +374,11 @@ class SubpackagesTest(utils.core.base_xtest.BaseTest):
                         self.csch = OpenJdk10DebugDebuginfo()
                         return
             elif rpms.getMajorVersionSimplified() == '11':
-                if self.getCurrentArch() in gc.getArm32Achs() + gc.getPpc32Arch() + gc.getS390Arch():
+                if self.getCurrentArch() in gc.getPpc32Arch() + gc.getS390Arch():
                     self.csch = OpenJdk11()
+                    return
+                elif self.getCurrentArch() in gc.getArm32Achs():
+                    self.csch = OpenJdk11armv7hl()
                     return
                 else:
                     self.csch = OpenJdk11Debug()
