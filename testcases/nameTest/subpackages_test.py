@@ -278,6 +278,26 @@ class OpenJdk12Debug(OpenJdk11Debug):
         subpackages = super(OpenJdk12Debug, self)._get_debug_debuginfo()
         return subpackages
 
+class OpenJdk13(OpenJdk12Debug):
+    def _getSubPackages(self):
+        subpackages = super()._getSubPackages()
+        subpackages.remove("javadoc-zip" + get_debug_suffix())
+        subpackages.remove("javadoc" + get_debug_suffix())
+        return subpackages
+
+
+class OpenJdk13armv7hl(OpenJdk12Debug):
+    def _getSubPackages(self):
+        subpackages = super()._getSubPackages()
+        i = 0
+        iterations = len(subpackages)
+        while i < iterations:
+            if subpackages[i].count("debug") > 1 or subpackages[i].endswith("debug"):
+                subpackages.remove(subpackages[i])
+                iterations = len(subpackages)
+                i -= 1
+            i += 1
+        return subpackages
 
 class OracleAndIbmBase(JDKBase):
     def _getSubPackages(self):
@@ -383,11 +403,17 @@ class SubpackagesTest(utils.core.base_xtest.BaseTest):
                 else:
                     self.csch = OpenJdk11Debug()
                     return
-            elif int(rpms.getMajorVersionSimplified()) >= 12:
+            elif int(rpms.getMajorVersionSimplified()) == 12:
                 if self.getCurrentArch() in gc.getArm32Achs():
                     self.csch = OpenJdk12()
                     return
                 self.csch = OpenJdk12Debug()
+                return
+            elif int(rpms.getMajorVersionSimplified()) >= 13:
+                if self.getCurrentArch() in gc.getArm32Achs():
+                    self.csch = OpenJdk13armv7hl()
+                    return
+                self.csch = OpenJdk13()
                 return
             else:
                 raise ex.UnknownJavaVersionException("Unknown OpenJDK version.")

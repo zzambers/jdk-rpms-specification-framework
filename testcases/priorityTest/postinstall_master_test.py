@@ -212,6 +212,16 @@ class OpenJdk12OtherArches(OpenJdk9OtherArchs):
         return masters
 
 
+class OpenJdk13(OpenJdk9OtherArchs):
+    def _generate_masters(self):
+        masters = super(OpenJdk13, self)._generate_masters()
+        return masters
+
+
+class OpenJdk13arm7vhl(OpenJdk9Armvhl):
+    def _generate_masters(self):
+        masters = super(OpenJdk13arm7vhl, self)._generate_masters()
+        return masters
 
 
 class IcedTeaWeb(CheckPostinstallScript):
@@ -385,9 +395,15 @@ class PostinstallScriptTest(bt.BaseTest):
             elif rpms.getMajorVersionSimplified() == "11":
                 self.csch = OpenJdk11OtherArches()
                 return
-            elif int(rpms.getMajorVersionSimplified()) >= 12:
+            elif int(rpms.getMajorVersionSimplified()) == 12:
                 self.csch = OpenJdk12OtherArches()
-
+                return
+            elif int(rpms.getMajorVersionSimplified()) >= 13:
+                if self.getCurrentArch() in gc.getArm32Achs():
+                    self.csch = OpenJdk13arm7vhl()
+                    return
+                self.csch = OpenJdk13()
+                return
             else:
                 raise ex.UnknownJavaVersionException("Unknown JDK version.")
 
