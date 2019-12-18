@@ -58,7 +58,7 @@ def get_ibm_ikey_bins():
 
 
 def get_ibm_folders():
-    return ["classic", "j9vm"]
+    return ["classic", "j9vm", "java-rmi.cgi"]
 
 
 def oracle_exclude_list():
