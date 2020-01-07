@@ -26,7 +26,7 @@ class BinariesTest(bt.BaseTest):
         rpms = rc.RuntimeConfig().getRpmList()
         self.log("Checking binaries and slaves for " + rpms.getMajorPackage(), la.Verbosity.TEST)
 
-        if rpms.getVendor() == gc.OPENJDK:
+        if rpms.getVendor() == gc.OPENJDK or rpms.getVendor() == gc.OPENJ9:
             if rpms.getMajorVersionSimplified() == "6":
                 if self.getCurrentArch() in (gc.getX86_64Arch() + gc.getPower64BeAchs()):
                     self.csch = tcc.OpenJdk6PowBeArchAndX86(BinariesTest.instance)
@@ -40,7 +40,9 @@ class BinariesTest(bt.BaseTest):
                 return
 
             elif rpms.getMajorVersionSimplified() == "8":
-                if rpms.isFedora():
+                if rpms.getVendor() == gc.OPENJ9:
+                    self.csch = tcc.OpenJdk8(BinariesTest.instance)
+                elif rpms.isFedora():
                     if int(rpms.getOsVersion()) > 26:
                         if self.getCurrentArch() in gc.getAarch64Arch() + gc.getPower64LeAchs() + gc.getPower64BeAchs():
                             self.csch = tcc.OpenJdk8NoExportsDebug(BinariesTest.instance)
@@ -92,7 +94,7 @@ class BinariesTest(bt.BaseTest):
                     return
 
             elif rpms.getMajorVersionSimplified() == "11":
-                if self.getCurrentArch() in gc.getArm32Achs():
+                if self.getCurrentArch() in gc.getArm32Achs() or rpms.getVendor() == gc.OPENJ9:
                     self.csch = tcc.OpenJdk11(BinariesTest.instance)
                     return
                 elif self.getCurrentArch() in gc.getX86_64Arch() + gc.getAarch64Arch():

@@ -7,6 +7,7 @@ import outputControl.dom_objects as do
 import utils.core.base_xtest as bt
 import config.runtime_config as rc
 import utils.mock.mock_executor as me
+import config.global_config as gc
 
 OJDK11CHECKEDFILES = {tc.DEFAULT: ["/usr/lib/jvm/**NVRA**/lib/jspawnhelper"]}
 
@@ -53,7 +54,7 @@ class FileTest(bt.BaseTest):
     def setCSCH(self):
         rpms = rc.RuntimeConfig().getRpmList()
         rpms.getMajorPackage()
-        if "openjdk" in rpms.getVendor() and int(rpms.getMajorVersionSimplified()) >= 11:
+        if (rpms.getVendor() == gc.OPENJDK or rpms.getVendor() == gc.OPENJ9) and int(rpms.getMajorVersionSimplified()) >= 11:
             self.csch = Ojdk11AndAbove(rpms)
         else:
             self.csch = Default(rpms)

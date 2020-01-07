@@ -151,6 +151,7 @@ JAVA_STRING = "java"
 FEDORA = "Fedora"
 RHEL = "RHEL"
 
+OPENJ9 = "openj9"
 OPENJDK = "openjdk"
 ITW = "icedtea-web"
 IBM = "ibm"

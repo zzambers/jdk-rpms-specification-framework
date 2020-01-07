@@ -300,7 +300,7 @@ class PermissionTest(bt.BaseTest):
         PermissionTest.instance = self
         rpms = rc.RuntimeConfig().getRpmList()
         self.log("Checking files for " + rpms.getMajorPackage(), la.Verbosity.TEST)
-        if rpms.getVendor() == gc.OPENJDK:
+        if rpms.getVendor() == gc.OPENJDK or rpms.getVendor() == gc.OPENJ9:
             if rpms.getMajorVersionSimplified() == "6":
                 if self.getCurrentArch() in (gc.getX86_64Arch() + gc.getPower64BeAchs()):
                     self.csch = OpenJdk6PowBeArchAndX86()

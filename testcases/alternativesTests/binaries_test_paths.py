@@ -93,7 +93,7 @@ class BaseTest(JdkConfiguration):
                 self.installed_binaries[subpackage].remove(JAVA_RMI_CGI)
                 passed_or_failed(self, True, "")
                 self.passed += 1
-            except ValueError or KeyError:
+            except (ValueError, KeyError):
                 self.failed += 1
                 passed_or_failed(self, False, "Missing {} in {}.".format(JAVA_RMI_CGI, DEVEL))
         return self.installed_binaries

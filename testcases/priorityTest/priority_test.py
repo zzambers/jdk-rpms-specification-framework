@@ -214,7 +214,7 @@ class PriorityCheck(utils.core.base_xtest.BaseTest):
         rpms = config.runtime_config.RuntimeConfig().getRpmList()
         self.log("Checking priority for " + rpms.getVendor(), la.Verbosity.TEST)
 
-        if rpms.getVendor() == gc.OPENJDK:
+        if rpms.getVendor() == gc.OPENJDK or rpms.getVendor() == gc.OPENJ9:
             if rpms.getMajorVersionSimplified() == "6":
                 self.csch = OpenJdk6()
                 return

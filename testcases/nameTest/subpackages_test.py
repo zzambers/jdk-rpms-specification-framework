@@ -416,7 +416,7 @@ class SubpackagesTest(utils.core.base_xtest.BaseTest):
             self.csch = ItwSubpackages()
             return
 
-        if rpms.getVendor() == gc.OPENJDK:
+        if rpms.getVendor() == gc.OPENJDK or rpms.getVendor() == gc.OPENJ9:
             if rpms.getMajorVersionSimplified() == '6':
                 self.csch = OpenJdk6()
                 return

@@ -194,14 +194,19 @@ class OpenJdk9OtherArchs(OpenJdk9Armvhl):
         return masters
 
 
-class OpenJdk11OtherArches(OpenJdk8S390):
+class OpenJdk11Armv7hl(OpenJdk8S390):
     def _generate_masters(self):
-        masters = super(OpenJdk11OtherArches, self)._generate_masters()
+        masters = super()._generate_masters()
+        return masters
+
+
+class OpenJdk11OtherArches(OpenJdk11Armv7hl):
+    def _generate_masters(self):
+        masters = super()._generate_masters()
         masters[DEVEL + get_debug_suffix()] = masters[DEVEL]
         masters[HEADLESS + get_debug_suffix()] = masters[HEADLESS]
         masters[DEFAULT + get_debug_suffix()] = []
         return masters
-
 
 
 class OpenJdk12OtherArches(OpenJdk9OtherArchs):
@@ -359,7 +364,7 @@ class PostinstallScriptTest(bt.BaseTest):
         rpms = rc.RuntimeConfig().getRpmList()
         self.log("Checking post_script and master for " + rpms.getVendor(), la.Verbosity.TEST)
 
-        if rpms.getVendor() == gc.OPENJDK:
+        if rpms.getVendor() == gc.OPENJDK or rpms.getVendor() == gc.OPENJ9:
             if rpms.getMajorVersionSimplified() == "6":
                 self.csch = OpenJdk6()
                 return
@@ -393,6 +398,9 @@ class PostinstallScriptTest(bt.BaseTest):
                         self.csch = OpenJdk9OtherArchs()
                         return
             elif rpms.getMajorVersionSimplified() == "11":
+                if self.getCurrentArch() in gc.getArm32Achs():
+                    self.csch = OpenJdk11Armv7hl()
+                    return
                 self.csch = OpenJdk11OtherArches()
                 return
             elif int(rpms.getMajorVersionSimplified()) == 12:

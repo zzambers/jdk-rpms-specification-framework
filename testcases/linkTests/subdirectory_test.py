@@ -281,7 +281,7 @@ class SubdirectoryTest(bt.BaseTest):
         SubdirectoryTest.instance = self
         rpms = rc.RuntimeConfig().getRpmList()
         self.log("Checking subdirectories for: " + rpms.getMajorPackage(), la.Verbosity.TEST)
-        if rpms.getVendor() == gc.OPENJDK:
+        if rpms.getVendor() == gc.OPENJDK or rpms.getVendor() == gc.OPENJ9:
             if rpms.getMajorVersionSimplified() == "6":
                 if self.current_arch in (gc.getPower64BeAchs() + gc.getX86_64Arch()):
                     self.csch = OpenJdk6PowerBeArchAndX86()

@@ -177,7 +177,7 @@ class RpmList:
         if self.isFedora():
             return self.getDist()[2:]
         if self.isRhel():
-            return str(self.getDist()[2:]).replace("_",".")
+            return str(self.getDist()[2]).replace("_",".")
         if self.isEpel():
             return str(self.getDist()[4:]).replace("_",".")
         return None
