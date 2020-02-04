@@ -297,26 +297,25 @@ class JavaDoc(Default):
     def __init__(self, name, java_ver, vendor, pkg, version, end, arch, filename):
         super(JavaDoc, self).__init__(name, java_ver, vendor, pkg, version, end, arch, filename)
 
-
-class JavaDocZip(JavaDoc):
-    def __init__(self, name, java_ver, vendor, pkg, version, end, arch, filename):
-        super(JavaDocZip, self).__init__(name, java_ver, vendor, pkg, version, end, arch, filename)
-        for provide in list(self.expected_provides):
-            if "(" not in provide:
-                self.expected_provides[(provide.replace("-zip", ""))] = ns.get_version_full(filename)
-
-
 class JavaDocTechPreview(DefaultTechPreview):
     def __init__(self, name, java_ver, vendor, pkg, version, end, arch, filename):
         super(JavaDocTechPreview, self).__init__(name, java_ver, vendor, pkg, version, end, arch, filename)
 
 
-class JavaDocZipTechPreview(JavaDocTechPreview):
+class JavaDocZipTechPreview(Empty):
     def __init__(self, name, java_ver, vendor, pkg, version, end, arch, filename):
         super(JavaDocZipTechPreview, self).__init__(name, java_ver, vendor, pkg, version, end, arch, filename)
-        for provide in list(self.expected_provides):
-            if "(" not in provide:
-                self.expected_provides[(provide.replace("-zip", ""))] = ns.get_version_full(filename)
+        self.expected_provides["-".join([name, java_ver, pkg.replace("-zip", "")])] = ns.get_version_full(filename)
+        self.expected_provides["-".join([name, java_ver, vendor, pkg.replace("-zip", "")])] = ns.get_version_full(filename)
+        self.expected_provides["-".join([name, java_ver, vendor, pkg])] = ns.get_version_full(filename)
+        self.expected_provides["-".join([name, java_ver, vendor, pkg]) + ("({})".format(arch) if (arch != "noarch") else "")] = ns.get_version_full(filename)
+
+
+class JavaDocZip(JavaDocZipTechPreview):
+    def __init__(self, name, java_ver, vendor, pkg, version, end, arch, filename):
+        super(JavaDocZip, self).__init__(name, java_ver, vendor, pkg, version, end, arch, filename)
+        self.expected_provides["-".join([name, pkg.replace("-zip", "")])] = ns.get_version_full(filename)
+
 
 
 class DebugInfoRolling(Empty):

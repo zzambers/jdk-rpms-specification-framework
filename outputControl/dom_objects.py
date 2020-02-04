@@ -46,7 +46,7 @@ class Testcase:
             text += "/>"
         else:
             text += ">\n"
-            text += "      <failure message=\"see: {}\" type=\"\">\n".format(self.viewFileStub)
+            text += "      <failure message=\"{}\" type=\"\">\n".format(self.viewFileStub)
             text += "      </failure>\n"
             text += "    </testcase>"
         return text
