@@ -206,6 +206,8 @@ class OpenJdk11OtherArches(OpenJdk11Armv7hl):
         masters[DEVEL + get_debug_suffix()] = masters[DEVEL]
         masters[HEADLESS + get_debug_suffix()] = masters[HEADLESS]
         masters[DEFAULT + get_debug_suffix()] = []
+        masters[JAVADOC + get_debug_suffix()] = [JAVADOCDIR]
+        masters[JAVADOC_ZIP + get_debug_suffix()] = [JAVADOCZIP]
         return masters
 
 
