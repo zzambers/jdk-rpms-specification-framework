@@ -288,7 +288,7 @@ class OpenJdk11(OpenJdk10):
                       'jconsole',
                       'jdb', 'jdeprscan', 'jdeps', 'jhsdb', 'jimage', 'jinfo', 'jlink', 'jmap', 'jmod', 'jps',
                       'jrunscript',
-                      'jshell', 'jstack', 'jstat', 'jstatd', 'rmic', 'serialver']
+                      'jshell', 'jstack', 'jstat', 'jstatd', 'rmic', 'serialver', "jfr"]
     HEADLESS_BINARIES = ["java", "jjs", "keytool", "pack200",
                          "rmid", "rmiregistry", "unpack200"]
 
@@ -299,7 +299,7 @@ class OpenJdk11x64(OpenJdk10x64):
                       'jconsole',
                       'jdb', 'jdeprscan', 'jdeps', 'jhsdb', 'jimage', 'jinfo', 'jlink', 'jmap', 'jmod', 'jps',
                       'jrunscript',
-                      'jshell', 'jstack', 'jstat', 'jstatd', 'rmic','serialver']
+                      'jshell', 'jstack', 'jstat', 'jstatd', 'rmic', 'serialver', "jfr"]
     HEADLESS_BINARIES = ["java", "jjs", "keytool","pack200",
                          "rmid", "rmiregistry", "unpack200"]
 
@@ -310,7 +310,7 @@ class OpenJdk11NoDebugNoJhsdb(OpenJdk10):
                       'jconsole',
                       'jdb', 'jdeprscan', 'jdeps', 'jimage', 'jinfo', 'jlink', 'jmap', 'jmod', 'jps',
                       'jrunscript',
-                      'jshell', 'jstack', 'jstat', 'jstatd', 'rmic', 'serialver']
+                      'jshell', 'jstack', 'jstat', 'jstatd', 'rmic', 'serialver', "jfr"]
     HEADLESS_BINARIES = ["java", "jjs", "keytool", "pack200",
                          "rmid", "rmiregistry", "unpack200"]
 
@@ -321,7 +321,7 @@ class OpenJdk11Debug(OpenJdk10Debug):
                       'jconsole',
                       'jdb', 'jdeprscan', 'jdeps', 'jhsdb', 'jimage', 'jinfo', 'jlink', 'jmap', 'jmod', 'jps',
                       'jrunscript',
-                      'jshell', 'jstack', 'jstat', 'jstatd', 'rmic','serialver']
+                      'jshell', 'jstack', 'jstat', 'jstatd', 'rmic', 'serialver', "jfr"]
     HEADLESS_BINARIES = ["java", "jjs", "keytool","pack200",
                          "rmid", "rmiregistry", "unpack200"]
 
@@ -332,7 +332,7 @@ class OpenJdk11NoJhsdb(OpenJdk11Debug):
                       'jconsole',
                       'jdb', 'jdeprscan', 'jdeps', 'jimage', 'jinfo', 'jlink', 'jmap', 'jmod', 'jps',
                       'jrunscript',
-                      'jshell', 'jstack', 'jstat', 'jstatd', 'rmic', 'serialver']
+                      'jshell', 'jstack', 'jstat', 'jstatd', 'rmic', 'serialver', "jfr"]
     HEADLESS_BINARIES = ["java", "jjs", "keytool", "pack200",
                          "rmid", "rmiregistry", "unpack200"]
 
