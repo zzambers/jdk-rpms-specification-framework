@@ -351,47 +351,44 @@ class OpenJdk10Debugx64(OpenJdk10Debug):
 
 
 class OpenJdk11(OpenJdk10):
-    pass
+    def __init__(self):
+        super().__init__()
+        self.missing_manpages.append("jfr")
 
+class OpenJdk11armv7hl(OpenJdk11):
+    def __init__(self):
+        super().__init__()
 
 class OpenJdk11Debug(OpenJdk10Debug):
-    pass
+    def __init__(self):
+        super().__init__()
+        self.missing_manpages.append("jfr")
 
 
 class OpenJdk11Debugx64(OpenJdk10Debugx64):
-    pass
+    def __init__(self):
+        super().__init__()
+        self.missing_manpages.append("jfr")
 
 
 class OpenJdk11s390x(OpenJdk11Debug):
     def __init__(self):
         super().__init__()
         self.checked_subpackages = [DEVEL, DEVEL + get_debug_suffix()]
-        self.missing_manpages = ["jdeprscan", "jimage", "jlink", "jmod", "jshell"]
+        self.missing_manpages = ["jdeprscan", "jimage", "jlink", "jmod", "jshell", "jfr"]
 
 
 class OpenJdk12(OpenJdk11):
-    def __init__(self):
-        super().__init__()
-        self.missing_manpages.append("jfr")
-
+    pass
 
 class OpenJdk12Debug(OpenJdk11Debug):
-    def __init__(self):
-        super().__init__()
-        self.missing_manpages.append("jfr")
-
+    pass
 
 class OpenJdk12Debugx64(OpenJdk11Debugx64):
-    def __init__(self):
-        super().__init__()
-        self.missing_manpages.append("jfr")
-
+    pass
 
 class OpenJdk12s390x(OpenJdk11s390x):
-    def __init__(self):
-        super().__init__()
-        self.missing_manpages.append("jfr")
-
+    pass
 
 class ITW(ManpageTestMethods):
     def _clean_sdk_from_jre(self, bins, packages):
@@ -552,7 +549,7 @@ class ManpageTests(bt.BaseTest):
                     return
             elif int(rpms.getMajorVersionSimplified()) == 11:
                 if self.getCurrentArch() in gc.getArm32Achs():
-                    self.csch = OpenJdk11()
+                    self.csch = OpenJdk11armv7hl()
                     return
                 elif self.getCurrentArch() in gc.getX86_64Arch() + gc.getAarch64Arch():
                     self.csch = OpenJdk11Debugx64()
@@ -560,6 +557,8 @@ class ManpageTests(bt.BaseTest):
                 else:
                     if rpms.isRhel() and self.getCurrentArch() in gc.getS390Arch() + gc.getPpc32Arch():
                         self.csch = OpenJdk11()
+                    elif self.getCurrentArch() in gc.getS390xArch():
+                        self.csch = OpenJdk11s390x()
                     else:
                         self.csch = OpenJdk11Debug()
                     return
