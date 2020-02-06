@@ -206,6 +206,11 @@ class OpenJdk11OtherArches(OpenJdk11Armv7hl):
         masters[DEVEL + get_debug_suffix()] = masters[DEVEL]
         masters[HEADLESS + get_debug_suffix()] = masters[HEADLESS]
         masters[DEFAULT + get_debug_suffix()] = []
+        return masters
+
+class OpenJdk11OtherArchesRhel(OpenJdk11OtherArches):
+    def _generate_masters(self):
+        masters = super()._generate_masters()
         masters[JAVADOC + get_debug_suffix()] = [JAVADOCDIR]
         masters[JAVADOC_ZIP + get_debug_suffix()] = [JAVADOCZIP]
         return masters
@@ -402,6 +407,9 @@ class PostinstallScriptTest(bt.BaseTest):
             elif rpms.getMajorVersionSimplified() == "11":
                 if self.getCurrentArch() in gc.getArm32Achs():
                     self.csch = OpenJdk11Armv7hl()
+                    return
+                if rpms.getOs() == gc.RHEL:
+                    self.csch = OpenJdk11OtherArchesRhel()
                     return
                 self.csch = OpenJdk11OtherArches()
                 return

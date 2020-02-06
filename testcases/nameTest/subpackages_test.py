@@ -32,12 +32,19 @@ class MainPackagePresent(JdkConfiguration):
                                      + str(len(subpkgSetExpected)), la.Verbosity.TEST)
         SubpackagesTest.instance.log("Presented: " + str(ssGiven), la.Verbosity.TEST)
         SubpackagesTest.instance.log("Expected:  " + str(subpkgSetExpected), la.Verbosity.TEST)
-        if not passed_or_failed(self, ssGiven == subpkgSetExpected,
-                                "Set of subpkgs not as expected. Differences will follow."):
+        if not ssGiven == subpkgSetExpected:
+        #if not passed_or_failed(self, ssGiven == subpkgSetExpected,
+         #                       "Set of subpkgs not as expected. Differences will follow."):
+            missingSubpackages = []
             for subpkg in subpkgSetExpected:
                 SubpackagesTest.instance.log(
                     "Checking `" + subpkg + "` of " + SubpackagesTest.instance.current_arch, la.Verbosity.TEST)
-                passed_or_failed(self, subpkg in ssGiven, subpkg + " is missing in given set of rpms.")
+                if subpkg in ssGiven:
+                    ssGiven.remove(subpkg)
+                else:
+                    missingSubpackages.append(subpkg)
+            passed_or_failed(self, False, "Set of subpackages not as expected. \nextra subpkgs: " + str(ssGiven) + "\nmissing subpkgs: " + str(missingSubpackages))
+            passed_or_failed(self, subpkg in ssGiven, subpkg + " is missing in given set of rpms.")
 
 
 
@@ -258,7 +265,7 @@ class OpenJdk11armv7hl(OpenJdk11):
         return subpackages
 
 
-class OpenJdk11Debug(OpenJdk8Debug):
+class OpenJdk11DebugFc(OpenJdk8Debug):
     def _getSubPackages(self):
         subpackages = super()._getSubPackages()
         subpackages.discard("accessibility")
@@ -274,7 +281,7 @@ class OpenJdk11Debug(OpenJdk8Debug):
         return subpackages
 
     def _get_debuginfo(self):
-        subpackages = super(OpenJdk11Debug, self)._get_debuginfo()
+        subpackages = super()._get_debuginfo()
         subpackages.discard("demo-debuginfo")
         return subpackages
 
@@ -286,6 +293,12 @@ class OpenJdk9Debug(OpenJdk8Debug):
         return subpackages
 
 
+class OpenJdk11DebugRhel(OpenJdk11DebugFc):
+    def _getSubPackages(self):
+        subpackages = super()._getSubPackages()
+        subpackages.update({JAVADOC + get_debug_suffix(), JAVADOC + "-zip" + get_debug_suffix()})
+        return subpackages
+
 class OpenJdk12(OpenJdk11):
     def _getSubPackages(self):
         subpackages = super()._getSubPackages()
@@ -296,7 +309,7 @@ class OpenJdk12(OpenJdk11):
         return subpackages
 
 
-class OpenJdk12Debug(OpenJdk11Debug):
+class OpenJdk12Debug(OpenJdk11DebugFc):
     def _getSubPackages(self):
         subpackages = super()._getSubPackages()
         subpackages.update({"javadoc-zip" + get_debug_suffix(), "javadoc" + get_debug_suffix()})
@@ -475,8 +488,11 @@ class SubpackagesTest(utils.core.base_xtest.BaseTest):
                 elif self.getCurrentArch() in gc.getArm32Achs():
                     self.csch = OpenJdk11armv7hl()
                     return
+                elif rpms.getOs() == gc.RHEL:
+                    self.csch = OpenJdk11DebugRhel()
+                    return
                 else:
-                    self.csch = OpenJdk11Debug()
+                    self.csch = OpenJdk11DebugFc()
                     return
             elif int(rpms.getMajorVersionSimplified()) == 12:
                 if self.getCurrentArch() in gc.getArm32Achs():
@@ -488,7 +504,7 @@ class SubpackagesTest(utils.core.base_xtest.BaseTest):
                 if self.getCurrentArch() in gc.getArm32Achs():
                     self.csch = OpenJdk13armv7hl()
                     return
-                elif rpms.getOs() == "RHEL":
+                elif rpms.getOs() == gc.RHEL:
                     if rpms.getOsVersionMajor() == 7:
                         self.csch = OpenJdk13el7()
                         return
