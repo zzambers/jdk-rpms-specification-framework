@@ -208,11 +208,10 @@ class OpenJdk11OtherArches(OpenJdk11Armv7hl):
         masters[DEFAULT + get_debug_suffix()] = []
         return masters
 
+
 class OpenJdk11OtherArchesRhel(OpenJdk11OtherArches):
     def _generate_masters(self):
         masters = super()._generate_masters()
-        masters[JAVADOC + get_debug_suffix()] = [JAVADOCDIR]
-        masters[JAVADOC_ZIP + get_debug_suffix()] = [JAVADOCZIP]
         return masters
 
 
