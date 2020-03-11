@@ -296,7 +296,6 @@ class OpenJdk9Debug(OpenJdk8Debug):
 class OpenJdk11DebugRhel(OpenJdk11DebugFc):
     def _getSubPackages(self):
         subpackages = super()._getSubPackages()
-        subpackages.update({JAVADOC + get_debug_suffix(), JAVADOC + "-zip" + get_debug_suffix()})
         return subpackages
 
 class OpenJdk12(OpenJdk11):
