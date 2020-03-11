@@ -8,6 +8,7 @@ import config.runtime_config
 import utils.core.base_xtest
 from outputControl import logging_access as la
 from utils.test_utils import passed_or_failed
+import config.global_config as gc
 from outputControl import dom_objects as do
 
 
@@ -67,13 +68,6 @@ class ObsolateTest(utils.core.base_xtest.BaseTest):
         if config.runtime_config.RuntimeConfig().getRpmList().isItw() :
             self.csch = ITW()
             return
-        if config.runtime_config.RuntimeConfig().getRpmList().isFedora():
-            if int(config.runtime_config.RuntimeConfig().getRpmList().getMajorVersionSimplified()) >= 10:
-                self.csch = JdkRhel()
-                return
-            else:
-                self.csch = Openjdk8Fedora()
-                return
         else:
             self.csch = JdkRhel()
 
