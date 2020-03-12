@@ -167,6 +167,10 @@ class BaseTest(JdkConfiguration):
                     self._test_fill_in(target, "binary jexec", "755")
                 elif "/lib/jspawnhelper" in target:
                     self._test_fill_in(target, "binary jspawnhelper", "755")
+                elif target.endswith(".pf") or target.endswith(".data"):
+                    self._test_fill_in(target, out, "444")
+                elif target.endswith(".template") and "/conf/" not in target:
+                    self._test_fill_in(target, out, "444")
                 else:
                     self._test_fill_in(target, out, "644")
             elif out == "symbolic link":
