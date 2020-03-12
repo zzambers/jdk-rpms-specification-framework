@@ -168,7 +168,6 @@ class ManpageTestMethods(JdkConfiguration):
 
         for l in links:
             link = l + self._get_manpage_suffixes(subpackage)[LINK]
-            link = l + self._get_manpage_suffixes(subpackage)[LINK]
             passed_or_failed(self, link in manpage_links, link + " man page link not in " + subpackage)
 
     def man_page_test(self, pkgs):
@@ -299,6 +298,11 @@ class OpenJdk8(OpenJdk7):
         if master == JAVA:
             binaries.append(POLICYTOOL)
         return binaries
+
+    def _get_excludes(self):
+        excludes = super()._get_excludes()
+        excludes.extend(["hsdb", "clhsdb"])
+        return excludes
 
 
 class OpenJdk8WithDebug(OpenJdk8):
