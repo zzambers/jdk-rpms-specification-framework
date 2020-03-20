@@ -140,11 +140,12 @@ class PathTest(BaseTest):
                 path_contents[path] = content
 
             self.binaries_test.log("Validating binaries paths for {} subpackage: ".format(_subpkg), la.Verbosity.TEST)
-            for binary in self.installed_binaries[_subpkg]:
-                found_paths = self._binary_in_path_contents(path_contents, binary)
-                if passed_or_failed(self, found_paths is not None, binary + " not found in any path given for " + _subpkg):
-                    self.binaries_test.log("Binary {} found in {} for "
-                                           "{}".format(binary, ", ".join(found_paths), _subpkg), la.Verbosity.TEST)
+            if _subpkg in self.installed_binaries:
+                for binary in self.installed_binaries[_subpkg]:
+                    found_paths = self._binary_in_path_contents(path_contents, binary)
+                    if passed_or_failed(self, found_paths is not None, binary + " not found in any path given for " + _subpkg):
+                        self.binaries_test.log("Binary {} found in {} for "
+                                               "{}".format(binary, ", ".join(found_paths), _subpkg), la.Verbosity.TEST)
 
         self.binaries_test.log("Path test finished.", la.Verbosity.TEST)
         return

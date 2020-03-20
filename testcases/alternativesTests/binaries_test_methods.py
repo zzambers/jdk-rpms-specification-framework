@@ -162,13 +162,16 @@ class BinarySlaveTestMethods(GetAllBinariesAndSlaves):
                                                                 sorted(self.installed_slaves.keys())))
         try:
             for subpackage in self._get_subpackages_with_binaries():
-                slaves = self.installed_slaves[subpackage]
-                binaries = self.installed_binaries[subpackage]
-                passed_or_failed(self, sorted(binaries) == sorted(slaves),
-                                        "Binaries do not match slaves in {}. Missing binaries: {}"
-                                        " Missing slaves: {}".format(subpackage, diff(slaves, binaries),
-                                                                     diff(binaries, slaves)))
-                self._check_binaries_against_hardcoded_list(binaries, subpackage)
+                if subpackage in self.installed_binaries or subpackage in self.installed_slaves:
+                    slaves = self.installed_slaves[subpackage]
+                    binaries = self.installed_binaries[subpackage]
+                    passed_or_failed(self, sorted(binaries) == sorted(slaves),
+                                            "Binaries do not match slaves in {}. Missing binaries: {}"
+                                            " Missing slaves: {}".format(subpackage, diff(slaves, binaries),
+                                                                         diff(binaries, slaves)))
+                    self._check_binaries_against_hardcoded_list(binaries, subpackage)
+                else:
+                    tu.passed_or_failed(self, False, "Binaries in an unexpected subpackage: " + subpackage)
 
         except KeyError as err:
             tu.passed_or_failed(self, False, err.__str__())
