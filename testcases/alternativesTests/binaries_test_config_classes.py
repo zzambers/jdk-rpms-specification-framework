@@ -337,15 +337,15 @@ class OpenJdk11NoJhsdb(OpenJdk11Debug):
                          "rmid", "rmiregistry", "unpack200"]
 
 
-class OpenJdk12(OpenJdk11):
+class OpenJdk14(OpenJdk11):
     DEFAULT_BINARIES = []
     DEVEL_BINARIES = ['jar', 'jarsigner', 'javac', 'javadoc', 'javap', 'jcmd',
                       'jconsole',
                       'jdb', 'jdeprscan', 'jdeps', 'jhsdb', 'jimage', 'jinfo', 'jlink', 'jmap', 'jmod', 'jps',
                       'jrunscript',
-                      'jshell', 'jstack', 'jstat', 'jstatd', 'rmic', 'serialver', 'jfr']
-    HEADLESS_BINARIES = ["java", "jjs", "keytool", "pack200",
-                         "rmid", "rmiregistry", "unpack200"]
+                      'jshell', 'jstack', 'jstat', 'jstatd', 'rmic', 'serialver', 'jfr', 'jpackage']
+    HEADLESS_BINARIES = ["java", "jjs", "keytool",
+                         "rmid", "rmiregistry"]
 
     def remove_binaries_without_slaves(self, args=None):
         subpackage = self._get_jre_subpackage()[0]
@@ -353,15 +353,15 @@ class OpenJdk12(OpenJdk11):
             self.installed_binaries[subpackage].remove("jfr")
 
 
-class OpenJdk12x64(OpenJdk11x64):
+class OpenJdk14x64(OpenJdk11x64):
     DEFAULT_BINARIES = []
     DEVEL_BINARIES = ['jar', 'jaotc', 'jarsigner', 'javac', 'javadoc', 'javap', 'jcmd',
                       'jconsole',
                       'jdb', 'jdeprscan', 'jdeps', 'jhsdb', 'jimage', 'jinfo', 'jlink', 'jmap', 'jmod', 'jps',
                       'jrunscript',
-                      'jshell', 'jstack', 'jstat', 'jstatd', 'rmic', 'serialver', 'jfr']
-    HEADLESS_BINARIES = ["java", "jjs", "keytool","pack200",
-                         "rmid", "rmiregistry", "unpack200"]
+                      'jshell', 'jstack', 'jstat', 'jstatd', 'rmic', 'serialver', 'jfr', 'jpackage']
+    HEADLESS_BINARIES = ["java", "jjs", "keytool",
+                         "rmid", "rmiregistry"]
 
     def remove_binaries_without_slaves(self, args=None):
         subpackage = self._get_jre_subpackage()[0]
@@ -369,15 +369,15 @@ class OpenJdk12x64(OpenJdk11x64):
             self.installed_binaries[subpackage].remove("jfr")
 
 
-class OpenJdk12NoDebugNoJhsdb(OpenJdk11):
+class OpenJdk14NoDebugNoJhsdb(OpenJdk11):
     DEFAULT_BINARIES = []
     DEVEL_BINARIES = ['jar', 'jarsigner', 'javac', 'javadoc', 'javap', 'jcmd',
                       'jconsole',
                       'jdb', 'jdeprscan', 'jdeps', 'jimage', 'jinfo', 'jlink', 'jmap', 'jmod', 'jps',
                       'jrunscript',
-                      'jshell', 'jstack', 'jstat', 'jstatd', 'rmic', 'serialver', 'jfr']
-    HEADLESS_BINARIES = ["java", "jjs", "keytool", "pack200",
-                         "rmid", "rmiregistry", "unpack200"]
+                      'jshell', 'jstack', 'jstat', 'jstatd', 'rmic', 'serialver', 'jfr', 'jpackage']
+    HEADLESS_BINARIES = ["java", "jjs", "keytool",
+                         "rmid", "rmiregistry"]
 
     def remove_binaries_without_slaves(self, args=None):
         subpackage = self._get_jre_subpackage()[0]
@@ -385,15 +385,15 @@ class OpenJdk12NoDebugNoJhsdb(OpenJdk11):
             self.installed_binaries[subpackage].remove("jfr")
 
 
-class OpenJdk12Debug(OpenJdk11Debug):
+class OpenJdk14Debug(OpenJdk11Debug):
     DEFAULT_BINARIES = []
     DEVEL_BINARIES = ['jar', 'jarsigner', 'javac', 'javadoc', 'javap', 'jcmd',
                       'jconsole',
                       'jdb', 'jdeprscan', 'jdeps', 'jhsdb', 'jimage', 'jinfo', 'jlink', 'jmap', 'jmod', 'jps',
                       'jrunscript',
-                      'jshell', 'jstack', 'jstat', 'jstatd', 'rmic','serialver', 'jfr']
-    HEADLESS_BINARIES = ["java", "jjs", "keytool","pack200",
-                         "rmid", "rmiregistry", "unpack200"]
+                      'jshell', 'jstack', 'jstat', 'jstatd', 'rmic','serialver', 'jfr', 'jpackage']
+    HEADLESS_BINARIES = ["java", "jjs", "keytool",
+                         "rmid", "rmiregistry"]
 
     def remove_binaries_without_slaves(self, args=None):
         subpackage = self._get_jre_subpackage()[0]
@@ -401,15 +401,16 @@ class OpenJdk12Debug(OpenJdk11Debug):
             self.installed_binaries[subpackage].remove("jfr")
 
 
-class OpenJdk12NoJhsdb(OpenJdk12Debug):
+class OpenJdk14NoJhsdb(OpenJdk14Debug):
     DEFAULT_BINARIES = []
     DEVEL_BINARIES = ['jar', 'jarsigner', 'javac', 'javadoc', 'javap', 'jcmd',
                       'jconsole',
                       'jdb', 'jdeprscan', 'jdeps', 'jimage', 'jinfo', 'jlink', 'jmap', 'jmod', 'jps',
                       'jrunscript',
-                      'jshell', 'jstack', 'jstat', 'jstatd', 'rmic', 'serialver', 'jfr']
-    HEADLESS_BINARIES = ["java", "jjs", "keytool", "pack200",
-                         "rmid", "rmiregistry", "unpack200"]
+                      'jshell', 'jstack', 'jstat', 'jstatd', 'rmic', 'serialver', 'jfr', 'jpackage']
+    HEADLESS_BINARIES = ["java", "jjs", "keytool",
+                         "rmid", "rmiregistry"]
+
 
 
 class Ibm(bsm.BinarySlaveTestMethods):
