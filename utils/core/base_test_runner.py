@@ -98,7 +98,7 @@ class BaseTestRunner:
         failed = 0
         methodOnlyCounter = 0
         self.indent = "  "
-        suiteStart = time.clock()
+        suiteStart = time.process_time()
         self.log("started tests in suite: " + type(self).__name__ + ":")
         archs = self._cleanArchs()
         methods = lsort(inspect.getmembers(self, predicate=inspect.ismethod))
@@ -108,7 +108,7 @@ class BaseTestRunner:
             for a, b in methods:
                 methodOnly = False
                 if str(a).startswith("test_"):
-                    methodStart = time.clock()
+                    methodStart = time.process_time()
                     if not methodOnly:
                         methodOnlyCounter += 1
                         methodOnly = True
@@ -140,7 +140,7 @@ class BaseTestRunner:
                         failed += 1
                         # print(m, file=sys.stderr)
                         # traceback.print_exc()
-                    methodEnd = time.clock()
+                    methodEnd = time.process_time()
                     ms = (methodEnd)*1000-(methodStart*1000)
             rpms = config.runtime_config.RuntimeConfig().getRpmList()
             la.LoggingAccess().log("<?xml version=\"1.0\"?>\n<testsuites>", la.Verbosity.JTREG,
@@ -161,7 +161,7 @@ class BaseTestRunner:
             self.log("finished: " + a + "[" + self.current_arch + "] " + str(i + 1) + "/" + str(len(archs)) +
                          " in "+str(round(ms,3))+"ms")
             do.Tests().clear_tests()
-        suiteEnd = time.clock()
+        suiteEnd = time.process_time()
         ms = (suiteEnd) * 1000 - (suiteStart * 1000)
         la.LoggingAccess().log(
             "finished testing suite: " + type(self).__name__ +
