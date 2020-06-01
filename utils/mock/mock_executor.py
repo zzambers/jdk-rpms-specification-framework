@@ -47,7 +47,7 @@ class Mock:
         unless you need it for some valid reasons (so far, there are NONE).
         Version of mock must be currently < 27 (26 is obsoleted though). This is necessary due to rich dependencies in
         fedora 28 packages, that do not work on RHEL 7 VM's. As soon as we got good RHEL 8 images, we must switch back
-        to rawhide and run this framework there, so we do not have to swich chroot every year or so.
+        to rawhide and run this framework there, so we do not have to switch chroot every year or so.
         """
         self.os = os
         self.version = version

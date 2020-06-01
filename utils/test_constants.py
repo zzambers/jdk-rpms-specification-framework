@@ -11,6 +11,7 @@ JAVAFXPACKAGER = "javafxpackager"
 POLICYTOOL = "policytool"
 JAVAFX = "javafx"
 JAVADOC = "javadoc"
+JAVADOCZIP = "javadoc-zip"
 MAN_DIR = "/usr/share/man/man1"
 WAS_NOT_FOUND = "was not found"
 JAVA_RMI_CGI = "java-rmi.cgi"
@@ -30,6 +31,8 @@ OJDK8JFX = "ojdk8JFX"
 OJDK8DEBUG = "ojdk8debug"
 TECHPREVIEWS = ["11", "12"]
 IGNOREDNAMEPARTS = ["playground."]
+JITARCHES = ["aarch64", "i686", "ppc64le", "x86_64"]
+
 
 #unable to import singleton from global_config
 class Singleton(type):
@@ -39,6 +42,9 @@ class Singleton(type):
         if cls not in cls._instances:
             cls._instances[cls] = super(Singleton, cls).__call__(*args, **kwargs)
         return cls._instances[cls]
+
+def is_arch_jitarch(arch):
+    return arch in JITARCHES
 
 # exports jre binaries
 def get_exports_slaves_jre():

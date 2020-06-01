@@ -133,6 +133,17 @@ def get_arch(name):
         return _get_ith_dotpart(2, name + ".rpm")
 
 
+def get_arch_install(name):
+    arch = get_arch(name)
+    if arch == "x86_64":
+        return "amd64"
+    if arch == "i686":
+        return "i386"
+    if arch == "armv7hl":
+        return "arm"
+    return arch
+
+
 def get_nvra(name):
     """ eg java-1.8.0-openjdk-1.8.0.101-4.b13.el7.i686"""
     n = name
