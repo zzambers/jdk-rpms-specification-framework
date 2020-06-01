@@ -3,7 +3,7 @@ import outputControl.logging_access as la
 import config.global_config as gc
 import config.runtime_config as rc
 import utils.process_utils as pu
-
+import utils.pkg_name_split as pkgsplit
 import utils.core.base_xtest as bt
 
 ###
@@ -11,6 +11,7 @@ import utils.core.configuration_specific as cs
 import utils.test_constants as tc
 import utils.pkg_name_split as ns
 import utils.test_utils as tu
+import utils.mock.mock_executor as mexe
 from outputControl import dom_objects as do
 
 
@@ -138,20 +139,68 @@ class NonITW(cs.JdkConfiguration):
                                                                                            ", ".join(provides_intersection)))
         return
 
-    def check_ghosts(self, filename):
-        self._document("")
-        pass
+
+    def ghost_test(self, this):
+        files = self.rpms.files
+        files = [x.replace("rpms/", "") for x in files]
+        files = [x for x in files if tu.validate_arch_for_rpms(this.current_arch) == ns.get_arch(x)]
+        return self.check_ghosts(files)
+
+    def check_ghosts(self, files):
+        expected_ghosts = {}
+        actual_ghosts = {}
+        for file in files:
+            pkg = tu.rename_default_subpkg(ns.get_subpackage_only(file))
+            expected_ghosts[pkg] = self._get_expected_ghosts_for_file(file)
+            actual_ghosts[pkg] = self._get_actual_ghosts(file)
+        for key in expected_ghosts.keys():
+            current_expected = expected_ghosts[key]
+            current_actual = actual_ghosts[key]
+            unexpected_ghosts = current_actual.difference(current_expected)
+            missing_ghosts = current_expected.difference(current_actual)
+            if not not current_expected:
+                la.LoggingAccess().log("Ghosts expected in " + key + " package: " + str(current_expected))
+            if not not current_actual:
+                la.LoggingAccess().log("Ghosts acutally in " + key + " package: " + str(current_actual))
+            tu.passed_or_failed(self, not unexpected_ghosts, "Unexpected (in rpm -q but not in alternatives) ghosts found: " + str(unexpected_ghosts), "No extra ghosts.")
+            tu.passed_or_failed(self, not missing_ghosts, "Ghosts missing (in alternatives but not in rpm -q): " + str(missing_ghosts), "No missing ghosts.")
+        return self.passed, self.failed
 
     def _get_actual_ghosts(self, filename):
-        pass
+        output, error, res = pu.executeShell("rpm -q -l rpms/" + filename)
+        allfiles = set(output.split("\n"))
+        output, error, res = pu.executeShell("rpm -q -l --noghost rpms/" + filename)
+        withoutghosts = set(output.split("\n"))
+        ghosts = allfiles.difference(withoutghosts)
+        return ghosts
 
-    def _get_expected_ghosts(self, filename):
-        pass
+    def _get_expected_ghosts_for_file(self, file):
+        return set()
+
+    #doesnt work, needs further investigation once ojdk11 is system jdk
+    def _get_expected_ghosts2(self, files):
+        mexe.DefaultMock().provideCleanUsefullRoot()
+        expected_ghosts = {}
+        all_masters_so_far = set(mexe.DefaultMock().get_default_masters())
+        for filename in files:
+            pkg = tu.rename_default_subpkg(ns.get_subpackage_only(filename))
+            mexe.DefaultMock().postinstall_exception_checked("rpms/" + filename)
+            current_masters = set(mexe.DefaultMock().get_default_masters())
+            expected_ghosts[pkg] = current_masters.difference(all_masters_so_far)
+            for master in expected_ghosts[pkg]:
+                o, i = mexe.DefaultMock().executeCommand(["ll", master])
+                la.LoggingAccess().log(o)
+            all_masters_so_far.union(current_masters)
+        return expected_ghosts
+
 
     def _is_pkg_default(self, pkg):
         return pkg == "" or pkg == "debug" or pkg == "slowdebug"
 
+    GHOSTS = {tc.DEVEL:[], tc.HEADLESS:[], tc.JAVADOC:[], tc.JAVADOCZIP:[]}
+
 ###
+
 
 class ITWeb(NonITW):
     def _get_expected_artificial_provides(self, filename):
@@ -170,6 +219,68 @@ class ITWeb(NonITW):
             provides.pop(x)
         return provides
 
+
+class Ojdk8(NonITW):
+    pass
+
+
+class Ojdk8JIT(Ojdk8):
+    def _get_expected_ghosts_for_file(self, file):
+        ghosts = super(Ojdk8JIT, self)._get_expected_ghosts_for_file()
+        arch = ns.get_arch(file)
+        if "headless" in file and not "info" in file:
+            nvra = ns.get_nvra(file)
+            archinstall = ns.get_arch_install(file)
+            debugsuffix = ""
+            if "debug" in file:
+                debugsuffix = tc.get_debug_suffix()
+            if arch == "i686":
+                nvra = nvra.replace(arch, archinstall)
+            ghosts.add("/usr/lib/jvm/" + nvra + debugsuffix + "/jre/lib/" + archinstall + "/client/classes.jsa")
+            ghosts.add("/usr/lib/jvm/" + nvra + debugsuffix + "/jre/lib/" + archinstall + "/server/classes.jsa")
+        return ghosts
+
+
+class Ojdk11(NonITW):
+    pass
+
+
+class Ojdk11JIT(Ojdk11):
+    def _get_expected_ghosts_for_file(self, file):
+        ghosts = super(Ojdk11JIT, self)._get_expected_ghosts_for_file()
+        arch = ns.get_arch(file)
+        if "headless" in file and not "info" in file:
+            nvra = ns.get_nvra(file)
+            archinstall = ns.get_arch_install(file)
+            debugsuffix = ""
+            if "debug" in file:
+                debugsuffix = tc.get_debug_suffix()
+            if arch == "i686" or arch == "armv7hl":
+                nvra = nvra.replace(arch, archinstall)
+            ghosts.add("/usr/lib/jvm/" + nvra + debugsuffix + "/lib/server/classes.jsa")
+        return ghosts
+
+
+class Ojdklatest(Ojdk11):
+    pass
+
+
+class OjdklatestJIT(Ojdklatest):
+    def _get_expected_ghosts_for_file(self, file):
+        ghosts = super(Ojdklatest, self)._get_expected_ghosts_for_file(file)
+        arch = ns.get_arch(file)
+        if "headless" in file and not "info" in file:
+            nvra = ns.get_nvra(file)
+            archinstall = ns.get_arch_install(file)
+            debugsuffix = ""
+            if "debug" in file:
+                debugsuffix = tc.get_debug_suffix()
+            if arch == "i686" or arch == "armv7hl":
+                nvra = nvra.replace(arch, archinstall)
+            ghosts.add("/usr/lib/jvm/" + nvra + debugsuffix + "/lib/server/classes.jsa")
+            ghosts.add("/usr/lib/jvm/" + nvra + debugsuffix + "/lib/client/classes.jsa")
+        return ghosts
+
 class ProvidesTest(bt.BaseTest):
     """ Framework class that runs the testcase. """
     instance=None
@@ -180,15 +291,39 @@ class ProvidesTest(bt.BaseTest):
 
     def test_artificial_provides(self):
         self.csch.cross_check_artificial_provides(self)
-        return self.csch.check_artificial_provides(self)
+        self.csch.check_artificial_provides(self)
+        return self.csch.ghost_test(self)
 
     def setCSCH(self):
         ProvidesTest.instance=self
+        rpms = rc.RuntimeConfig().getRpmList()
         if rc.RuntimeConfig().getRpmList().getJava() == gc.ITW:
             self.log("Set ItwVersionCheck")
             #set ITW when finished
             self.csch = ITWeb(ProvidesTest.instance)
         else:
+            arch = self.getCurrentArch()
+            if int(rpms.getMajorVersionSimplified()) == 8:
+                if tc.is_arch_jitarch(arch) and "ppc" not in arch:
+                    self.csch = Ojdk8JIT(ProvidesTest.instance)
+                    return
+                else:
+                    self.csch = Ojdk8(ProvidesTest.instance)
+                    return
+            if int(rpms.getMajorVersionSimplified()) == 11:
+                if (arch == "armv7hl" or tc.is_arch_jitarch(arch)) and "ppc" not in arch:
+                    self.csch = Ojdk11JIT(ProvidesTest.instance)
+                    return
+                else:
+                    self.csch = Ojdk11(ProvidesTest.instance)
+                    return
+            if int(rpms.getMajorVersionSimplified()) > 11:
+                if (arch in ["armv7hl", "s390x"] or tc.is_arch_jitarch(arch)) and "ppc" not in arch:
+                    self.csch = OjdklatestJIT(ProvidesTest.instance)
+                    return
+                else:
+                    self.csch = Ojdklatest(ProvidesTest.instance)
+
             self.log("Set OthersVersionCheck")
             self.csch = NonITW(ProvidesTest.instance)
 
