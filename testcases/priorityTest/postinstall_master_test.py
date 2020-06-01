@@ -115,11 +115,10 @@ class CheckPostinstallScript(BasePackages):
                                            " : " + ", ".join(expected_masters), la.Verbosity.TEST)
         PostinstallScriptTest.instance.log("Postinstall present in " + str(len(actual_masters)) + " : " +
                                            ", ".join(actual_masters), la.Verbosity.TEST)
-        passed_or_failed(self, set(expected_masters.keys()) == set(actual_masters.keys()), "expected subpkgs do not match actual ones: " + str(expected_masters) + " != " + str(actual_masters))
+        passed_or_failed(self, set(expected_masters.keys()) == set(actual_masters.keys()), "expected subpkgs do not match actual ones: " + str(expected_masters.keys()) + " != " + str(actual_masters.keys()))
         for subpkg in expected_masters.keys():
             if not passed_or_failed(self, subpkg in actual_masters.keys(), "There is no such subpackage as " +
-                                                                           subpkg + " that contains masters."
-                                                                                    "The test fails."):
+                                                                           subpkg + " that contains masters."):
                 continue
             PostinstallScriptTest.instance.log("Expected masters for " + subpkg + " : " +
                                                ", ".join(sorted(expected_masters[subpkg])), la.Verbosity.TEST)
@@ -382,7 +381,7 @@ class PostinstallScriptTest(bt.BaseTest):
                         gc.getPower64Achs() + gc.getAarch64Arch():
                     self.csch = OpenJdk8Intel()
                     return
-                elif self.getCurrentArch() in gc.getS390xArch() + gc.getS390Arch():
+                elif self.getCurrentArch() in gc.getS390xArch() + gc.getS390Arch() or self.getCurrentArch() == "armv7hl":
                     self.csch = OpenJdk8S390()
                     return
                 else:
