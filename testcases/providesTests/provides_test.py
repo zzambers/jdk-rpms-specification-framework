@@ -139,14 +139,16 @@ class NonITW(cs.JdkConfiguration):
                                                                                            ", ".join(provides_intersection)))
         return
 
-
     def ghost_test(self, this):
+        if self.documenting:
+            self._document("Currently the ghosts are hardcoded as the only ghost is \"classes.jsa\" file. This will probably change with ojdk11 as system jdk.")
+            return 0, 0
         files = self.rpms.files
         files = [x.replace("rpms/", "") for x in files]
         files = [x for x in files if tu.validate_arch_for_rpms(this.current_arch) == ns.get_arch(x)]
-        return self.check_ghosts(files)
+        return self._check_ghosts(files)
 
-    def check_ghosts(self, files):
+    def _check_ghosts(self, files):
         expected_ghosts = {}
         actual_ghosts = {}
         for file in files:
