@@ -226,7 +226,7 @@ class Ojdk8(NonITW):
 
 class Ojdk8JIT(Ojdk8):
     def _get_expected_ghosts_for_file(self, file):
-        ghosts = super(Ojdk8JIT, self)._get_expected_ghosts_for_file()
+        ghosts = super(Ojdk8JIT, self)._get_expected_ghosts_for_file(file)
         arch = ns.get_arch(file)
         if "headless" in file and not "info" in file:
             nvra = ns.get_nvra(file)
@@ -247,7 +247,7 @@ class Ojdk11(NonITW):
 
 class Ojdk11JIT(Ojdk11):
     def _get_expected_ghosts_for_file(self, file):
-        ghosts = super(Ojdk11JIT, self)._get_expected_ghosts_for_file()
+        ghosts = super(Ojdk11JIT, self)._get_expected_ghosts_for_file(file)
         arch = ns.get_arch(file)
         if "headless" in file and not "info" in file:
             nvra = ns.get_nvra(file)
