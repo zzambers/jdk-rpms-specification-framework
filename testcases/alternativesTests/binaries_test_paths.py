@@ -49,12 +49,13 @@ class BaseTest(JdkConfiguration):
         return [DEVEL]
 
     def _get_sdk_debug_subpackage(self):
-        return [DEVEL + get_debug_suffix()]
+        return [DEVEL + suffix for suffix in get_debug_suffixes()]
 
     def _get_binary_directory_path(self, name):
         d = JVM_DIR + "/" + self._get_binary_directory(name)
-        if get_debug_suffix() + "-" in name:
-            d += get_debug_suffix()
+        for suffix in get_debug_suffixes():
+            if suffix + "-" in name:
+                d += suffix
         if DEVEL in name or JAVAFX in name:
             return d + SDK_DIRECTORY
         else:
@@ -120,7 +121,7 @@ class PathTest(BaseTest):
             if not DefaultMock().postinstall_exception_checked(pkg):
                 self.binaries_test.log("Skipping path test because of missing post install scriptlet.")
                 continue
-            if (_subpkg == DEFAULT or _subpkg == DEFAULT + get_debug_suffix()) and int(pkgsplit.simplify_full_version(pkgsplit.get_minor_ver(name))) >= 10:
+            if (_subpkg == DEFAULT or _subpkg in [DEFAULT + suffix for suffix in get_debug_suffixes()]) and int(pkgsplit.simplify_full_version(pkgsplit.get_minor_ver(name))) >= 10:
                 self.binaries_test.log("Skipping default package, it has no binaries.")
                 continue
             if _subpkg == PLUGIN and pkgsplit.get_vendor(name) == "ibm" and \

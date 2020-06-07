@@ -66,9 +66,12 @@ class PriorityTest(JdkConfiguration):
         pkgs = pkg_priorities.keys()
 
         for pkg in pkgs:
-            if get_debug_suffix() in pkg:
-                name = pkg.replace(get_debug_suffix(), "")
-            else:
+            wasdebug = False
+            for suffix in get_debug_suffixes():
+                if suffix in pkg:
+                    name = pkg.replace(suffix, "")
+                    break
+            if not wasdebug:
                 continue
 
             for p in pkgs:

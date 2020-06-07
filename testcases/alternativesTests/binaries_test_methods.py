@@ -33,6 +33,8 @@ class GetAllBinariesAndSlaves(PathTest):
                     tu.passed_or_failed(self, True, "")
                 except ValueError:
                     tu.passed_or_failed(self, False, jslave + " export slave missing in " + jsubpkg)
+                except KeyError:
+                    tu.passed_or_failed(self, False, "No slaves in " + jsubpkg + " subpkg.")
 
         for ssubpkg in sdk_subpackages:
             for sslave in sdk_slaves:
@@ -41,6 +43,8 @@ class GetAllBinariesAndSlaves(PathTest):
                     tu.passed_or_failed(self, True, "")
                 except ValueError:
                     tu.passed_or_failed(self, False, sslave + " export slave missing in " + ssubpkg)
+                except KeyError:
+                    tu.passed_or_failed(self, False, "No slaves in " + ssubpkg + "subpkg.")
         return
 
     def check_subdirectory_slaves(self, args=None):
@@ -134,16 +138,30 @@ class BinarySlaveTestMethods(GetAllBinariesAndSlaves):
                                               " and ".join(jre_subpackages),
                                               " and ".join(sdk_subpackages),
                                               " and ".join(sdk_subpackages)))
-
+        current_subpkg = ""
         for subpkg in jre_subpackages:
             for sdk_subpkg in sdk_subpackages:
-                if get_debug_suffix() in subpkg and get_debug_suffix() in sdk_subpkg:
-                    jre = self.installed_binaries[subpkg]
-                    sdk = self.installed_binaries[sdk_subpkg]
-                elif get_debug_suffix() not in subpkg and get_debug_suffix() not in sdk_subpkg:
-                    sdk = self.installed_binaries[sdk_subpkg]
-                    jre = self.installed_binaries[subpkg]
-                else:
+                cont = False
+                for suffix in get_debug_suffixes():
+                    try:
+                        if suffix in subpkg and suffix in sdk_subpkg:
+                            current_subpkg = subpkg
+                            jre = self.installed_binaries[current_subpkg]
+                            current_subpkg = sdk_subpkg
+                            sdk = self.installed_binaries[current_subpkg]
+                            break
+                        elif suffix not in subpkg and suffix not in sdk_subpkg:
+                            current_subpkg = sdk_subpkg
+                            sdk = self.installed_binaries[current_subpkg]
+                            current_subpkg = subpkg
+                            jre = self.installed_binaries[current_subpkg]
+                        else:
+                            cont = True
+                            break
+                    except KeyError:
+                        la.LoggingAccess().log("Subpkg " + current_subpkg + " not containing binaries and is probably "
+                                                                            "missing. This is being reported in subpkg test.")
+                if cont:
                     continue
 
                 for j in jre:
@@ -171,8 +189,7 @@ class BinarySlaveTestMethods(GetAllBinariesAndSlaves):
                                                                          diff(binaries, slaves)))
                     self._check_binaries_against_hardcoded_list(binaries, subpackage)
                 else:
-                    tu.passed_or_failed(self, False, "Binaries in an unexpected subpackage: " + subpackage)
-
+                    tu.passed_or_failed(self, False, "No binaries or missing subpkg: " + subpackage)
         except KeyError as err:
             tu.passed_or_failed(self, False, err.__str__())
         return

@@ -35,9 +35,10 @@ class BaseTest(JdkConfiguration):
     def _get_target_java_directory(self, name):
         """Returns a directory where jdk is installed (mostly name-version-release-arch)."""
         directory =  get_32bit_id_in_nvra(pkgsplit.get_nvra(name))
-        if get_debug_suffix() in name:
-          directory = directory + get_debug_suffix()
-
+        for suffix in get_debug_suffixes():
+            if suffix in name:
+                directory = directory + suffix
+                break
         return directory
 
     def _skipped_subpackages(self):
@@ -281,8 +282,10 @@ class OpenJdk7(OpenJdk6):
 
 class OpenJdk8(OpenJdk7):
     def _skipped_subpackages(self):
-        return super()._skipped_subpackages() + [JAVADOC + get_debug_suffix(), DEFAULT + get_debug_suffix(),
-                                                 JAVADOC + "-zip", JAVADOC + "-zip" + get_debug_suffix()]
+        subpkgs = [JAVADOCZIP]
+        for suffix in get_debug_suffixes():
+            subpkgs.extend([JAVADOC + suffix, DEFAULT + suffix, JAVADOCZIP + suffix])
+        return super()._skipped_subpackages() + subpkgs
 
 
 class OpenJdk9(OpenJdk8):

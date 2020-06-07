@@ -6,7 +6,7 @@ import config.runtime_config
 from outputControl import logging_access as la
 from utils import pkg_name_split as split
 import utils.test_utils
-import utils.test_constants
+import utils.test_constants as tc
 
 
 
@@ -20,7 +20,7 @@ class RpmList:
         self.names = []
         for file in self.files:
             name = ntpath.basename(file)
-            for part in utils.test_constants.IGNOREDNAMEPARTS:
+            for part in tc.IGNOREDNAMEPARTS:
                 name = name.replace(part, "")
             self.names.append(name)
         allFiles = utils.test_utils.get_files(ddir)
@@ -68,14 +68,13 @@ class RpmList:
         vers = self.getMajorVersion()
         return ns.simplify_version(vers)
 
-    def getDebugSuffix(self):
+    def getDebugSuffixes(self):
+        suffixes = set()
         for file in self.files:
-            if "-slowdebug" in file:
-                return "-slowdebug"
-        for file in self.files:
-            if "-debug" in file:
-                return "-debug"
-        return "-sethasnodebugsuffix"
+            for suffix in tc.KNOWN_DEBUG_SUFFIXES:
+                if suffix not in suffixes and suffix in file:
+                    suffixes.add(suffix[:-1])
+        return suffixes
 
     def getJava(self):
         return self.expectSingleMeberSet(split.get_javaprefix, "java prefix")
@@ -191,8 +190,9 @@ class RpmList:
         for rpm in self.getPackagesByArch(arch):
             if ns.get_subpackage_only(rpm) == "":
                 defaultrpm = rpm
-            if pkg in rpm and not pkg + utils.test_constants.get_debug_suffix() in rpm:
-                return rpm
+            for suffix in tc.get_debug_suffixes():
+                if pkg in rpm and not pkg + suffix in rpm:
+                    return rpm
         return defaultrpm.replace("rpms/", "")
 
 

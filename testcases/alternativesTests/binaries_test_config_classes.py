@@ -4,7 +4,7 @@ import testcases.alternativesTests.binaries_test_paths as btp
 import utils.test_constants as tc
 import utils.test_utils as tu
 import utils.mock.mock_executor as mexe
-from outputControl import dom_objects as do
+import outputControl.logging_access as la
 
 # This script should contain only configuration specific implemetation of the method and overriden methods code.
 # Default methods should be always placed in methods or paths files.
@@ -31,13 +31,15 @@ class OpenJdk6(bsm.BinarySlaveTestMethods):
                 self.installed_binaries[subpackage].remove(tc.POLICYTOOL)
                 tu.passed_or_failed(self, True, "")
             except KeyError:
+                 la.LoggingAccess().log(subpackage + " - subpkg not present. This should be handled by subpkg_test")
+            except ValueError:
                 tu.passed_or_failed(self, False, tc.POLICYTOOL + " binary not present in " + subpackage)
         for subpkg in self._policytool_slave_subpackages():
             try:
                 self.installed_slaves[subpkg].remove(tc.POLICYTOOL)
                 tu.passed_or_failed(self, True, "")
             except KeyError:
-                tu.passed_or_failed(self, False, subpkg + " - subpkg not present.")
+                la.LoggingAccess().log(subpkg + " - subpkg not present. This should be handled by subpkg_test")
             except ValueError:
                 tu.passed_or_failed(self, False, tc.POLICYTOOL + " slave not present in " + subpkg)
         return
@@ -75,20 +77,34 @@ class OpenJdk8(OpenJdk7):
 
 class OpenJdk8Debug(OpenJdk8):
     def _policytool_binary_subpackages(self):
-        return super()._policytool_binary_subpackages() + [tc.DEVEL + tc.get_debug_suffix(), tc.DEFAULT + tc.get_debug_suffix()]
+        subpkgs = []
+        for suffix in tc.get_debug_suffixes():
+            subpkgs.extend([tc.DEVEL + suffix, tc.DEFAULT + suffix])
+        return super()._policytool_binary_subpackages() + subpkgs
 
     def _policytool_slave_subpackages(self):
-        return super()._policytool_slave_subpackages() + [tc.HEADLESS + tc.get_debug_suffix()]
+        subpkgs = []
+        for suffix in tc.get_debug_suffixes():
+            subpkgs.extend([tc.HEADLESS + suffix])
+        return super()._policytool_slave_subpackages() + subpkgs
 
     def _get_subpackages_with_binaries(self):
-        return super()._get_subpackages_with_binaries() + [tc.HEADLESS + tc.get_debug_suffix(), tc.DEVEL + tc.get_debug_suffix(),
-                                                           tc.DEFAULT + tc.get_debug_suffix()]
+        subpkgs = []
+        for suffix in tc.get_debug_suffixes():
+            subpkgs.extend([tc.HEADLESS + suffix, tc.DEVEL + suffix, tc.DEFAULT + suffix])
+        return super()._get_subpackages_with_binaries() + subpkgs
 
     def _get_jre_subpackage(self):
-        return super()._get_jre_subpackage() + [tc.HEADLESS + tc.get_debug_suffix()]
+        subpkgs = []
+        for suffix in tc.get_debug_suffixes():
+            subpkgs.extend([tc.HEADLESS + suffix])
+        return super()._get_jre_subpackage() + subpkgs
 
     def _get_sdk_subpackage(self):
-        return super()._get_sdk_subpackage() + [tc.DEVEL + tc.get_debug_suffix()]
+        subpkgs = []
+        for suffix in tc.get_debug_suffixes():
+            subpkgs.extend([tc.DEVEL + suffix])
+        return super()._get_sdk_subpackage() + subpkgs
 
 
 class OpenJDK8JFX(OpenJdk8Debug):
@@ -147,13 +163,13 @@ class OpenJdk9(OpenJdk8):
                          "rmid", "rmiregistry", "servertool", "tnameserv", "unpack200"]
 
     def _get_binaries_as_dict(self):
-        return {tc.DEFAULT: self.DEFAULT_BINARIES,
+        dict = {tc.DEFAULT: self.DEFAULT_BINARIES,
                 tc.DEVEL: self.DEVEL_BINARIES,
-                tc.HEADLESS: self.HEADLESS_BINARIES,
-                tc.DEFAULT + tc.get_debug_suffix(): self.DEFAULT_BINARIES,
-                tc.DEVEL + tc.get_debug_suffix(): self.DEVEL_BINARIES,
-                tc.HEADLESS + tc.get_debug_suffix(): self.HEADLESS_BINARIES
-                }
+                tc.HEADLESS: self.HEADLESS_BINARIES}
+        for suffix in tc.get_debug_suffixes():
+            for subpkg in [tc.DEFAULT, tc.DEVEL, tc.HEADLESS]:
+                dict[subpkg + suffix] = dict[subpkg]
+        return dict
 
     def _get_binary_directory_path(self, name):
         return tc.JVM_DIR + "/" + tu.get_32bit_id_in_nvra(pkgsplit.get_nvra(name)) + tc.SDK_DIRECTORY
@@ -189,26 +205,29 @@ class OpenJdk9(OpenJdk8):
 
 class OpenJdk9Debug(OpenJdk9):
     def _get_binary_directory_path(self, name):
-        if tc.get_debug_suffix() in name:
-            return tc.JVM_DIR + "/" + tu.get_32bit_id_in_nvra(pkgsplit.get_nvra(name)) + tc.get_debug_suffix() + tc.SDK_DIRECTORY
-        else:
-            return super()._get_binary_directory_path(name)
+        for suffix in tc.get_debug_suffixes():
+            if suffix in name:
+                return tc.JVM_DIR + "/" + tu.get_32bit_id_in_nvra(pkgsplit.get_nvra(name)) + suffix + tc.SDK_DIRECTORY
+        return super()._get_binary_directory_path(name)
 
     def _policytool_binary_subpackages(self):
-        return super()._policytool_binary_subpackages() + [tc.DEFAULT + tc.get_debug_suffix()]
+        return super()._policytool_binary_subpackages() + [tc.DEFAULT + suffix for suffix in tc.get_debug_suffixes()]
 
     def _policytool_slave_subpackages(self):
-        return super()._policytool_slave_subpackages() + [tc.HEADLESS + tc.get_debug_suffix()]
+        return super()._policytool_slave_subpackages() + [tc.HEADLESS + suffix for suffix in tc.get_debug_suffixes()]
 
     def _get_subpackages_with_binaries(self):
-        return super()._get_subpackages_with_binaries() + [tc.HEADLESS + tc.get_debug_suffix(), tc.DEVEL + tc.get_debug_suffix(),
-                                                           tc.DEFAULT + tc.get_debug_suffix()]
+        subpkgs = []
+        for suffix in tc.get_debug_suffixes():
+            subpkgs.extend([tc.HEADLESS + suffix, tc.DEVEL + suffix,
+                                                           tc.DEFAULT + suffix])
+        return super()._get_subpackages_with_binaries() + subpkgs
 
     def _get_jre_subpackage(self):
-        return super()._get_jre_subpackage() + [tc.HEADLESS + tc.get_debug_suffix()]
+        return super()._get_jre_subpackage() + [tc.HEADLESS + suffix for suffix in tc.get_debug_suffixes()]
 
     def _get_sdk_subpackage(self):
-        return super()._get_sdk_subpackage() + [tc.DEVEL + tc.get_debug_suffix()]
+        return super()._get_sdk_subpackage() + [tc.DEVEL + suffix for suffix in tc.get_debug_suffixes()]
 
 
 class OpenJdk10(OpenJdk9):
@@ -252,7 +271,8 @@ class OpenJdk10Debug(OpenJdk9Debug):
     def _get_subpackages_with_binaries(self):
         subpackages = super()._get_subpackages_with_binaries()
         subpackages.remove(tc.DEFAULT)
-        subpackages.remove(tc.DEFAULT + tc.get_debug_suffix())
+        for suffix in tc.get_debug_suffixes():
+            subpackages.remove(tc.DEFAULT + suffix)
         return subpackages
 
     def handle_policytool(self, args=None):

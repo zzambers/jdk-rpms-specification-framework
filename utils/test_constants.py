@@ -32,6 +32,7 @@ OJDK8DEBUG = "ojdk8debug"
 TECHPREVIEWS = ["11", "12"]
 IGNOREDNAMEPARTS = ["playground."]
 JITARCHES = ["aarch64", "i686", "ppc64le", "x86_64"]
+KNOWN_DEBUG_SUFFIXES = ["-slowdebug-", "-fastdebug-", "-debug-"]
 
 
 #unable to import singleton from global_config
@@ -84,32 +85,41 @@ def get_openjfx_binaries():
 
 
 def subpackages_without_alternatives():
-    return ["accessibility", "debuginfo", "demo", "src", "accessibility" + get_debug_suffix(),
-            "src" + get_debug_suffix(), "demo" + get_debug_suffix(), "headless-debuginfo", "devel-debuginfo", "demo-debuginfo",
-            "debug-debuginfo", "devel" + get_debug_suffix() + "-debuginfo", "debugsource",
-            "headless" + get_debug_suffix() + "-debuginfo",
-            "demo" + get_debug_suffix() + "-debuginfo", "jdbc"]
+    subpackages = ["debuginfo", "debug-debuginfo", "debugsource", "jdbc"]
+    suffixes = get_debug_suffixes()
+    debug_subpackages = ["accessibility", "src", "demo", "devel-debuginfo", "headless-debuginfo", "demo-debuginfo"]
+    subpackages.extend(debug_subpackages)
+    for suffix in suffixes:
+        for subpkg in debug_subpackages:
+            splitted = subpkg.split("-", 1)
+            subpackages.append(splitted[0] + suffix + ("" if len(splitted) == 1 else "-" + splitted[1]))
+    return subpackages
 
 
 def get_javadoc_dirs():
-    return [JAVADOC, JAVADOC + get_debug_suffix(), "javadoc-zip" + get_debug_suffix(), "javadoc-zip"]
+    suffixes = get_debug_suffixes()
+    dirs = [JAVADOC, JAVADOCZIP]
+    for suffix in suffixes:
+        for dir in dirs.copy():
+            dirs.append(dir + suffix)
+    return dirs
 
 
 # slowdebug/debug suffixes in various jdk are not trivial task to do, this is very bad hack and can not stay this way
-def identify_debug_suffix():
+def identify_debug_suffixes():
     import config.runtime_config as conf
     rpms = conf.RuntimeConfig().getRpmList()
-    return rpms.getDebugSuffix()
+    return rpms.getDebugSuffixes()
 
 
-def get_debug_suffix():
-    if DebugSuffixHolder().debug_suffix == "":
-        DebugSuffixHolder().debug_suffix = identify_debug_suffix()
-    return DebugSuffixHolder().debug_suffix
+def get_debug_suffixes():
+    if not DebugSuffixHolder().debug_suffixes:
+        DebugSuffixHolder().debug_suffixes = identify_debug_suffixes()
+    return DebugSuffixHolder().debug_suffixes
 
 
 class DebugSuffixHolder(metaclass=Singleton):
     def __init__(self):
-        self.debug_suffix = ""
+        self.debug_suffixes = set()
 
 

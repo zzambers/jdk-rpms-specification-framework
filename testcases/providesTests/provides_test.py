@@ -234,8 +234,10 @@ class Ojdk8JIT(Ojdk8):
             nvra = ns.get_nvra(file)
             archinstall = ns.get_arch_install(file)
             debugsuffix = ""
-            if "debug" in file:
-                debugsuffix = tc.get_debug_suffix()
+            for suffix in tc.get_debug_suffixes():
+                if suffix in file:
+                    debugsuffix = suffix
+                    break
             if arch == "i686":
                 nvra = nvra.replace(arch, archinstall)
             ghosts.add("/usr/lib/jvm/" + nvra + debugsuffix + "/jre/lib/" + archinstall + "/client/classes.jsa")
@@ -255,8 +257,10 @@ class Ojdk11JIT(Ojdk11):
             nvra = ns.get_nvra(file)
             archinstall = ns.get_arch_install(file)
             debugsuffix = ""
-            if "debug" in file:
-                debugsuffix = tc.get_debug_suffix()
+            for suffix in tc.get_debug_suffixes():
+                if suffix in file:
+                    debugsuffix = suffix
+                    break
             if arch == "i686" or arch == "armv7hl":
                 nvra = nvra.replace(arch, archinstall)
             ghosts.add("/usr/lib/jvm/" + nvra + debugsuffix + "/lib/server/classes.jsa")
@@ -275,8 +279,10 @@ class OjdklatestJIT(Ojdklatest):
             nvra = ns.get_nvra(file)
             archinstall = ns.get_arch_install(file)
             debugsuffix = ""
-            if "debug" in file:
-                debugsuffix = tc.get_debug_suffix()
+            for suffix in tc.get_debug_suffixes():
+                if suffix in file:
+                    debugsuffix = suffix
+                    break
             if arch == "i686" or arch == "armv7hl":
                 nvra = nvra.replace(arch, archinstall)
             ghosts.add("/usr/lib/jvm/" + nvra + debugsuffix + "/lib/server/classes.jsa")

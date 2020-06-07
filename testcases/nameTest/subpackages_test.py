@@ -121,21 +121,30 @@ class OpenJdk8(OpenJdk7):
                 "headless-debuginfo"}
 
     def _get_debug_debuginfo(self):
-        return {"demo" + get_debug_suffix() + "-debuginfo",
-                "devel" + get_debug_suffix() + "-debuginfo",
-                "headless" + get_debug_suffix() + "-debuginfo",
-                get_debug_suffix().replace("-", "", 1) + "-debuginfo"}
+        subpkgs = set()
+        for suffix in get_debug_suffixes():
+            subpkgs.update({"demo" + suffix + "-debuginfo",
+                "devel" + suffix + "-debuginfo",
+                "headless" + suffix + "-debuginfo",
+                suffix.replace("-", "", 1) + "-debuginfo"})
+        return subpkgs
 
     def _get_debug_subpackages(self):
-        return {"accessibility" + get_debug_suffix(),
-                "demo" + get_debug_suffix(),
-                "devel" + get_debug_suffix(),
-                "headless" + get_debug_suffix(),
-                "src" + get_debug_suffix(),
-                get_debug_suffix().replace("-", "", 1)}
+        subpkgs = set()
+        for suffix in get_debug_suffixes():
+            subpkgs.update({"accessibility" + suffix,
+                "demo" + suffix,
+                "devel" + suffix,
+                "headless" + suffix,
+                "src" + suffix,
+                suffix.replace("-", "", 1)})
+        return subpkgs
 
     def _get_javadoc_debug(self):
-        return {"javadoc" + get_debug_suffix(), "javadoc-zip" + get_debug_suffix()}
+        subpkgs = set()
+        for suffix in get_debug_suffixes():
+            subpkgs.update({JAVADOC + suffix,JAVADOCZIP + suffix})
+        return subpkgs
 
 
 class OpenJdk8Debug(OpenJdk8):
@@ -148,8 +157,9 @@ class OpenJdk8Debug(OpenJdk8):
 class OpenJdk8JFX(OpenJdk8Debug):
     def _getSubPackages(self):
         subpackages = super()._getSubPackages()
-        subpackages.update({"openjfx", "openjfx" + get_debug_suffix(), "openjfx-devel",
-                            "openjfx-devel" + get_debug_suffix()})
+        subpackages.update({"openjfx", "openjfx-devel"})
+        for suffix in get_debug_suffixes():
+            subpackages.update({"openjfx" + suffix, "openjfx-devel" + suffix})
         return subpackages
 
 
@@ -215,19 +225,25 @@ class OpenJdk10(OpenJdk9Debuginfo):
 class OpenJdk9DebugDebuginfo(OpenJdk8DebugDebuginfo):
     def _getSubPackages(self):
         subpackages = super()._getSubPackages()
-        subpackages.update("jmods", "jmods" + get_debug_suffix())
+        subpackages.update("jmods")
+        for suffix in get_debug_suffixes():
+            subpackages.add("jmods" + suffix)
         return subpackages
 
     def _get_debug_debuginfo(self):
-        return {"devel" + get_debug_suffix() + "-debuginfo",
-                "headless" + get_debug_suffix() + "-debuginfo"}
+        subpackages = set()
+        for suffix in get_debug_suffixes():
+            subpackages.update("devel" + suffix + "-debuginfo",
+                "headless" + suffix + "-debuginfo")
+        return subpackages
 
 
 class OpenJdk10DebugDebuginfo(OpenJdk9DebugDebuginfo):
     def _getSubPackages(self):
         subpackages = super()._getSubPackages()
         subpackages.discard("accessibility")
-        subpackages.discard("accessibility" + get_debug_suffix())
+        for suffix in get_debug_suffixes():
+            subpackages.discard("accessibility" + suffix)
         return subpackages
 
     def _get_debuginfo(self):
@@ -235,17 +251,23 @@ class OpenJdk10DebugDebuginfo(OpenJdk9DebugDebuginfo):
                 "headless-debuginfo"}
 
     def _get_debug_debuginfo(self):
-        return {get_debug_suffix().replace("-", "", 1) + "-debuginfo",
-                "devel" + get_debug_suffix() + "-debuginfo",
-                "headless" + get_debug_suffix() + "-debuginfo"}
+        subpkgs = set()
+        for suffix in get_debug_suffixes():
+            subpkgs.update({suffix.replace("-", "", 1) + "-debuginfo",
+            "devel" + suffix + "-debuginfo",
+            "headless" + suffix + "-debuginfo"})
+        return subpkgs
 
     def _get_debug_subpackages(self):
-        return {"accessibility" + get_debug_suffix(),
+        subpkgs = set()
+        for suffix in get_debug_suffixes():
+            subpkgs.update({"accessibility" + suffix,
                 "slowdebug",
-                "demo" + get_debug_suffix(),
-                "devel" + get_debug_suffix(),
-                "headless" + get_debug_suffix(),
-                "src" + get_debug_suffix()}
+                "demo" + suffix,
+                "devel" + suffix,
+                "headless" + suffix,
+                "src" + suffix})
+        return subpkgs
 
     def _get_javadoc_debug(self):
         return {"javadoc-slowdebug", "javadoc-zip-slowdebug"}
@@ -269,15 +291,18 @@ class OpenJdk11DebugFc(OpenJdk8Debug):
     def _getSubPackages(self):
         subpackages = super()._getSubPackages()
         subpackages.discard("accessibility")
-        subpackages.discard("accessibility" + get_debug_suffix())
-        subpackages.update({"jmods", "jmods" + get_debug_suffix(), "debugsource"})
+        for suffix in get_debug_suffixes():
+            subpackages.discard("accessibility" + suffix)
+            subpackages.update({"jmods" + suffix})
+        subpackages.update({"jmods", "debugsource"})
         subpackages.update(self._get_debuginfo())
         subpackages.update(self._get_debug_debuginfo())
         return subpackages
 
     def _get_debug_debuginfo(self):
         subpackages = super()._get_debug_debuginfo()
-        subpackages.discard("demo" + get_debug_suffix() + "-debuginfo")
+        for suffix in get_debug_suffixes():
+            subpackages.discard("demo" + suffix + "-debuginfo")
         return subpackages
 
     def _get_debuginfo(self):
@@ -289,7 +314,8 @@ class OpenJdk11DebugFc(OpenJdk8Debug):
 class OpenJdk9Debug(OpenJdk8Debug):
     def _getSubPackages(self):
         subpackages = super()._getSubPackages()
-        subpackages.update({"jmods", "jmods" + get_debug_suffix()})
+        for suffix in get_debug_suffixes():
+            subpackages.update({"jmods", "jmods" + suffix})
         return subpackages
 
 
@@ -311,7 +337,8 @@ class OpenJdk12(OpenJdk11):
 class OpenJdk12Debug(OpenJdk11DebugFc):
     def _getSubPackages(self):
         subpackages = super()._getSubPackages()
-        subpackages.update({"javadoc-zip" + get_debug_suffix(), "javadoc" + get_debug_suffix()})
+        for suffix in get_debug_suffixes():
+            subpackages.update({JAVADOCZIP + suffix, JAVADOC + suffix})
         subpackages.update(self._get_debug_subpackages())
         subpackages.update(self._get_debug_debuginfo())
         subpackages.update(self._get_debuginfo())
@@ -319,7 +346,8 @@ class OpenJdk12Debug(OpenJdk11DebugFc):
 
     def _get_debug_subpackages(self):
         subpackages = super(OpenJdk12Debug, self)._get_debug_subpackages()
-        subpackages.discard("accessibility" + get_debug_suffix())
+        for suffix in get_debug_suffixes():
+            subpackages.discard("accessibility" + suffix)
         return subpackages
 
     def _get_debug_debuginfo(self):
@@ -330,8 +358,9 @@ class OpenJdk12Debug(OpenJdk11DebugFc):
 class OpenJdk13(OpenJdk12Debug):
     def _getSubPackages(self):
         subpackages = super()._getSubPackages()
-        subpackages.discard("javadoc-zip" + get_debug_suffix())
-        subpackages.discard("javadoc" + get_debug_suffix())
+        for suffix in get_debug_suffixes():
+            subpackages.discard(JAVADOCZIP + suffix)
+            subpackages.discard(JAVADOC + suffix)
         return subpackages
 
 

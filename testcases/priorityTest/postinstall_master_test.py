@@ -159,21 +159,18 @@ class OpenJdk8S390(OpenJdk7):
 class OpenJdk8OtherArchs(OpenJdk8S390):
     def _generate_masters(self):
         masters = super(OpenJdk8OtherArchs, self)._generate_masters()
-        masters[DEVEL + get_debug_suffix()] = masters[DEVEL]
-        masters[HEADLESS + get_debug_suffix()] = masters[HEADLESS]
-        masters[DEFAULT + get_debug_suffix()] = []
-        #masters[JAVADOC + get_debug_suffix()] = [JAVADOCDIR]
-        #masters[JAVADOC_ZIP + get_debug_suffix()] = [JAVADOCZIP]
+        for subpkg in [DEVEL, HEADLESS, DEFAULT]:
+            for suffix in get_debug_suffixes():
+                masters[subpkg + suffix] = masters[subpkg]
         return masters
 
 
 class OpenJdk8Intel(OpenJdk8OtherArchs):
     def _generate_masters(self):
         masters = super(OpenJdk8Intel, self)._generate_masters()
-        masters[DEVEL + get_debug_suffix()] = masters[DEVEL]
-        masters[HEADLESS + get_debug_suffix()] = masters[HEADLESS]
-        #masters[JAVADOC + get_debug_suffix()] = masters[JAVADOC]
-        masters[DEFAULT + get_debug_suffix()] = []
+        for subpkg in [DEVEL, HEADLESS, DEFAULT]:
+            for suffix in get_debug_suffixes():
+                masters[subpkg + suffix] = masters[subpkg]
         return masters
 
 
@@ -187,9 +184,9 @@ class OpenJdk9Armvhl(OpenJdk7):
 class OpenJdk9OtherArchs(OpenJdk9Armvhl):
     def _generate_masters(self):
         masters = super()._generate_masters()
-        masters[DEVEL + get_debug_suffix()] = masters[DEVEL]
-        masters[HEADLESS + get_debug_suffix()] = masters[HEADLESS]
-        masters[DEFAULT + get_debug_suffix()] = []
+        for subpkg in [DEVEL, HEADLESS, DEFAULT]:
+            for suffix in get_debug_suffixes():
+                masters[subpkg + suffix] = masters[subpkg]
         return masters
 
 
@@ -202,9 +199,9 @@ class OpenJdk11Armv7hl(OpenJdk8S390):
 class OpenJdk11OtherArches(OpenJdk11Armv7hl):
     def _generate_masters(self):
         masters = super()._generate_masters()
-        masters[DEVEL + get_debug_suffix()] = masters[DEVEL]
-        masters[HEADLESS + get_debug_suffix()] = masters[HEADLESS]
-        masters[DEFAULT + get_debug_suffix()] = []
+        for subpkg in [DEVEL, HEADLESS, DEFAULT]:
+            for suffix in get_debug_suffixes():
+                masters[subpkg + suffix] = masters[subpkg]
         return masters
 
 
@@ -217,8 +214,9 @@ class OpenJdk11OtherArchesRhel(OpenJdk11OtherArches):
 class OpenJdk12OtherArches(OpenJdk9OtherArchs):
     def _generate_masters(self):
         masters = super(OpenJdk12OtherArches, self)._generate_masters()
-        masters[JAVADOC + get_debug_suffix()] = [JAVADOCDIR]
-        masters[JAVADOC_ZIP + get_debug_suffix()] = [JAVADOCZIP]
+        for suffix in get_debug_suffixes():
+            masters[JAVADOC + suffix] = [JAVADOCDIR]
+            masters[JAVADOC_ZIP + suffix] = [JAVADOCZIP]
         return masters
 
 
