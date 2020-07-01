@@ -159,6 +159,8 @@ class OpenJdk8S390(OpenJdk7):
 class OpenJdk8OtherArchs(OpenJdk8S390):
     def _generate_masters(self):
         masters = super(OpenJdk8OtherArchs, self)._generate_masters()
+        masters.pop(JAVADOC, None)
+        masters.pop(JAVADOC_ZIP, None)
         for subpkg in [DEVEL, HEADLESS, DEFAULT]:
             for suffix in get_debug_suffixes():
                 masters[subpkg + suffix] = masters[subpkg]
@@ -166,12 +168,7 @@ class OpenJdk8OtherArchs(OpenJdk8S390):
 
 
 class OpenJdk8Intel(OpenJdk8OtherArchs):
-    def _generate_masters(self):
-        masters = super(OpenJdk8Intel, self)._generate_masters()
-        for subpkg in [DEVEL, HEADLESS, DEFAULT]:
-            for suffix in get_debug_suffixes():
-                masters[subpkg + suffix] = masters[subpkg]
-        return masters
+    pass
 
 
 class OpenJdk9Armvhl(OpenJdk7):
@@ -379,7 +376,7 @@ class PostinstallScriptTest(bt.BaseTest):
                         gc.getPower64Achs() + gc.getAarch64Arch():
                     self.csch = OpenJdk8Intel()
                     return
-                elif self.getCurrentArch() in gc.getS390xArch() + gc.getS390Arch() or self.getCurrentArch() == "armv7hl":
+                elif self.getCurrentArch() in gc.getS390xArch() + gc.getS390Arch() + gc.getArm32Achs() or self.getCurrentArch() == "armv7hl":
                     self.csch = OpenJdk8S390()
                     return
                 else:
