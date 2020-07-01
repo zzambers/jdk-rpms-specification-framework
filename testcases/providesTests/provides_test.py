@@ -114,6 +114,8 @@ class NonITW(cs.JdkConfiguration):
                 provides = JavaDocZipTechPreview(name, java_ver, vendor, pkg, version, end, arch, filename)
             elif "javadoc" in pkg:
                 provides = JavaDocTechPreview(name, java_ver, vendor, pkg, version, end, arch, filename)
+            elif "static" in pkg:
+                provides = DebugInfo(name, java_ver, vendor, pkg, version, end, arch, filename)
             else:
                 provides = DefaultTechPreview(name, java_ver, vendor, pkg, version, end, arch, filename)
         return provides.get_expected_artificial_provides()

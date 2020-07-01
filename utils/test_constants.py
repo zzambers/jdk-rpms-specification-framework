@@ -31,7 +31,7 @@ OJDK8JFX = "ojdk8JFX"
 OJDK8DEBUG = "ojdk8debug"
 TECHPREVIEWS = ["11", "12"]
 IGNOREDNAMEPARTS = ["playground."]
-JITARCHES = ["aarch64", "i686", "ppc64le", "x86_64"]
+JITARCHES = ["aarch64", "i686", "ppc64le", "x86_64", "s390x"]
 KNOWN_DEBUG_SUFFIXES = ["-slowdebug-", "-fastdebug-", "-debug-"]
 
 
