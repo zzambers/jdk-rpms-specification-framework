@@ -321,7 +321,7 @@ class ProvidesTest(bt.BaseTest):
                     self.csch = Ojdk8(ProvidesTest.instance)
                     return
             if int(rpms.getMajorVersionSimplified()) == 11:
-                if (arch == "armv7hl" or tc.is_arch_jitarch(arch)) and "ppc" not in arch:
+                if (arch in ["armv7hl", "s390x"] or tc.is_arch_jitarch(arch)) and "ppc" not in arch:
                     self.csch = Ojdk11JIT(ProvidesTest.instance)
                     return
                 else:
