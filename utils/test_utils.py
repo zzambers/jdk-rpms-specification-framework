@@ -134,6 +134,8 @@ def rename_default_subpkg(subpkg):
         subpkg = "default-debug"
     elif subpkg == "slowdebug":
         subpkg = "default-slowdebug"
+    elif subpkg == "fastdebug":
+        subpkg = "default-fastdebug"
     return subpkg
 
 

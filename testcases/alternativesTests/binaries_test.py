@@ -68,10 +68,10 @@ class BinariesTest(bt.BaseTest):
                 else:
                     if self.getCurrentArch() in gc.getIx86archs() + gc.getX86_64Arch() + gc.getAarch64Arch() + \
                             gc.getPower64Achs():
-                        self.csch = tcc.OpenJdk8Debug(BinariesTest.instance)
+                        self.csch = tcc.OpenJdk8NoExportsDebugJFX(BinariesTest.instance)
                         return
                     else:
-                        self.csch = tcc.OpenJdk8(BinariesTest.instance)
+                        self.csch = tcc.OpenJdk8NoExports(BinariesTest.instance)
                         return
 
             elif rpms.getMajorVersionSimplified() == "9":
