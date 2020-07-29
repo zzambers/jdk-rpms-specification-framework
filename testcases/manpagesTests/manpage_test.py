@@ -1,3 +1,5 @@
+import copy
+
 from outputControl import logging_access as la
 import sys
 import utils.core.base_xtest as bt
@@ -213,7 +215,7 @@ class ManpageTestMethods(JdkConfiguration):
                     return
 
                 ManpageTests.instance.log("Binaries found for {}: ".format(tg) + ", ".join(binaries + plugin_binaries))
-                bins[_subpkg] = binaries + plugin_binaries
+                bins[_subpkg] = copy.deepcopy(binaries + plugin_binaries)
 
             # check links
             manpages = self._clean_default_mpges(default_mans, DefaultMock().execute_ls(MAN_DIR)[0].split("\n"))
@@ -287,6 +289,12 @@ class OpenJdk7(OpenJdk6):
 
 class OpenJdk8(OpenJdk7):
     # policytool binary is in default and devel, but slave in headless
+    def __init__(self):
+        super().__init__()
+        self.missing_manpages.append("jfr")
+        self.checked_subpackages = [DEVEL]
+
+
     def _clean_up_binaries(self, binaries, master, usr_bin):
         if master == JAVA:
             binaries.append(POLICYTOOL)
@@ -299,6 +307,11 @@ class OpenJdk8(OpenJdk7):
 
 
 class OpenJdk8WithDebug(OpenJdk8):
+    def __init__(self):
+        super().__init__()
+        for suffix in get_debug_suffixes():
+            self.checked_subpackages.append(DEVEL + suffix)
+
     def _clean_debug_subpackages(self, bins):
         devel_bins = []
         ManpageTests.instance.log("Original debug " + SDK_BINARIES + ": " + ", ".join(bins[self._get_subpackages()[3]]),
@@ -307,7 +320,7 @@ class OpenJdk8WithDebug(OpenJdk8):
             if b not in bins[self._get_subpackages()[2]]:
                 devel_bins.append(b)
         for suffix in get_debug_suffixes():
-            bins[DEVEL + suffix] = devel_bins
+            bins[DEVEL + suffix] = copy.copy(devel_bins)
         return
 
     def _get_subpackages(self):
@@ -328,7 +341,6 @@ class OpenJdk8WithDebug(OpenJdk8):
 class OpenJdk10(OpenJdk8):
     def __init__(self):
         super().__init__()
-        self.checked_subpackages = [DEVEL]
         self.missing_manpages = ["jdeprscan", "jhsdb", "jimage", "jlink", "jmod", "jshell"]
 
     def _clean_up_binaries(self, binaries, master, usr_bin):
@@ -338,9 +350,6 @@ class OpenJdk10(OpenJdk8):
 class OpenJdk10Debug(OpenJdk8WithDebug):
     def __init__(self):
         super().__init__()
-        self.checked_subpackages = [DEVEL]
-        for suffix in get_debug_suffixes():
-            self.checked_subpackages.append(DEVEL + suffix)
         self.missing_manpages = ["jdeprscan", "jhsdb", "jimage", "jlink", "jmod", "jshell"]
 
     def _clean_up_binaries(self, binaries, master, usr_bin):
@@ -351,32 +360,21 @@ class OpenJdk10Debugx64(OpenJdk10Debug):
 
     def __init__(self):
         super().__init__()
-        self.checked_subpackages = [DEVEL]
-        for suffix in get_debug_suffixes():
-            self.checked_subpackages.append(DEVEL + suffix)
         self.missing_manpages = ["jdeprscan", "jhsdb", "jimage", "jlink", "jmod", "jshell", "jaotc"]
 
 
 class OpenJdk11(OpenJdk10):
-    def __init__(self):
-        super().__init__()
-        self.missing_manpages.append("jfr")
+    pass
 
 class OpenJdk11armv7hl(OpenJdk11):
-    def __init__(self):
-        super().__init__()
+    pass
 
 class OpenJdk11Debug(OpenJdk10Debug):
-    def __init__(self):
-        super().__init__()
-        self.missing_manpages.append("jfr")
+    pass
 
 
 class OpenJdk11Debugx64(OpenJdk10Debugx64):
-    def __init__(self):
-        super().__init__()
-        self.missing_manpages.append("jfr")
-
+    pass
 
 class OpenJdk11s390x(OpenJdk11Debug):
     def __init__(self):

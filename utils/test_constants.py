@@ -29,7 +29,6 @@ SDK = "java_sdk"
 OJDK8 = "ojdk8"
 OJDK8JFX = "ojdk8JFX"
 OJDK8DEBUG = "ojdk8debug"
-TECHPREVIEWS = ["11", "12"]
 IGNOREDNAMEPARTS = ["playground."]
 JITARCHES = ["aarch64", "i686", "ppc64le", "x86_64"]
 KNOWN_DEBUG_SUFFIXES = ["-slowdebug-", "-fastdebug-", "-debug-"]

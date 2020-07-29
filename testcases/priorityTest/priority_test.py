@@ -18,9 +18,11 @@ PREFIX_160 = "160"
 PREFIX_170 = "170"
 PREFIX_180 = "180"
 PREFIX_190 = "190"
+PREFIX_1100 = "1100"
 LEN_5 = 5
 LEN_6 = 6
 LEN_7 = 7
+LEN_8 = 8
 
 
 class PriorityTest(JdkConfiguration):
@@ -153,22 +155,16 @@ class MajorCheck(PriorityTest):
         return self.passed, self.failed
 
 
-class OpenJdk6(MajorCheck):
-    def __init__(self):
-        super().__init__(LEN_5, PREFIX_160)
-
-
-class OpenJdk7(MajorCheck):
-    def __init__(self):
-        super().__init__(LEN_7, PREFIX_170)
-
-
 class OpenJdk8(MajorCheck):
     def __init__(self):
         super().__init__(LEN_7, PREFIX_180)
 
 
-class OpenJdk9(MajorCheck):
+class OpenJdk11(MajorCheck):
+    def __init__(self):
+        super().__init__(LEN_8, PREFIX_1100)
+
+class NonSystemJDK(MajorCheck):
     def __init__(self):
         super().__init__(1, 1)
 
@@ -218,20 +214,13 @@ class PriorityCheck(utils.core.base_xtest.BaseTest):
         self.log("Checking priority for " + rpms.getVendor(), la.Verbosity.TEST)
 
         if rpms.getVendor() == gc.OPENJDK or rpms.getVendor() == gc.OPENJ9:
-            if rpms.getMajorVersionSimplified() == "6":
-                self.csch = OpenJdk6()
-                return
-            elif rpms.getMajorVersionSimplified() == "7":
-                self.csch = OpenJdk7()
-                return
-            elif rpms.getMajorVersionSimplified() == "8":
-                self.csch = OpenJdk8()
-                return
-            elif int(rpms.getMajorVersionSimplified()) >= 9:
-                self.csch = OpenJdk9()
-                return
+            if rpms.is_system_jdk():
+                if rpms.getMajorVersionSimplified() == "8":
+                    self.csch = OpenJdk8()
+                else:
+                    self.csch = OpenJdk11()
             else:
-                raise ex.UnknownJavaVersionException("Unknown JDK version.")
+                self.csch = NonSystemJDK()
         elif rpms.getVendor() == gc.SUN:
             if rpms.getMajorVersionSimplified() == "6":
                 self.csch = ProprietaryJava6()

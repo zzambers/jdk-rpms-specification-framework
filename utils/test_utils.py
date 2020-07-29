@@ -7,6 +7,8 @@ import config.global_config
 from outputControl import logging_access as la
 import config.runtime_config
 import outputControl.dom_objects as do
+#must do otherway in case of cyclic dependencies
+import utils.mock.mock_executor as mexe
 
 
 def closeTestSuite(passed, failed, mtc):
@@ -244,3 +246,11 @@ def validate_arch_for_rpms(arch):
         return "noarch"
     return arch
 
+
+# expects initialized mock
+def resolve_link(link):
+    out = mexe.DefaultMock().executeCommand(["readlink", link])
+    newlink = out[0].replace("\n", "")
+    if newlink == "":
+        return link
+    return resolve_link(newlink)

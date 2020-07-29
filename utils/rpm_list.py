@@ -195,6 +195,15 @@ class RpmList:
                     return rpm
         return defaultrpm.replace("rpms/", "")
 
+    def is_system_jdk(self):
+        if isFedora(self.getDist()):
+            if int(self.getOsVersion()) >= 33:
+                return int(self.getMajorVersionSimplified()) == 11
+            else:
+                return int(self.getMajorVersionSimplified()) == 8
+        else:
+            return int(self.getMajorVersionSimplified()) == 8
+
 
 def isFedora(dist):
     return dist.startswith("fc")
