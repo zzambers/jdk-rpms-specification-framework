@@ -225,7 +225,7 @@ class OpenJdk10(OpenJdk9Debuginfo):
 class OpenJdk9DebugDebuginfo(OpenJdk8DebugDebuginfo):
     def _getSubPackages(self):
         subpackages = super()._getSubPackages()
-        subpackages.update("jmods")
+        subpackages.add("jmods")
         for suffix in get_debug_suffixes():
             subpackages.add("jmods" + suffix)
         return subpackages
@@ -233,8 +233,8 @@ class OpenJdk9DebugDebuginfo(OpenJdk8DebugDebuginfo):
     def _get_debug_debuginfo(self):
         subpackages = set()
         for suffix in get_debug_suffixes():
-            subpackages.update("devel" + suffix + "-debuginfo",
-                "headless" + suffix + "-debuginfo")
+            subpackages.update({"devel" + suffix + "-debuginfo",
+                "headless" + suffix + "-debuginfo"})
         return subpackages
 
 
@@ -277,6 +277,7 @@ class OpenJdk11(OpenJdk8):
     def _getSubPackages(self):
         subpackages = super()._getSubPackages()
         subpackages.discard("accessibility")
+        subpackages.add('static-libs')
         return subpackages
 
 
@@ -293,10 +294,12 @@ class OpenJdk11DebugFc(OpenJdk8Debug):
         subpackages.discard("accessibility")
         for suffix in get_debug_suffixes():
             subpackages.discard("accessibility" + suffix)
+            subpackages.discard("src" + suffix)
             subpackages.update({"jmods" + suffix})
         subpackages.update({"jmods", "debugsource"})
         subpackages.update(self._get_debuginfo())
         subpackages.update(self._get_debug_debuginfo())
+        subpackages.update({'static-libs', 'static-libs-slowdebug'})
         return subpackages
 
     def _get_debug_debuginfo(self):
@@ -361,6 +364,7 @@ class OpenJdk13(OpenJdk12Debug):
         for suffix in get_debug_suffixes():
             subpackages.discard(JAVADOCZIP + suffix)
             subpackages.discard(JAVADOC + suffix)
+            subpackages.update({"src" + suffix})
         return subpackages
 
 

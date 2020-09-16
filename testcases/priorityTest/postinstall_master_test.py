@@ -159,8 +159,8 @@ class OpenJdk8S390(OpenJdk7):
 class OpenJdk8OtherArchs(OpenJdk8S390):
     def _generate_masters(self):
         masters = super(OpenJdk8OtherArchs, self)._generate_masters()
-        masters.pop(JAVADOC, None)
-        masters.pop(JAVADOC_ZIP, None)
+        #masters.pop(JAVADOC, None)
+        #masters.pop(JAVADOC_ZIP, None)
         for subpkg in [DEVEL, HEADLESS, DEFAULT]:
             for suffix in get_debug_suffixes():
                 masters[subpkg + suffix] = masters[subpkg]
