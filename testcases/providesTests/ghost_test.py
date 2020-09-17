@@ -56,11 +56,15 @@ class Default(cs.JdkConfiguration):
         return set()
 
     def ghost_test(self, this):
+        documentation = "This tests checks if every master is ghosted. Ghosted files are listed via rpm command," \
+                        " as a difference between \'rpm -q -l\' and \'rpm -q -l --no-ghost\'"
         files = rc.RuntimeConfig().getRpmList().files
         files = [x.replace("rpms/", "") for x in files]
-        files = [x for x in files if tu.validate_arch_for_rpms(this.current_arch) == ns.get_arch(x)]
-        for file in files:
-            self._check_ghosts_per_file(file)
+        if not self.documenting:
+            files = [x for x in files if tu.validate_arch_for_rpms(this.current_arch) == ns.get_arch(x)]
+            for file in files:
+                self._check_ghosts_per_file(file)
+        self._document(documentation)
         return self.passed, self.failed
 
     def _check_ghosts_per_file(self, file):
@@ -161,7 +165,7 @@ def testAll():
 
 
 def documentAll():
-    la.LoggingAccess().stdout("Provides")
+    la.LoggingAccess().stdout("Ghosts")
     return GhostTest().execute_special_docs()
 
 def main(argv):
