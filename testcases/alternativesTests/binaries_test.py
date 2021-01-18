@@ -111,19 +111,19 @@ class BinariesTest(bt.BaseTest):
                     return
             elif int(rpms.getMajorVersionSimplified()) >= 12:
                 if self.getCurrentArch() in gc.getArm32Achs():
-                    self.csch = tcc.OpenJdk14(BinariesTest.instance)
+                    self.csch = tcc.OpenJdkLatest(BinariesTest.instance)
                     return
                 elif self.getCurrentArch() in gc.getX86_64Arch() + gc.getAarch64Arch():
-                    self.csch = tcc.OpenJdk14x64(BinariesTest.instance)
+                    self.csch = tcc.OpenJdkLatestx64(BinariesTest.instance)
                     return
                 elif self.getCurrentArch() in gc.getS390xArch():
-                    self.csch = tcc.OpenJdk14NoJhsdb(BinariesTest.instance)
+                    self.csch = tcc.OpenJdkLatestNoJhsdb(BinariesTest.instance)
                     return
                 else:
                     if rpms.isRhel() and self.getCurrentArch() in gc.getS390Arch() + gc.getPpc32Arch():
-                        self.csch = tcc.OpenJdk14NoDebugNoJhsdb(BinariesTest.instance)
+                        self.csch = tcc.OpenJdkLatestNoDebugNoJhsdb(BinariesTest.instance)
                     else:
-                        self.csch = tcc.OpenJdk14Debug(BinariesTest.instance)
+                        self.csch = tcc.OpenJdkLatestDebug(BinariesTest.instance)
                     return
             else:
                 raise ex.UnknownJavaVersionException("Unknown OpenJDK version.")
