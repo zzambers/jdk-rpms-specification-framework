@@ -32,9 +32,9 @@ class MainPackagePresent(JdkConfiguration):
                                      + str(len(subpkgSetExpected)), la.Verbosity.TEST)
         SubpackagesTest.instance.log("Presented: " + str(ssGiven), la.Verbosity.TEST)
         SubpackagesTest.instance.log("Expected:  " + str(subpkgSetExpected), la.Verbosity.TEST)
-        if not ssGiven == subpkgSetExpected:
-        #if not passed_or_failed(self, ssGiven == subpkgSetExpected,
-         #                       "Set of subpkgs not as expected. Differences will follow."):
+        #if not ssGiven == subpkgSetExpected:
+        if not passed_or_failed(self, ssGiven == subpkgSetExpected,
+                               "Set of subpkgs not as expected. Differences will follow."):
             missingSubpackages = []
             for subpkg in subpkgSetExpected:
                 SubpackagesTest.instance.log(
@@ -299,7 +299,9 @@ class OpenJdk11DebugFc(OpenJdk8Debug):
         subpackages.update({"jmods", "debugsource"})
         subpackages.update(self._get_debuginfo())
         subpackages.update(self._get_debug_debuginfo())
-        subpackages.update({'static-libs', 'static-libs-slowdebug'})
+        subpackages.update({'static-libs'})
+        for suffix in get_debug_suffixes():
+            subpackages.add("static-libs" + suffix)
         return subpackages
 
     def _get_debug_debuginfo(self):
@@ -358,7 +360,7 @@ class OpenJdk12Debug(OpenJdk11DebugFc):
         return subpackages
 
 
-class OpenJdk13(OpenJdk12Debug):
+class OpenJdkLatest(OpenJdk12Debug):
     def _getSubPackages(self):
         subpackages = super()._getSubPackages()
         for suffix in get_debug_suffixes():
@@ -368,7 +370,7 @@ class OpenJdk13(OpenJdk12Debug):
         return subpackages
 
 
-class OpenJdk13armv7hl(OpenJdk12Debug):
+class OpenJdkLatestarmv7hl(OpenJdk12Debug):
     def _getSubPackages(self):
         subpackages = super()._getSubPackages()
         i = 0
@@ -384,7 +386,7 @@ class OpenJdk13armv7hl(OpenJdk12Debug):
         return subpackages
 
 
-class OpenJdk13el7(OpenJdk13):
+class OpenJdkLatestel7(OpenJdkLatest):
     def _getSubPackages(self):
         subpackages = super()._getSubPackages()
         subpackages.discard("debugsource")
@@ -534,13 +536,13 @@ class SubpackagesTest(utils.core.base_xtest.BaseTest):
                 return
             elif int(rpms.getMajorVersionSimplified()) >= 13:
                 if self.getCurrentArch() in gc.getArm32Achs():
-                    self.csch = OpenJdk13armv7hl()
+                    self.csch = OpenJdkLatestarmv7hl()
                     return
                 elif rpms.getOs() == gc.RHEL:
                     if rpms.getOsVersionMajor() == 7:
-                        self.csch = OpenJdk13el7()
+                        self.csch = OpenJdkLatestel7()
                         return
-                self.csch = OpenJdk13()
+                self.csch = OpenJdkLatest()
                 return
             else:
                 raise ex.UnknownJavaVersionException("Unknown OpenJDK version.")

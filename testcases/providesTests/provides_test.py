@@ -146,7 +146,7 @@ class NonITW(cs.JdkConfiguration):
 
 
     def _is_pkg_default(self, pkg):
-        return pkg == "" or pkg == "debug" or pkg == "slowdebug"
+        return pkg in ["", "debug", "slowdebug", "fastdebug"]
 
     GHOSTS = {tc.DEVEL:[], tc.HEADLESS:[], tc.JAVADOC:[], tc.JAVADOCZIP:[]}
 
