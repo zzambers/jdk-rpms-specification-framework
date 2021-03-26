@@ -32,7 +32,8 @@ def getBuild(nvr):
 
 
 def _downloadBrewKojiBuilds(pkgs, targetDir):
-    for i, pkg in enumerate(pkgs):
+    for i, pkg_with_signature in enumerate(pkgs):
+        pkg = split.drop_signature(pkg_with_signature)
         mainUrl = _getMainUrl(pkg)
         url = "unknonw_service"
         if KOJI in pkg:

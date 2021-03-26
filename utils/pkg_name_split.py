@@ -188,3 +188,10 @@ def simplify_full_version(vers, keepLegacy = False):
 
 def simplify_new_version(vers):
     return simplify_full_version(vers, True)
+
+#recent changes in koji API started to append signature to the build path, this was screwing our download script
+def drop_signature(rpm):
+    if "\tSignatures" in rpm:
+        return rpm.split("\t")[0]
+    return rpm
+
