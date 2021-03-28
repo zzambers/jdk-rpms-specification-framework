@@ -95,23 +95,11 @@ class ItwEl7Subpackages(ItwSubpackages):
         return subpackages
 
 
-class OpenJdk6(JDKBase):
+class OpenJdk8(JDKBase):
     def _getSubPackages(self):
         subpackages = super()._getSubPackages()
         subpackages.add(JAVADOC)
-        return subpackages
-
-
-class OpenJdk7(OpenJdk6):
-    def _getSubPackages(self):
-        subpackages = super()._getSubPackages()
         subpackages.update({"accessibility", HEADLESS})
-        return subpackages
-
-
-class OpenJdk8(OpenJdk7):
-    def _getSubPackages(self):
-        subpackages = super()._getSubPackages()
         subpackages.add("javadoc-zip")
         return subpackages
 
@@ -189,88 +177,12 @@ class OpenJdk8JFXDebuginfo(OpenJdk8JFX):
         return subpackages
 
 
-class OpenJdk9Debuginfo(OpenJdk8Debuginfo):
-    def _getSubPackages(self):
-        subpackages = super()._getSubPackages()
-        subpackages.add("jmods")
-        return subpackages
-
-    def _get_javadoc_debug(self):
-        return set()
-
-    def _get_debuginfo(self):
-        return {"devel-debuginfo",
-                "headless-debuginfo"}
-
-
-class OpenJdk9(OpenJdk8):
-    def _getSubPackages(self):
-        subpackages = super()._getSubPackages()
-        subpackages.add("jmods")
-        return subpackages
-
-    def _get_javadoc_debug(self):
-        return set()
-
-
-class OpenJdk10(OpenJdk9Debuginfo):
-    def _getSubPackages(self):
-        subpackages = super()._getSubPackages()
-        subpackages.discard("accessibility")
-        subpackages.add("debugsource")
-        subpackages.update(self._get_debuginfo())
-        return subpackages
-
-
-class OpenJdk9DebugDebuginfo(OpenJdk8DebugDebuginfo):
-    def _getSubPackages(self):
-        subpackages = super()._getSubPackages()
-        subpackages.add("jmods")
-        for suffix in get_debug_suffixes():
-            subpackages.add("jmods" + suffix)
-        return subpackages
-
     def _get_debug_debuginfo(self):
         subpackages = set()
         for suffix in get_debug_suffixes():
             subpackages.update({"devel" + suffix + "-debuginfo",
                 "headless" + suffix + "-debuginfo"})
         return subpackages
-
-
-class OpenJdk10DebugDebuginfo(OpenJdk9DebugDebuginfo):
-    def _getSubPackages(self):
-        subpackages = super()._getSubPackages()
-        subpackages.discard("accessibility")
-        for suffix in get_debug_suffixes():
-            subpackages.discard("accessibility" + suffix)
-        return subpackages
-
-    def _get_debuginfo(self):
-        return {"devel-debuginfo",
-                "headless-debuginfo"}
-
-    def _get_debug_debuginfo(self):
-        subpkgs = set()
-        for suffix in get_debug_suffixes():
-            subpkgs.update({suffix.replace("-", "", 1) + "-debuginfo",
-            "devel" + suffix + "-debuginfo",
-            "headless" + suffix + "-debuginfo"})
-        return subpkgs
-
-    def _get_debug_subpackages(self):
-        subpkgs = set()
-        for suffix in get_debug_suffixes():
-            subpkgs.update({"accessibility" + suffix,
-                "slowdebug",
-                "demo" + suffix,
-                "devel" + suffix,
-                "headless" + suffix,
-                "src" + suffix})
-        return subpkgs
-
-    def _get_javadoc_debug(self):
-        return {"javadoc-slowdebug", "javadoc-zip-slowdebug"}
 
 
 class OpenJdk11(OpenJdk8):
@@ -316,30 +228,25 @@ class OpenJdk11DebugFc(OpenJdk8Debug):
         return subpackages
 
 
-class OpenJdk9Debug(OpenJdk8Debug):
-    def _getSubPackages(self):
-        subpackages = super()._getSubPackages()
-        for suffix in get_debug_suffixes():
-            subpackages.update({"jmods", "jmods" + suffix})
-        return subpackages
-
-
 class OpenJdk11DebugRhel(OpenJdk11DebugFc):
     def _getSubPackages(self):
         subpackages = super()._getSubPackages()
         return subpackages
 
-class OpenJdk12(OpenJdk11):
+
+class OpenJdkLatest(OpenJdk11DebugFc):
     def _getSubPackages(self):
         subpackages = super()._getSubPackages()
-        subpackages.update(super()._get_debuginfo())
-        subpackages.discard("demo-debuginfo")
-        subpackages.add("debugsource")
-        subpackages.add("jmods")
+        for suffix in get_debug_suffixes():
+            subpackages.update(self._get_debug_subpackages())
+            subpackages.update(self._get_debug_debuginfo())
+            subpackages.update(self._get_debuginfo())
+            subpackages.update({"src" + suffix})
+
         return subpackages
 
 
-class OpenJdk12Debug(OpenJdk11DebugFc):
+class OpenJdkLatestarmv7hl(OpenJdk11DebugFc):
     def _getSubPackages(self):
         subpackages = super()._getSubPackages()
         for suffix in get_debug_suffixes():
@@ -347,32 +254,7 @@ class OpenJdk12Debug(OpenJdk11DebugFc):
         subpackages.update(self._get_debug_subpackages())
         subpackages.update(self._get_debug_debuginfo())
         subpackages.update(self._get_debuginfo())
-        return subpackages
 
-    def _get_debug_subpackages(self):
-        subpackages = super(OpenJdk12Debug, self)._get_debug_subpackages()
-        for suffix in get_debug_suffixes():
-            subpackages.discard("accessibility" + suffix)
-        return subpackages
-
-    def _get_debug_debuginfo(self):
-        subpackages = super(OpenJdk12Debug, self)._get_debug_debuginfo()
-        return subpackages
-
-
-class OpenJdkLatest(OpenJdk12Debug):
-    def _getSubPackages(self):
-        subpackages = super()._getSubPackages()
-        for suffix in get_debug_suffixes():
-            subpackages.discard(JAVADOCZIP + suffix)
-            subpackages.discard(JAVADOC + suffix)
-            subpackages.update({"src" + suffix})
-        return subpackages
-
-
-class OpenJdkLatestarmv7hl(OpenJdk12Debug):
-    def _getSubPackages(self):
-        subpackages = super()._getSubPackages()
         i = 0
         iterations = len(subpackages)
         subpackagelist = list(subpackages)
@@ -464,13 +346,7 @@ class SubpackagesTest(utils.core.base_xtest.BaseTest):
             return
 
         if rpms.getVendor() == gc.OPENJDK or rpms.getVendor() == gc.OPENJ9:
-            if rpms.getMajorVersionSimplified() == '6':
-                self.csch = OpenJdk6()
-                return
-            elif rpms.getMajorVersionSimplified() == '7':
-                self.csch = OpenJdk7()
-                return
-            elif rpms.getMajorVersionSimplified() == "8":
+            if rpms.getMajorVersionSimplified() == "8":
                 if rpms.isRhel():
                     if self.getCurrentArch() in gc.getPpc32Arch() + gc.getS390Arch() + gc.getS390xArch():
                         self.csch = OpenJdk8Debuginfo()
@@ -507,14 +383,6 @@ class SubpackagesTest(utils.core.base_xtest.BaseTest):
                 else:
                     raise ex.UnknownJavaVersionException("Unrecognized OS.")
 
-            elif rpms.getMajorVersionSimplified() == '10':
-                if rpms.getDist() == gc.FEDORA or rpms.getOsVersionMajor() > 7:
-                    if self.getCurrentArch() in gc.getArm32Achs():
-                        self.csch = OpenJdk10()
-                        return
-                    else:
-                        self.csch = OpenJdk10DebugDebuginfo()
-                        return
             elif rpms.getMajorVersionSimplified() == '11':
                 if self.getCurrentArch() in gc.getPpc32Arch() + gc.getS390Arch():
                     self.csch = OpenJdk11()
@@ -528,12 +396,6 @@ class SubpackagesTest(utils.core.base_xtest.BaseTest):
                 else:
                     self.csch = OpenJdk11DebugFc()
                     return
-            elif int(rpms.getMajorVersionSimplified()) == 12:
-                if self.getCurrentArch() in gc.getArm32Achs():
-                    self.csch = OpenJdk12()
-                    return
-                self.csch = OpenJdk12Debug()
-                return
             elif int(rpms.getMajorVersionSimplified()) >= 13:
                 if self.getCurrentArch() in gc.getArm32Achs():
                     self.csch = OpenJdkLatestarmv7hl()
