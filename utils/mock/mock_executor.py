@@ -41,7 +41,7 @@ class Mock:
         #            ,"/var"
     ]
 
-    def __init__(self, os="fedora", version="31", arch="x86_64", command="mock"):
+    def __init__(self, os="fedora", version="rawhide", arch="x86_64", command="mock"):
         """
         This is a base constructor for DefaultMock. Arguments should never be changed when initiating new instance,
         unless you need it for some valid reasons (so far, there are NONE).
