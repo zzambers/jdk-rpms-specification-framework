@@ -10,6 +10,8 @@ import outputControl.dom_objects as do
 #must do otherway in case of cyclic dependencies
 import utils.mock.mock_executor as mexe
 
+from utils.core.configuration_specific import JdkConfiguration
+from utils.core.base_xtest import BaseTest
 
 def closeTestSuite(passed, failed, mtc):
     la.LoggingAccess().stdout("Arch-independet mehtods counted: " + str(mtc))
@@ -193,7 +195,8 @@ def passed_or_failed(instance, bool, iffailed, ifpassed=""):
         if ifpassed != "":
             la.LoggingAccess().log("        " + ifpassed, la.Verbosity.TEST)
     else:
-        instance.failed += 1
+        if issubclass(instance.__class__, (JdkConfiguration, BaseTest)):
+            instance.failed += 1
         la.LoggingAccess().log("        " + iffailed, la.Verbosity.TEST)
         testcase.set_view_file_stub(iffailed)
     return bool
