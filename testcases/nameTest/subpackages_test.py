@@ -17,8 +17,6 @@ class MainPackagePresent(JdkConfiguration):
 
     def __init__(self):
         super().__init__()
-        self.failed = 0
-        self.passed = 0
 
     def _getSubPackages(self):
         return set([""])

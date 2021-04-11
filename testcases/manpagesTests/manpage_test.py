@@ -40,8 +40,6 @@ class ManpageTestMethods(JdkConfiguration):
     """
     def __init__(self):
         super().__init__()
-        self.passed = 0
-        self.failed = 0
         self.list_of_failed_tests = []
         self.missing_manpages = []
         self.checked_subpackages = []

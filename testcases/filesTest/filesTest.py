@@ -18,8 +18,6 @@ class Default(cs.JdkConfiguration):
     def __init__(self, rpms):
         super().__init__()
         self.rpms = rpms
-        self.passed = 0
-        self.failed = 0
         self.file_list = []
 
     def _set_file_list(self):

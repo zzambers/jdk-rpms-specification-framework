@@ -27,8 +27,6 @@ class BasePackages(JdkConfiguration):
 
     def __init__(self):
         super().__init__()
-        self.passed = 0
-        self.failed = 0
 
     def _get_arch(self):
         return PostinstallScriptTest.instance.getCurrentArch()

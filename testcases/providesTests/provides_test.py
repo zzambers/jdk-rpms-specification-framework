@@ -21,8 +21,6 @@ class NonITW(cs.JdkConfiguration):
         super().__init__()
         self.rpms = rc.RuntimeConfig().getRpmList()
         self.this=this
-        self.passed = 0
-        self.failed = 0
 
     def _get_artificial_provides(self, filename):
             output, error, res = pu.executeShell("rpm -q --provides rpms/" + filename)

@@ -14,8 +14,6 @@ from outputControl import dom_objects as do
 class InitTest(utils.core.base_xtest.BaseTest):
     def __init__(self):
         super().__init__()
-        self.failed = 0
-        self.passed = 0
 
 
     def test_java(self):

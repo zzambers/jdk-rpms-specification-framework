@@ -48,8 +48,6 @@ class GhostTest(bt.BaseTest):
 class Default(cs.JdkConfiguration):
     def __init__(self):
         super().__init__()
-        self.passed = 0
-        self. failed = 0
         self.expected_ghosts = {}
 
     def _get_hardcoded_ghosts(self, file):

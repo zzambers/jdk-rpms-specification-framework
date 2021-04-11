@@ -21,8 +21,6 @@ class BaseMethods(JdkConfiguration):
         super().__init__()
         self.list_of_failed_tests = []
         self.rpms = rc.RuntimeConfig().getRpmList()
-        self.failed = 0
-        self.passed = 0
 
     def _get_arch(self):
         """ Returns architecture in 32 bit identifier """

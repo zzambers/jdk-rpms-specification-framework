@@ -31,8 +31,6 @@ class NameTest(utils.core.base_xtest.BaseTest):
     test_* method, so the output would look like: test_1 = 37, test_2 = 37*2, test3=37*3 tests in total"""
     def __init__(self):
         super().__init__()
-        self.failed = 0
-        self.passed = 0
 
     def aMatchesB(self, a, b):
             return self.csch.checkRegex(a)

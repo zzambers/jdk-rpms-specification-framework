@@ -37,8 +37,6 @@ class PriorityTest(JdkConfiguration):
         self.length = length
         self.prefix = prefix
         self.list_of_failed_tests = []
-        self.passed = 0
-        self.failed = 0
 
     def _get_priority(self, master):
         """ This method calls chroot in mock and gets priority from pre-configured methods. """

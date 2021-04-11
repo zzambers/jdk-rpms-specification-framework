@@ -15,8 +15,6 @@ from outputControl import dom_objects as do
 class Base(JdkConfiguration):
     def __init__(self):
         super().__init__()
-        self.failed = 0
-        self.passed = 0
 
 
 class ITW(Base):
