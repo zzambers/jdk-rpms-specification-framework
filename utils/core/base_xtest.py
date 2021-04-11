@@ -22,6 +22,10 @@ def defaultMain(argv, runDocs, runTests):
 
 
 class BaseTest(BaseTestRunner):
+    def __init__(self):
+        super().__init__()
+        self.failed = 0
+        self.passed = 0
 
     def getBuild(self):
         return config.runtime_config.RuntimeConfig().getRpmList().getBuildWithoutSrpm(self.current_arch)

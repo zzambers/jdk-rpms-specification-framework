@@ -13,8 +13,6 @@ from outputControl import dom_objects as do
 class EmptyPackageTest(utils.core.base_xtest.BaseTest):
     def __init__(self):
         super().__init__()
-        self.passed = 0
-        self.failed = 0
 
     def test_checkNoPacakgeEmpty(self):
         pkgs= config.runtime_config.RuntimeConfig().getRpmList().getAllFiles()

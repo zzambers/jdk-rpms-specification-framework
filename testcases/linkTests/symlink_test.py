@@ -53,8 +53,6 @@ class BaseMethods(JdkConfiguration):
         super().__init__()
         self.list_of_failed_tests = []
         self.rpms = rc.RuntimeConfig().getRpmList()
-        self.passed = 0
-        self.failed = 0
 
     # symlinks -r / have struct: typeOfSymlink: path -> points_at, split[2] = '->'
     def _symlink_parser(self, symlink_list):

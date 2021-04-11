@@ -29,8 +29,6 @@ class BaseTest(JdkConfiguration):
         super().__init__()
         self.list_of_failed_tests = []
         self.invalid_file_candidates = []
-        self.failed = 0
-        self.passed = 0
 
     def _get_target_java_directory(self, name):
         """Returns a directory where jdk is installed (mostly name-version-release-arch)."""
