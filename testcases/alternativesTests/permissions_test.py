@@ -1,13 +1,13 @@
-from outputControl import logging_access as la
+import outputControl.logging_access as la
 import sys
 import re
 import utils.core.base_xtest as bt
 import config.global_config as gc
 import config.runtime_config as rc
 import utils
-from outputControl.logging_access import Verbosity
+import config.verbosity_config as vc
 from utils.mock.mock_executor import DefaultMock
-from utils.test_utils import log_failed_test, rename_default_subpkg, get_arch, two_lists_diff, get_32bit_id_in_nvra,\
+from utils.test_utils import rename_default_subpkg, get_arch, two_lists_diff, get_32bit_id_in_nvra,\
     passed_or_failed
 from utils.test_constants import *
 import os
@@ -56,9 +56,9 @@ class BaseTest(JdkConfiguration):
         for pkg in pkgs:
             name = os.path.basename(pkg)
             subpackage = rename_default_subpkg(pkgsplit.get_subpackage_only(name))
-            PermissionTest.instance.log("Checking {} subpackage...".format(subpackage), la.Verbosity.TEST)
+            PermissionTest.instance.log("Checking {} subpackage...".format(subpackage), vc.Verbosity.TEST)
             if subpackage in subpackages_without_alternatives() + self._skipped_subpackages():
-                PermissionTest.instance.log("Skipping " + pkg, la.Verbosity.TEST)
+                PermissionTest.instance.log("Skipping " + pkg, vc.Verbosity.TEST)
                 continue
 
             if not DefaultMock().postinstall_exception_checked(pkg):
@@ -76,7 +76,7 @@ class BaseTest(JdkConfiguration):
                 else:
                     clearedout.append(line)
             if len(fails) > 0:
-                la.LoggingAccess().log("Following warning produced while listing files for " + pkg + ":", la.Verbosity.TEST)
+                la.LoggingAccess().log("Following warning produced while listing files for " + pkg + ":", vc.Verbosity.TEST)
                 for line in fails:
                     la.LoggingAccess().log("    " + line)
             if len(clearedout) > 0:
@@ -91,7 +91,7 @@ class BaseTest(JdkConfiguration):
             for manpage in manpages:
                 self.sort_and_test([MAN_DIR + "/" + manpage], subpackage, name)
 
-        PermissionTest.instance.log("Failed permissions tests: " + "\n    ".join(self.list_of_failed_tests), la.Verbosity.ERROR)
+        PermissionTest.instance.log("Failed permissions tests: " + "\n    ".join(self.list_of_failed_tests), vc.Verbosity.ERROR)
         PermissionTest.instance.log("Unexpected files, filetypes or errors occured, requires sanity check, these are "
                                     "treated as fails: " + "\n    ".join(self.invalid_file_candidates))
         return self.passed, self.failed
@@ -201,7 +201,7 @@ class BaseTest(JdkConfiguration):
 
 
                 else:
-                    PermissionTest.instance.log("Unexpected filetype. Needs manual inspection.", Verbosity.TEST)
+                    PermissionTest.instance.log("Unexpected filetype. Needs manual inspection.", vc.Verbosity.TEST)
                     passed_or_failed(self, False,
                                      "In subpackage {} following was found: Command stat -c '%F' {} finished"
                                     " with message: {}. ".format(subpackage, target, res, out))
@@ -233,21 +233,21 @@ class BaseTest(JdkConfiguration):
         if out == "775" and "ibm" in file:
             PermissionTest.instance.log("Skipping " + file + ". Some unzipped Ibm packages are acting wierdly in mock. "
                                                              "Howewer, in installed JDK, the permissions are correct.",
-                                        Verbosity.TEST)
+                                        vc.Verbosity.TEST)
             return
         if res != 0:
             passed_or_failed(self, False, filetype + " link is broken, could not find " + file)
             return
         else:
             PermissionTest.instance.log(filetype + " {} exists. Checking permissions... ".format(file),
-                                        la.Verbosity.MOCK)
+                                        vc.Verbosity.MOCK)
         for p in range(3):
             if not (int(out[p]) == int(expected_permission[p])):
                 passed_or_failed(self, False, "Permissions of {} not as expected, should be {} but is "
                                       "{}.".format(file, expected_permission, out))
                 return
         PermissionTest.instance.log(filetype + " {} with permissions {}. Check "
-                                    "successful.".format(file, out), la.Verbosity.MOCK)
+                                    "successful.".format(file, out), vc.Verbosity.MOCK)
         passed_or_failed(self, True, "")
         return
 
@@ -304,7 +304,7 @@ class PermissionTest(bt.BaseTest):
     def setCSCH(self):
         PermissionTest.instance = self
         rpms = rc.RuntimeConfig().getRpmList()
-        self.log("Checking files for " + rpms.getMajorPackage(), la.Verbosity.TEST)
+        self.log("Checking files for " + rpms.getMajorPackage(), vc.Verbosity.TEST)
         if rpms.getVendor() == gc.OPENJDK or rpms.getVendor() == gc.OPENJ9:
             if rpms.getMajorVersionSimplified() == "6":
                 if self.getCurrentArch() in (gc.getX86_64Arch() + gc.getPower64BeAchs()):

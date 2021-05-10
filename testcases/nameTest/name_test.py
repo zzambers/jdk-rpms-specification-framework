@@ -9,7 +9,7 @@ import config.global_config as gc
 import config.runtime_config
 import testcases.nameTest.connfigs.nametest_config
 import utils.core.base_xtest
-from outputControl import logging_access as la
+import outputControl.logging_access as la
 from utils.test_utils import _reinit
 from outputControl import dom_objects as do
 import utils.test_utils as tu

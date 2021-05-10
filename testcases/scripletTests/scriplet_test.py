@@ -3,7 +3,7 @@ import sys
 
 import utils.core.base_xtest
 import utils.rpmbuild_utils
-from outputControl import logging_access as la
+import outputControl.logging_access as la
 from utils.mock.mock_executor import DefaultMock
 from utils.rpmbuild_utils import ScripletStarterFinisher
 

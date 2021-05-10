@@ -5,7 +5,7 @@ from utils.mock.mock_executor import DefaultMock
 import config.runtime_config
 import config.global_config as gc
 import utils.core.unknown_java_exception as ex
-from outputControl import logging_access as la
+import outputControl.logging_access as la
 import utils.core.base_xtest
 import utils.rpm_list
 import utils.pkg_name_split
@@ -13,6 +13,7 @@ import utils.mock.mock_execution_exception
 from utils.test_constants import *
 from utils.test_utils import log_failed_test, rename_default_subpkg, passed_or_failed
 from outputControl import dom_objects as do
+import config.verbosity_config as vc
 
 PREFIX_160 = "160"
 PREFIX_170 = "170"
@@ -43,20 +44,20 @@ class PriorityTest(JdkConfiguration):
         priority = DefaultMock().get_priority(master)
         if priority is None:
             PriorityCheck.instance.log("Priority not found in output for master " + master + ", output is invalid.",
-                                       la.Verbosity.TEST)
+                                       vc.Verbosity.TEST)
             return None
         return priority
 
     def check_length(self, priority):
         """ This method checks whether the length of priority is as expected. """
         self._document("Priority for {} should be ".format(self.rpms.getMajorPackage()) + str(self.length) + " digit.")
-        PriorityCheck.instance.log("Checking priority length.", la.Verbosity.TEST)
+        PriorityCheck.instance.log("Checking priority length.", vc.Verbosity.TEST)
         return passed_or_failed(self, len(priority) == self.length, "Priority should be {}-digit, but is {}.".format(self.length, len(priority)))
 
     def check_prefix(self, priority):
         """ This method checks if the prefix is as expected. In general, the prefix is based on major version. """
         self._document("Prefix is based on major version, in this case it should be " + self.prefix + ".")
-        PriorityCheck.instance.log("Checking priority prefix.", la.Verbosity.TEST)
+        PriorityCheck.instance.log("Checking priority prefix.", vc.Verbosity.TEST)
         return passed_or_failed(self, priority.startswith(self.prefix, 0, len(self.prefix)),
                                 "Priority prefix not as expected, should be {}.".format(self.prefix))
 
@@ -135,7 +136,7 @@ class MajorCheck(PriorityTest):
                         self.check_prefix(priority)):
                     self._success_list.append(os.path.basename(pkg))
                     PriorityCheck.instance.log("Priority " + priority + " valid for " + pkg_name +
-                                               " package, master " + m, la.Verbosity.TEST)
+                                               " package, master " + m, vc.Verbosity.TEST)
 
                     _pkgPriorities[pkg_name].update({m : priority})
 
@@ -144,12 +145,12 @@ class MajorCheck(PriorityTest):
                                      " package, master " + m)
 
 
-        PriorityCheck.instance.log("Checking debug packages priorities.", la.Verbosity.TEST)
+        PriorityCheck.instance.log("Checking debug packages priorities.", vc.Verbosity.TEST)
         self.check_debug_packages(_pkgPriorities)
-        PriorityCheck.instance.log("Successful for: " + str(self._success_list), la.Verbosity.TEST)
-        PriorityCheck.instance.log("Failed for: " + str(self.list_of_failed_tests), la.Verbosity.ERROR)
+        PriorityCheck.instance.log("Successful for: " + str(self._success_list), vc.Verbosity.TEST)
+        PriorityCheck.instance.log("Failed for: " + str(self.list_of_failed_tests), vc.Verbosity.ERROR)
         PriorityCheck.instance.log("Debug package priority check failed for: " + str(self._debug_check_fail_list),
-                                   la.Verbosity.ERROR)
+                                   vc.Verbosity.ERROR)
         return self.passed, self.failed
 
 
@@ -209,7 +210,7 @@ class PriorityCheck(utils.core.base_xtest.BaseTest):
     def setCSCH(self):
         PriorityCheck.instance = self
         rpms = config.runtime_config.RuntimeConfig().getRpmList()
-        self.log("Checking priority for " + rpms.getVendor(), la.Verbosity.TEST)
+        self.log("Checking priority for " + rpms.getVendor(), vc.Verbosity.TEST)
 
         if rpms.getVendor() == gc.OPENJDK or rpms.getVendor() == gc.OPENJ9:
             if rpms.is_system_jdk():

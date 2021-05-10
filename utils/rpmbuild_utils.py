@@ -1,8 +1,8 @@
-from outputControl import logging_access as la
+import outputControl.logging_access as la
 import utils.process_utils
 import utils.test_utils
 import os
-
+import config.verbosity_config as vc
 
 def rpmbuildEval(macro):
     return utils.process_utils.processToString(['rpmbuild', '--eval', '%{' + macro + '}'])
@@ -107,12 +107,12 @@ def getSrciplet(rpmFile, scripletId):
         la.LoggingAccess().log("warning! Scriplet name " + scripletId
                                                          + " is not known. It should be one of: "
                                                          + ",".join(ScripletStarterFinisher.allScriplets),
-                               la.Verbosity.TEST)
+                               vc.Verbosity.TEST)
     key = rpmFile+"-"+scripletId
     if key in scriptlets:
-        la.LoggingAccess().log(key + " already cached, returning", la.Verbosity.MOCK)
+        la.LoggingAccess().log(key + " already cached, returning", vc.Verbosity.MOCK)
         return scriptlets[key]
-    la.LoggingAccess().log(key + " not yet cached, reading", la.Verbosity.MOCK)
+    la.LoggingAccess().log(key + " not yet cached, reading", vc.Verbosity.MOCK)
     sf = ScripletStarterFinisher(scripletId)
     script = utils.process_utils.processAsStrings(['rpm', '-qp', '--scripts', rpmFile], sf.start, sf.stop,
                                                 False)

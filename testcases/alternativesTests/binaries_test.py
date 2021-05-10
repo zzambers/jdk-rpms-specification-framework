@@ -1,12 +1,12 @@
 import sys
 import utils.core.base_xtest as bt
-from outputControl import logging_access as la
+import outputControl.logging_access as la
 import config.global_config as gc
 import config.runtime_config as rc
 import utils.core.unknown_java_exception as ex
 import utils
 import testcases.alternativesTests.binaries_test_config_classes as tcc
-from utils.test_constants import *
+import config.verbosity_config as vc
 
 
 class BinariesTest(bt.BaseTest):
@@ -24,7 +24,7 @@ class BinariesTest(bt.BaseTest):
     def setCSCH(self):
         BinariesTest.instance = self
         rpms = rc.RuntimeConfig().getRpmList()
-        self.log("Checking binaries and slaves for " + rpms.getMajorPackage(), la.Verbosity.TEST)
+        self.log("Checking binaries and slaves for " + rpms.getMajorPackage(), vc.Verbosity.TEST)
 
         if rpms.getVendor() == gc.OPENJDK or rpms.getVendor() == gc.OPENJ9:
             if rpms.getMajorVersionSimplified() == "6":

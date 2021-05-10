@@ -1,13 +1,13 @@
 import ntpath
 import re
-from utils import pkg_name_split as ns
+import utils.pkg_name_split as ns
 import config.global_config
 import config.runtime_config
-from outputControl import logging_access as la
-from utils import pkg_name_split as split
+import outputControl.logging_access as la
+import utils.process_utils
 import utils.test_utils
 import utils.test_constants as tc
-
+import config.verbosity_config as vc
 
 
 class RpmList:
@@ -25,10 +25,10 @@ class RpmList:
             self.names.append(name)
         allFiles = utils.test_utils.get_files(ddir)
         la.LoggingAccess().log("Loaded list of " + str(len(self.files)) + " rpms from  directory " + ddir,
-                               la.Verbosity.TEST)
+                               vc.Verbosity.TEST)
         if len(self.files) != len(allFiles):
             la.LoggingAccess().log("Warning, some files in  " + ddir + " - " + str(
-                len(allFiles) - len(self.files)) + " are NOT rpms. Ignored", la.Verbosity.TEST)
+                len(allFiles) - len(self.files)) + " are NOT rpms. Ignored", vc.Verbosity.TEST)
 
     def getAllNames(self):
         if len(self.names) == 0:
@@ -77,57 +77,57 @@ class RpmList:
         return suffixes
 
     def getJava(self):
-        return self.expectSingleMeberSet(split.get_javaprefix, "java prefix")
+        return self.expectSingleMeberSet(ns.get_javaprefix, "java prefix")
 
     def getVendor(self):
-        return self.expectSingleMeberSet(split.get_vendor, "vendor")
+        return self.expectSingleMeberSet(ns.get_vendor, "vendor")
 
     def getMajorPackage(self):
-        return self.expectSingleMeberSet(split.get_major_package_name, "major package")
+        return self.expectSingleMeberSet(ns.get_major_package_name, "major package")
 
     def getVersion(self):
-        return self.expectSingleMeberSet(split.get_minor_ver, "version")
+        return self.expectSingleMeberSet(ns.get_minor_ver, "version")
 
     def getRelease(self):
-        return self.expectSingleMeberSet(split.get_release, "release")
+        return self.expectSingleMeberSet(ns.get_release, "release")
 
     def getDist(self):
-        return self.expectSingleMeberSet(split.get_dist, "dist")
+        return self.expectSingleMeberSet(ns.get_dist, "dist")
 
     def getNvr(self):
-        return self.expectSingleMeberSet(split.get_name_version_release, "name version release")
+        return self.expectSingleMeberSet(ns.get_name_version_release, "name version release")
 
     def getPackages(self):
         """This method is misleading and is getting nothing saying set of packages"""
-        pset, props = self.getSetProperty(split.get_package_name)
+        pset, props = self.getSetProperty(ns.get_package_name)
         return pset
 
     def getSubpackageOnly(self):
         """This method is misleading and is getting nothing saying set of sub-pacakges suffixes only"""
-        pset, props = self.getSetProperty(split.get_subpackage_only)
+        pset, props = self.getSetProperty(ns.get_subpackage_only)
         return pset
 
     def getAllArches(self):
         if config.runtime_config.RuntimeConfig().getArchs() is not None:
             return set(config.runtime_config.RuntimeConfig().getArchs())
-        pset, props = self.getSetProperty(split.get_arch)
+        pset, props = self.getSetProperty(ns.get_arch)
         return pset
 
     def getNativeArches(self):
         if config.runtime_config.RuntimeConfig().getArchs() is not None:
             return set(utils.test_utils.removeNoarchSrpmArch(config.runtime_config.RuntimeConfig().getArchs()))
-        pset, props = self.getSetProperty(split.get_arch)
+        pset, props = self.getSetProperty(ns.get_arch)
         return pset - set(config.global_config.getNoarch()) - set(config.global_config.getSrcrpmArch())
 
     def getRealNativeArches(self):
-        pset, props = self.getSetProperty(split.get_arch)
+        pset, props = self.getSetProperty(ns.get_arch)
         return pset - set(config.global_config.getNoarch()) - set(config.global_config.getSrcrpmArch())
 
     def getPackagesByArch(self, arch):
         filepaths = []
         names = []
         for idx, val in enumerate(self.files):
-            if split.get_arch(self.names[idx]) == arch:
+            if ns.get_arch(self.names[idx]) == arch:
                 filepaths.append(val)
                 names.append(self.names[idx])
         if len(set(names)) != len(names):

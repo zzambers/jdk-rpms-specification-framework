@@ -1,6 +1,6 @@
 import re
 
-from outputControl import logging_access as la
+import outputControl.logging_access as la
 from utils.core.configuration_specific import JdkConfiguration
 
 JAVA_REGEX8="^java-(1\.[5-8]\.[0-9])-.*-.*-.*\..*.rpm$"

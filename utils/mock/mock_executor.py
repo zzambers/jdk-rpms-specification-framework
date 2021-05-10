@@ -2,7 +2,6 @@ import ntpath
 import os
 import re
 
-import outputControl.logging_access
 import utils.mock.rpm_uncpio_cache
 import utils.process_utils as exxec
 import utils.rpmbuild_utils as rpmuts
@@ -12,6 +11,7 @@ import utils.pkg_name_split
 import config.runtime_config as rc
 import config.global_config as gc
 import outputControl.logging_access as la
+import config.verbosity_config as vc
 
 PRIORITY = "priority"
 STATUS = "status"
@@ -56,8 +56,8 @@ class Mock:
         self.inited = False
         self.alternatives = False
         self.snapshots = dict()
-        outputControl.logging_access.LoggingAccess().log("Providing new instance of " + self.getMockName(),
-                                                         la.Verbosity.MOCK)
+        la.LoggingAccess().log("Providing new instance of " + self.getMockName(),
+                                                         vc.Verbosity.MOCK)
         # comment this, set inited and alternatives to true if debug of some test needs to be done in hurry, it is
         # sometimes acting strange though, so I do not recommend it (overlayfs plugin is quite fast so take the time
         self._scrubLvmCommand()
@@ -95,7 +95,7 @@ class Mock:
 
     def _init(self):
         o, e = exxec.processToStrings(self.mainCommand() + ["--init"])
-        outputControl.logging_access.LoggingAccess().log(e, la.Verbosity.MOCK)
+        la.LoggingAccess().log(e, vc.Verbosity.MOCK)
         self.inited = True
 
     def reinit(self):
@@ -119,15 +119,15 @@ class Mock:
 
     def _snapsotCommand(self, name):
         o, e = exxec.processToStrings(self.mainCommand() + ["--snapshot", name])
-        outputControl.logging_access.LoggingAccess().log(e, la.Verbosity.MOCK)
-        outputControl.logging_access.LoggingAccess().log(o, la.Verbosity.MOCK)
-        outputControl.logging_access.LoggingAccess().log(str(self.listSnapshots()), la.Verbosity.MOCK)
+        la.LoggingAccess().log(e, vc.Verbosity.MOCK)
+        la.LoggingAccess().log(o, vc.Verbosity.MOCK)
+        la.LoggingAccess().log(str(self.listSnapshots()), vc.Verbosity.MOCK)
 
     def _rollbackCommand(self, name):
         o, e, r = exxec.processToStringsWithResult(self.mainCommand() + ["--rollback-to", name])
-        outputControl.logging_access.LoggingAccess().log(e, la.Verbosity.MOCK)
-        outputControl.logging_access.LoggingAccess().log(o, la.Verbosity.MOCK)
-        outputControl.logging_access.LoggingAccess().log(str(self.listSnapshots()), la.Verbosity.MOCK)
+        la.LoggingAccess().log(e, vc.Verbosity.MOCK)
+        la.LoggingAccess().log(o, vc.Verbosity.MOCK)
+        la.LoggingAccess().log(str(self.listSnapshots()), vc.Verbosity.MOCK)
         return e, o, r
 
     def _scrubLvmCommand(self):
@@ -136,9 +136,9 @@ class Mock:
             failed = "Build chroot is locked, please restart the testsuite."
             tu.passed_or_failed(self, False, failed)
             raise utils.mock.mock_execution_exception.MockExecutionException(failed)
-        outputControl.logging_access.LoggingAccess().log(e, la.Verbosity.MOCK)
-        outputControl.logging_access.LoggingAccess().log(o, la.Verbosity.MOCK)
-        outputControl.logging_access.LoggingAccess().log(str(self.listSnapshots()), la.Verbosity.MOCK)
+        la.LoggingAccess().log(e, vc.Verbosity.MOCK)
+        la.LoggingAccess().log(o, vc.Verbosity.MOCK)
+        la.LoggingAccess().log(str(self.listSnapshots()), vc.Verbosity.MOCK)
 
     def installAlternatives(self):
         if self.alternatives:
@@ -148,24 +148,24 @@ class Mock:
 
     def _installAlternatives(self):
         o, e = exxec.processToStrings(self.mainCommand() + ["--install", "lua"])
-        outputControl.logging_access.LoggingAccess().log(e, la.Verbosity.MOCK)
+        la.LoggingAccess().log(e, vc.Verbosity.MOCK)
         o, e = exxec.processToStrings(self.mainCommand() + ["--install", "lua-posix"])
-        outputControl.logging_access.LoggingAccess().log(e, la.Verbosity.MOCK)
+        la.LoggingAccess().log(e, vc.Verbosity.MOCK)
         o, e = exxec.processToStrings(self.mainCommand() + ["--install", "copy-jdk-configs"])
-        outputControl.logging_access.LoggingAccess().log(e, la.Verbosity.MOCK)
+        la.LoggingAccess().log(e, vc.Verbosity.MOCK)
         o, e = exxec.processToStrings(self.mainCommand() + ["--install", "chkconfig"])
-        outputControl.logging_access.LoggingAccess().log(e, la.Verbosity.MOCK)
+        la.LoggingAccess().log(e, vc.Verbosity.MOCK)
         o, e = exxec.processToStrings(self.mainCommand() + ["--install", "man"])
-        outputControl.logging_access.LoggingAccess().log(e, la.Verbosity.MOCK)
+        la.LoggingAccess().log(e, vc.Verbosity.MOCK)
         o, e = exxec.processToStrings(self.mainCommand() + ["--install", "symlinks"])
-        outputControl.logging_access.LoggingAccess().log(e, la.Verbosity.MOCK)
+        la.LoggingAccess().log(e, vc.Verbosity.MOCK)
         o, e = exxec.processToStrings(self.mainCommand() + ["--install", "tzdata-java"])
         self.createSnapshot("alternatives")
         self.alternatives = True
 
     def mktemp(self, suffix="me"):
         o, e = exxec.processToStrings(self.mainCommand() + ["--chroot", "mktemp --suffix " + suffix])
-        outputControl.logging_access.LoggingAccess().log(e, la.Verbosity.MOCK)
+        la.LoggingAccess().log(e, vc.Verbosity.MOCK)
         return o
 
     def importFileContnet(self, suffix, content):
@@ -176,26 +176,26 @@ class Mock:
 
     def copyIn(self, src, dest):
         o, e, r = exxec.processToStringsWithResult(self.mainCommand() + ["--copyin"] + src + [dest])
-        outputControl.logging_access.LoggingAccess().log(e, la.Verbosity.MOCK)
+        la.LoggingAccess().log(e, vc.Verbosity.MOCK)
         return o, e, r
 
     def copyIns(self, cwd, srcs, dest):
         # unlike copyIn, this copy list of files TO destination. Because of necessary relativity of srcs,
         # CWD is included
         o, e, r = exxec.processToStringsWithResult(self.mainCommand() + ["--copyin"] + srcs + [dest], True, cwd)
-        outputControl.logging_access.LoggingAccess().log(e, la.Verbosity.MOCK)
+        la.LoggingAccess().log(e, vc.Verbosity.MOCK)
         return o, e, r
 
     def importRpm(self, rpmPath, resetBuildRoot=True):
         # there is restriciton to chars and length in/of vg name
         key= re.sub('[^0-9a-zA-Z]+', '_', ntpath.basename(rpmPath))
         if key in self.snapshots:
-            outputControl.logging_access.LoggingAccess().log(rpmPath + " already extracted in snapshot. "
-                                                                       "Rolling to " + key, la.Verbosity.MOCK)
+            la.LoggingAccess().log(rpmPath + " already extracted in snapshot. "
+                                                                       "Rolling to " + key, vc.Verbosity.MOCK)
             return self.getSnapshot(key)
         else:
-            outputControl.logging_access.LoggingAccess().log(rpmPath + " not extracted in snapshot. Creating " + key,
-                                                             la.Verbosity.MOCK)
+            la.LoggingAccess().log(rpmPath + " not extracted in snapshot. Creating " + key,
+                                                             vc.Verbosity.MOCK)
             out, serr, res = self.importRpmCommand(rpmPath, resetBuildRoot)
             self.createSnapshot(key)
             self.snapshots[key] = rpmPath
@@ -220,12 +220,12 @@ class Mock:
 
     def executeCommand(self, cmds):
         o, e, r = exxec.processToStringsWithResult(self.mainCommand() + ["--chroot"] + cmds)
-        outputControl.logging_access.LoggingAccess().log(e, la.Verbosity.MOCK)
+        la.LoggingAccess().log(e, vc.Verbosity.MOCK)
         return o, r
 
     def executeShell(self, scriptFilePath):
         o, e, r = exxec.processToStringsWithResult(self.mainCommand() + ["--chroot", "sh", scriptFilePath])
-        outputControl.logging_access.LoggingAccess().log(e, la.Verbosity.MOCK)
+        la.LoggingAccess().log(e, vc.Verbosity.MOCK)
         return o, r
 
     def listFiles(self):
@@ -277,9 +277,9 @@ class Mock:
         try:
             DefaultMock().install_postscript(pkg)
         except utils.mock.mock_execution_exception.MockExecutionException:
-            outputControl.logging_access.LoggingAccess().log("        " + "Postinstall script not found in " +
+            la.LoggingAccess().log("        " + "Postinstall script not found in " +
                                                              os.path.basename(pkg),
-                                                             outputControl.logging_access.Verbosity.TEST)
+                                                             vc.Verbosity.TEST)
             return False
 
         return True
@@ -290,8 +290,8 @@ class Mock:
     def _install_scriptlet(self, pkg, scriptlet):
         key = re.sub('[^0-9a-zA-Z]+', '_', ntpath.basename(pkg) + "_" + scriptlet)
         if key in self.snapshots:
-            outputControl.logging_access.LoggingAccess().log(pkg + " already extracted in snapshot. Rolling to " + key,
-                                                             la.Verbosity.MOCK)
+            la.LoggingAccess().log(pkg + " already extracted in snapshot. Rolling to " + key,
+                                                             vc.Verbosity.MOCK)
             self.getSnapshot(key)
             return
         else:
@@ -303,8 +303,8 @@ class Mock:
 
             else:
                 o, r = self.executeScriptlet(pkg, scriptlet)
-                outputControl.logging_access.LoggingAccess().log(scriptlet + "returned " +
-                                                                 str(r) + " of " + os.path.basename(pkg), la.Verbosity.MOCK)
+                la.LoggingAccess().log(scriptlet + "returned " +
+                                                                 str(r) + " of " + os.path.basename(pkg), vc.Verbosity.MOCK)
                 self.createSnapshot(key)
 
     def execute_ls(self, dir):
@@ -330,8 +330,8 @@ class Mock:
 
         output = self.display_alternatives(master)
         if len(output.strip()) == 0:
-            outputControl.logging_access.LoggingAccess().log("alternatives --display master output is empty",
-                                                             la.Verbosity.MOCK)
+            la.LoggingAccess().log("alternatives --display master output is empty",
+                                                             vc.Verbosity.MOCK)
             raise utils.mock.mock_execution_exception.MockExecutionException("alternatives --display master "
                                                                              "output is empty ")
         data = {}

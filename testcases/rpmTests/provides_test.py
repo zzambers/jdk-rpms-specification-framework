@@ -4,16 +4,13 @@ import outputControl.logging_access as la
 import config.global_config as gc
 import config.runtime_config as rc
 import utils.process_utils as pu
-import utils.pkg_name_split as pkgsplit
 import utils.core.base_xtest as bt
-
+import config.verbosity_config as vc
 ###
 import utils.core.configuration_specific as cs
 import utils.test_constants as tc
 import utils.pkg_name_split as ns
 import utils.test_utils as tu
-import utils.mock.mock_executor as mexe
-from outputControl import dom_objects as do
 
 
 class NonITW(cs.JdkConfiguration):
@@ -56,7 +53,7 @@ class NonITW(cs.JdkConfiguration):
                     actual_provides.pop(provide)
             if missing_provides:
                 la.LoggingAccess().log("missing provide in {}: ".format(make_rpm_readable(filename)) +
-                                       str(list(missing_provides)), la.Verbosity.TEST)
+                                       str(list(missing_provides)), vc.Verbosity.TEST)
             tu.passed_or_failed(self, len(actual_provides) == 0, "found extra provides in rpm " + make_rpm_readable(filename) + ": " +
                                        str(list(actual_provides.keys())))
         self._document(documentation)
@@ -127,7 +124,7 @@ class NonITW(cs.JdkConfiguration):
                        + "of javadoc-zip having common provides with javadoc")
         files = [x.replace("rpms/", "") for x in files if tu.validate_arch_for_rpms(this.current_arch) in x]
         if files:
-            la.LoggingAccess().log("  Testing VersionRelease: " + ns.get_version_full(files[0]), la.Verbosity.TEST)
+            la.LoggingAccess().log("  Testing VersionRelease: " + ns.get_version_full(files[0]), vc.Verbosity.TEST)
         for i in range(len(files) - 1):
             actual_provides = self._get_artificial_provides(files[i])
             for j in range(i + 1, len(files)):

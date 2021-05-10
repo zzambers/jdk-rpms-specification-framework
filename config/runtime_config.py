@@ -1,7 +1,8 @@
 import config.global_config
 import utils.build_downloader
-from outputControl import logging_access as la
+import outputControl.logging_access as la
 import utils.rpm_list as rpm_list
+import config.verbosity_config as vc
 
 VERSION_STRING = "jdks_specification_framework, version 0.1"
 
@@ -28,7 +29,7 @@ class RuntimeConfig(metaclass=Singleton):
         self.docs = False
         self.header = True
         self.archs = None
-        self.verbosity = la.Verbosity.TEST
+        self.verbosity = vc.Verbosity.TEST
         self.diewith = None
 
     def getRpmList(self):
@@ -39,7 +40,7 @@ class RuntimeConfig(metaclass=Singleton):
     def setLogsFile(self, nwFile):
         oldValue = self.logsFile
         self.logsFile = nwFile
-        la.LoggingAccess().log("Logfile set to " + nwFile + " instead of " + oldValue, la.Verbosity.TEST)
+        la.LoggingAccess().log("Logfile set to " + nwFile + " instead of " + oldValue, vc.Verbosity.TEST)
 
     def set_verbosity(self, verbosity):
         self.verbosity = verbosity
@@ -57,7 +58,7 @@ class RuntimeConfig(metaclass=Singleton):
         return self.header
 
     def setPkgsDir(self, nwDir):
-        la.LoggingAccess().log("Rpms looked for in " + nwDir + " instead of " + self.pkgsDir, la.Verbosity.TEST)
+        la.LoggingAccess().log("Rpms looked for in " + nwDir + " instead of " + self.pkgsDir, vc.Verbosity.TEST)
         self.pkgsDir = nwDir
 
     def getPkgsDir(self):
@@ -69,7 +70,7 @@ class RuntimeConfig(metaclass=Singleton):
         else:
             words = archString.split(",")
             self.archs = words
-        la.LoggingAccess().log("archs limited/forced to " + str(self.archs), la.Verbosity.TEST)
+        la.LoggingAccess().log("archs limited/forced to " + str(self.archs), vc.Verbosity.TEST)
 
     def getArchs(self):
         return self.archs
@@ -83,7 +84,7 @@ class RuntimeConfig(metaclass=Singleton):
             la.LoggingAccess().stdout(VERSION_STRING)
             return False
         # later it does not matter as logging is already going to log file
-        la.LoggingAccess().log(VERSION_STRING, la.Verbosity.TEST)
+        la.LoggingAccess().log(VERSION_STRING, vc.Verbosity.TEST)
         # switches should go before commands, so commands can use them
         if args.dir:
             self.setPkgsDir(args.dir)
@@ -102,7 +103,7 @@ class RuntimeConfig(metaclass=Singleton):
             self.header = False
         if args.verbosity:
             try:
-                verbosity = la.Verbosity(int(args.verbosity))
+                verbosity = vc.Verbosity(int(args.verbosity))
             except Exception:
                 raise AttributeError("Invalid verbosity argument, expected 1, 2 or 3, "
                                      "but got {}.".format(args.verbosity))

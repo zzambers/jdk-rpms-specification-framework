@@ -7,9 +7,9 @@ from config.global_config import get_32b_arch_identifiers_in_scriptlets as get_i
 import os
 from utils.test_constants import *
 from utils.test_utils import get_32bit_id_in_nvra, passed_or_failed
-from outputControl import logging_access as la
+import outputControl.logging_access as la
 from outputControl import dom_objects as do
-
+import config.verbosity_config as vc
 
 
 # TODO binary jexec in /usr/lib/jvm/nvra/lib in headless package is not checked on path, or in the directory.
@@ -128,7 +128,7 @@ class PathTest(BaseTest):
                 continue
 
             paths = self._get_paths()
-            self.binaries_test.log("Given paths: " + ", ".join(paths), la.Verbosity.TEST)
+            self.binaries_test.log("Given paths: " + ", ".join(paths), vc.Verbosity.TEST)
 
             for path in paths:
                 content = self._get_path_contents(path)
@@ -138,15 +138,15 @@ class PathTest(BaseTest):
                     content = content[0].split("\n")
                 path_contents[path] = content
 
-            self.binaries_test.log("Validating binaries paths for {} subpackage: ".format(_subpkg), la.Verbosity.TEST)
+            self.binaries_test.log("Validating binaries paths for {} subpackage: ".format(_subpkg), vc.Verbosity.TEST)
             if _subpkg in self.installed_binaries:
                 for binary in self.installed_binaries[_subpkg]:
                     found_paths = self._binary_in_path_contents(path_contents, binary)
                     if passed_or_failed(self, found_paths is not None, binary + " not found in any path given for " + _subpkg):
                         self.binaries_test.log("Binary {} found in {} for "
-                                               "{}".format(binary, ", ".join(found_paths), _subpkg), la.Verbosity.TEST)
+                                               "{}".format(binary, ", ".join(found_paths), _subpkg), vc.Verbosity.TEST)
 
-        self.binaries_test.log("Path test finished.", la.Verbosity.TEST)
+        self.binaries_test.log("Path test finished.", vc.Verbosity.TEST)
         return
 
     def _get_paths(self):

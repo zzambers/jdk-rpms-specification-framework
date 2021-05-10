@@ -5,14 +5,15 @@ import ntpath
 import os
 import shutil
 
-from utils import pkg_name_split as split
 import urllib3
 
+import utils.pkg_name_split as split
 import config.global_config
 import config.runtime_config
-from outputControl import logging_access as la
+import outputControl.logging_access as la
 import utils.rpm_list
 import utils.process_utils
+import config.verbosity_config as vc
 
 BREW = "brew"
 KOJI = "koji"
@@ -22,11 +23,11 @@ def getBuild(nvr):
     "This method download build from brw. The filtering of arches depends on RuntimeConfig().getArchs();"
     target = _checkDest(config.runtime_config.RuntimeConfig().getPkgsDir())
     command = _getCommand(nvr)
-    la.LoggingAccess().log("using " + command, la.Verbosity.TEST)
+    la.LoggingAccess().log("using " + command, vc.Verbosity.TEST)
     packages = _getBuildInfo(command, nvr)
     if len(packages) == 0:
         raise Exception("No pkgs to download. Verify build or archs")
-    la.LoggingAccess().log("going to download " + str(len(packages)) + " rpms", la.Verbosity.TEST)
+    la.LoggingAccess().log("going to download " + str(len(packages)) + " rpms", vc.Verbosity.TEST)
     _downloadBrewKojiBuilds(packages, target)
     return True
 
@@ -40,7 +41,7 @@ def _downloadBrewKojiBuilds(pkgs, targetDir):
             url = mainUrl + pkg.replace("/mnt/koji/", "/")
         if BREW in pkg:
             url = mainUrl + pkg.replace("/mnt/redhat/", "/")
-        la.LoggingAccess().log("downloading " + str(i + 1) + "/" + str(len(pkgs)) + " - " + url, la.Verbosity.TEST)
+        la.LoggingAccess().log("downloading " + str(i + 1) + "/" + str(len(pkgs)) + " - " + url, vc.Verbosity.TEST)
         targetFile = targetDir + "/" + ntpath.basename(pkg)
         http = urllib3.PoolManager()
         with http.request('GET', url, preload_content=False) as r, open(targetFile, 'wb') as out_file:
@@ -63,13 +64,13 @@ def _getBuildInfo(cmd, nvr):
 def _checkDest(dir):
     absOne = os.path.abspath(dir)
     if not os.path.exists(absOne):
-        la.LoggingAccess().log("Creating: " + absOne, la.Verbosity.TEST)
+        la.LoggingAccess().log("Creating: " + absOne, vc.Verbosity.TEST)
         os.mkdir(absOne)
     if not os.path.isdir(absOne):
         raise Exception(absOne + " Must be a directory, is not")
     if not os.listdir(absOne) == []:
         raise Exception(absOne + " Is not empty, please fix")
-    la.LoggingAccess().log("Using as download target: " + absOne, la.Verbosity.TEST)
+    la.LoggingAccess().log("Using as download target: " + absOne, vc.Verbosity.TEST)
     return absOne
 
 
@@ -104,5 +105,5 @@ def _getMainUrl(path_rpm):
 
 def _getOs(rpm):
     os = split.get_dist(rpm)
-    la.LoggingAccess().log("in " + rpm + " recognized " + os, la.Verbosity.TEST)
+    la.LoggingAccess().log("in " + rpm + " recognized " + os, vc.Verbosity.TEST)
     return os

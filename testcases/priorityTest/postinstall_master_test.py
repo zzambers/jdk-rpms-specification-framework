@@ -1,4 +1,4 @@
-from outputControl import logging_access as la
+import outputControl.logging_access as la
 import sys
 import utils.core.base_xtest as bt
 from utils.core.configuration_specific import JdkConfiguration
@@ -14,6 +14,7 @@ from config.global_config import get_32b_arch_identifiers_in_scriptlets as get_i
 from utils.test_utils import rename_default_subpkg, passed_or_failed, get_arch
 from utils.test_constants import *
 from outputControl import dom_objects as do
+import config.verbosity_config as vc
 
 # TODO check if the masters are directories + doc that those are directories
 
@@ -90,8 +91,8 @@ class CheckPostinstallScript(BasePackages):
             _subpackage = rename_default_subpkg(utils.pkg_name_split.get_subpackage_only(os.path.basename(pkg)))
 
             PostinstallScriptTest.instance.log("Searching for " + rbu.POSTINSTALL + " in " + os.path.basename(pkg),
-                                               la.Verbosity.TEST)
-            PostinstallScriptTest.instance.log("Checking master for " + os.path.basename(pkg), la.Verbosity.TEST)
+                                               vc.Verbosity.TEST)
+            PostinstallScriptTest.instance.log("Checking master for " + os.path.basename(pkg), vc.Verbosity.TEST)
             if "-debuginfo" in _subpackage:
                 PostinstallScriptTest.instance.log("Skipping " + _subpackage + " subpackage, because debuginfo "
                                                                                "subpackages does not contain "
@@ -108,20 +109,20 @@ class CheckPostinstallScript(BasePackages):
             actual_masters[_subpackage] = pkg_masters
 
         PostinstallScriptTest.instance.log("Postinstall script does not exist for: " + str(skipped) + ".",
-                                           la.Verbosity.TEST)
+                                           vc.Verbosity.TEST)
         PostinstallScriptTest.instance.log("Postinstall expected in " + str(len(expected_masters)) +
-                                           " : " + ", ".join(expected_masters), la.Verbosity.TEST)
+                                           " : " + ", ".join(expected_masters), vc.Verbosity.TEST)
         PostinstallScriptTest.instance.log("Postinstall present in " + str(len(actual_masters)) + " : " +
-                                           ", ".join(actual_masters), la.Verbosity.TEST)
+                                           ", ".join(actual_masters), vc.Verbosity.TEST)
         passed_or_failed(self, set(expected_masters.keys()) == set(actual_masters.keys()), "expected subpkgs do not match actual ones: " + str(expected_masters.keys()) + " != " + str(actual_masters.keys()))
         for subpkg in expected_masters.keys():
             if not passed_or_failed(self, subpkg in actual_masters.keys(), "There is no such subpackage as " +
                                                                            subpkg + " that contains masters."):
                 continue
             PostinstallScriptTest.instance.log("Expected masters for " + subpkg + " : " +
-                                               ", ".join(sorted(expected_masters[subpkg])), la.Verbosity.TEST)
+                                               ", ".join(sorted(expected_masters[subpkg])), vc.Verbosity.TEST)
             PostinstallScriptTest.instance.log("Presented masters for " + subpkg + " : " +
-                                               ", ".join(sorted(actual_masters[subpkg])), la.Verbosity.TEST)
+                                               ", ".join(sorted(actual_masters[subpkg])), vc.Verbosity.TEST)
             passed_or_failed(self, sorted(expected_masters[subpkg]) == sorted(actual_masters[subpkg]),
                              "expected masters do not match actual ones for {}: ".format(subpkg) +
                              str(sorted(expected_masters[subpkg])) + " != " + str(sorted(actual_masters[subpkg])))
@@ -360,7 +361,7 @@ class PostinstallScriptTest(bt.BaseTest):
     def setCSCH(self):
         PostinstallScriptTest.instance = self
         rpms = rc.RuntimeConfig().getRpmList()
-        self.log("Checking post_script and master for " + rpms.getVendor(), la.Verbosity.TEST)
+        self.log("Checking post_script and master for " + rpms.getVendor(), vc.Verbosity.TEST)
 
         if rpms.getVendor() == gc.OPENJDK or rpms.getVendor() == gc.OPENJ9:
             if rpms.getMajorVersionSimplified() == "6":

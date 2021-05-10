@@ -2,17 +2,14 @@ import sys
 
 import utils.pkg_name_split as split
 import utils.rpmbuild_utils as rpmuts
-from utils.core.configuration_specific import JdkConfiguration
-
+import utils.core.configuration_specific as cs
 import config.runtime_config
 import utils.core.base_xtest
-from outputControl import logging_access as la
-from utils.test_utils import passed_or_failed
-import config.global_config as gc
-from outputControl import dom_objects as do
+import outputControl.logging_access as la
+import utils.test_utils as tu
 
 
-class Base(JdkConfiguration):
+class Base(cs.JdkConfiguration):
     def __init__(self):
         super().__init__()
 
@@ -34,7 +31,7 @@ class Openjdk8Fedora(Base):
     def _checkJreObsolete(self, obsoletes=None):
         self._document("jre OpenJdk8 in Fedora must obsolate: " +",".join(Openjdk8Fedora.jreRequiredObsolete))
         obsoleteJdk7Set = set(Openjdk8Fedora.jreRequiredObsolete).intersection(set(obsoletes))
-        passed_or_failed(self, len(obsoleteJdk7Set) == len(Openjdk8Fedora.jreRequiredObsolete),
+        tu.passed_or_failed(self, len(obsoleteJdk7Set) == len(Openjdk8Fedora.jreRequiredObsolete),
                          "Number of obsoletes and obsoleteExceptions is not same.",
                          "this test is checking only count of obsoletes vs count of exceptions, needs rework")
         return self.passed, self.failed
@@ -48,7 +45,7 @@ class JdkRhel(Base):
     def _checkJreObsolete(self, obsoletes=None):
         self._document("Jdks in rhel must NOT obsolete anything. Possible exceptions: " +
                        ",".join(JdkRhel.jreExceptionsObsolete))
-        passed_or_failed(self, len(set(obsoletes)-set(JdkRhel.jreExceptionsObsolete)) == 0,
+        tu.passed_or_failed(self, len(set(obsoletes)-set(JdkRhel.jreExceptionsObsolete)) == 0,
                          "Number of obsoletes and obsoleteExceptions is not same.",
                          "this test is checking only count of obsoletes vs count of exceptions, needs rework")
         return self.passed, self.failed

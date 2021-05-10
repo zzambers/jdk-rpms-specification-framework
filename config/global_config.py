@@ -1,6 +1,6 @@
-from outputControl import logging_access as la
-from utils import rpmbuild_utils
-
+import outputControl.logging_access as la
+import utils.rpmbuild_utils as rpmbuild_utils
+import config.verbosity_config as vc
 # The get_methods nor find_on_disc are order-granting. However they seems to be sorted...
 # Sometimes. So this switch will ensure it.
 
@@ -29,7 +29,7 @@ class DynamicArches(metaclass=Singleton):
         self.power64 = None
 
     def getDynamicArches(self, arch):
-        la.LoggingAccess().log("Getting dynamic arches for: " + arch, la.Verbosity.MOCK)
+        la.LoggingAccess().log("Getting dynamic arches for: " + arch, vc.Verbosity.MOCK)
         output= rpmbuild_utils.rpmbuildEval(arch)
         li = output.split(" ")
         for i in range(len(li)):

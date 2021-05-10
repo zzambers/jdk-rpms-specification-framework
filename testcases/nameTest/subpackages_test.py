@@ -8,10 +8,10 @@ import outputControl.logging_access
 import utils.core.base_xtest
 import utils.core.unknown_java_exception as ex
 from utils.test_constants import *
-from outputControl import logging_access as la
+import outputControl.logging_access as la
 from utils import pkg_name_split as split
 from utils.test_utils import passed_or_failed
-
+import config.verbosity_config as vc
 
 class MainPackagePresent(JdkConfiguration):
 
@@ -27,16 +27,16 @@ class MainPackagePresent(JdkConfiguration):
         ssGiven = sorted(set(subpkgs))
         SubpackagesTest.instance.log("Checking number of subpackages " + str(len(ssGiven)) +
                                      " of " + SubpackagesTest.instance.current_arch + " against "
-                                     + str(len(subpkgSetExpected)), la.Verbosity.TEST)
-        SubpackagesTest.instance.log("Presented: " + str(ssGiven), la.Verbosity.TEST)
-        SubpackagesTest.instance.log("Expected:  " + str(subpkgSetExpected), la.Verbosity.TEST)
+                                     + str(len(subpkgSetExpected)), vc.Verbosity.TEST)
+        SubpackagesTest.instance.log("Presented: " + str(ssGiven), vc.Verbosity.TEST)
+        SubpackagesTest.instance.log("Expected:  " + str(subpkgSetExpected), vc.Verbosity.TEST)
         #if not ssGiven == subpkgSetExpected:
         if not passed_or_failed(self, ssGiven == subpkgSetExpected,
                                "Set of subpkgs not as expected. Differences will follow."):
             missingSubpackages = []
             for subpkg in subpkgSetExpected:
                 SubpackagesTest.instance.log(
-                    "Checking `" + subpkg + "` of " + SubpackagesTest.instance.current_arch, la.Verbosity.TEST)
+                    "Checking `" + subpkg + "` of " + SubpackagesTest.instance.current_arch, vc.Verbosity.TEST)
                 if subpkg in ssGiven:
                     ssGiven.remove(subpkg)
                 else:

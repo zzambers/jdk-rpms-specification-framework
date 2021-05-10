@@ -13,6 +13,7 @@ from utils.test_utils import get_32bit_id_in_nvra, log_failed_test
 from utils.test_constants import *
 from utils.core.unknown_java_exception import UnknownJavaVersionException
 from outputControl import dom_objects as do
+import config.verbosity_config as vc
 
 class BaseMethods(JdkConfiguration):
     """ This class tests whether the subdirectories in /usr/lib/jvm are as expected  """
@@ -108,7 +109,7 @@ class BaseMethods(JdkConfiguration):
             if _subpkg not in self._get_expected_subdirectories(name).keys():
                 continue
             if not DefaultMock().postinstall_exception_checked(pkg):
-                SubdirectoryTest.instance.log("Skipping subdirectory test for {}".format(_subpkg), la.Verbosity.TEST)
+                SubdirectoryTest.instance.log("Skipping subdirectory test for {}".format(_subpkg), vc.Verbosity.TEST)
                 continue
 
             subdirectories = DefaultMock().execute_ls(JVM_DIR)
@@ -121,16 +122,16 @@ class BaseMethods(JdkConfiguration):
             expected_subdirectories = self._get_expected_subdirectories(name)[_subpkg]
             expected_subdirectories.append(self._get_nvra_suffix(name))
             expected_subdirectories = set(expected_subdirectories)
-            SubdirectoryTest.instance.log("Testing subdirectories for {}:".format(name), la.Verbosity.TEST)
+            SubdirectoryTest.instance.log("Testing subdirectories for {}:".format(name), vc.Verbosity.TEST)
             SubdirectoryTest.instance.log("Expected: " + str(sorted(expected_subdirectories)),
-                                          la.Verbosity.TEST)
-            SubdirectoryTest.instance.log("Presented: " + str(sorted(subdirectories)), la.Verbosity.TEST)
+                                          vc.Verbosity.TEST)
+            SubdirectoryTest.instance.log("Presented: " + str(sorted(subdirectories)), vc.Verbosity.TEST)
             self._test_subdirectories_equals(subdirectories, expected_subdirectories, _subpkg, name)
             self._test_links_are_correct(subdirectories, name, _subpkg)
 
         if len(self.list_of_failed_tests) != 0:
             SubdirectoryTest.instance.log("Summary of failed tests: " + "\n        ".join(self.list_of_failed_tests),
-                                          la.Verbosity.ERROR)
+                                          vc.Verbosity.ERROR)
         return self.passed, self.failed
 
 
@@ -263,7 +264,7 @@ class ITW(BaseMethods):
     """ No test for ITW, since everything is in /usr/bin"""
     def _subdirectory_test(self, pkgs):
         SubdirectoryTest.instance.log("Iced Tea web binaries are in /usr/bin, no subdirectories with n-v-r-a are "
-                                      "created. This test is skipped for icedtea-web packages.", la.Verbosity.TEST)
+                                      "created. This test is skipped for icedtea-web packages.", vc.Verbosity.TEST)
         return self.passed, self.failed
 
     def document_subdirs(self, args):
@@ -280,7 +281,7 @@ class SubdirectoryTest(bt.BaseTest):
     def setCSCH(self):
         SubdirectoryTest.instance = self
         rpms = rc.RuntimeConfig().getRpmList()
-        self.log("Checking subdirectories for: " + rpms.getMajorPackage(), la.Verbosity.TEST)
+        self.log("Checking subdirectories for: " + rpms.getMajorPackage(), vc.Verbosity.TEST)
         if rpms.getVendor() == gc.OPENJDK or rpms.getVendor() == gc.OPENJ9:
             if rpms.getMajorVersionSimplified() == "6":
                 if self.current_arch in (gc.getPower64BeAchs() + gc.getX86_64Arch()):

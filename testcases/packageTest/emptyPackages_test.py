@@ -5,9 +5,8 @@ import utils.pkg_name_split as split
 import config.global_config
 import config.runtime_config
 import utils.core.base_xtest
-from outputControl import logging_access as la
-from utils.test_utils import passed_or_failed
-from outputControl import dom_objects as do
+import outputControl.logging_access as la
+import utils.test_utils as tu
 
 
 class EmptyPackageTest(utils.core.base_xtest.BaseTest):
@@ -21,13 +20,13 @@ class EmptyPackageTest(utils.core.base_xtest.BaseTest):
             files = utils.rpmbuild_utils.listFilesInPackage(pkg)
             self.log("got: " + str(len(files)) + " files")
             if split.get_arch(pkg) in config.global_config.getSrcrpmArch():
-                passed_or_failed(self, len(files) > 1, "Wrong number of files in package " + pkg +
+                tu.passed_or_failed(self, len(files) > 1, "Wrong number of files in package " + pkg +
                                  " should be more than 1.")
             # IBM8EL8 src and jdbc pkgs both contain single file
             elif split.get_vendor(pkg) == "ibm" and split.simplify_full_version(split.get_major_ver(pkg)) == "8" and ("src" in pkg or "jdbc" in pkg):
-                passed_or_failed(self, len(files) == 1, "Wrong number of files in package " + pkg + " should be 1.")
+                tu.passed_or_failed(self, len(files) == 1, "Wrong number of files in package " + pkg + " should be 1.")
             else:
-                passed_or_failed(self, len(files) > 2, "Wrong number of files in package "
+                tu.passed_or_failed(self, len(files) > 2, "Wrong number of files in package "
                                  + pkg + " should be more than 2.")
         return self.passed, self.failed
 

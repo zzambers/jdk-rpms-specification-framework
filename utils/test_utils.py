@@ -3,15 +3,15 @@ import tempfile
 import errno
 import sys
 
-import config.global_config
-from outputControl import logging_access as la
+import config.global_config as gc
+import outputControl.logging_access as la
 import config.runtime_config
 import outputControl.dom_objects as do
 #must do otherway in case of cyclic dependencies
 import utils.mock.mock_executor as mexe
-
-from utils.core.configuration_specific import JdkConfiguration
-from utils.core.base_xtest import BaseTest
+import utils.core.configuration_specific as cs
+import utils.core.base_xtest as bx
+import config.verbosity_config as vc
 
 def closeTestSuite(passed, failed, mtc):
     la.LoggingAccess().stdout("Arch-independet mehtods counted: " + str(mtc))
@@ -29,7 +29,7 @@ def closeTestSuite(passed, failed, mtc):
 # ignored must be taken as a passed test case, since docs are also csch
 def closeDocSuite(documented, ignored, failed):
     la.LoggingAccess().log("done - Documented: " + str(documented) + " from total: " + str(documented+ignored+failed),
-                           la.Verbosity.TEST)
+                           vc.Verbosity.TEST)
     if failed != 0:
         if config.runtime_config.RuntimeConfig().diewith:
             sys.exit(config.runtime_config.RuntimeConfig().diewith)
@@ -62,7 +62,7 @@ def get_dirs(directory, file_suffix="", logging = True):
 def get_files_and_dirs(directory, file_suffix="", logging = True):
     """Walk `directory' and get a list of all filenames/dirs in it."""
     if logging:
-        la.LoggingAccess().log("Searching in " + directory + " for: *" + file_suffix, la.Verbosity.TEST)
+        la.LoggingAccess().log("Searching in " + directory + " for: *" + file_suffix, vc.Verbosity.TEST)
     resList = []
     dirList = []
     for root, dirs, files in os.walk(directory):
@@ -80,7 +80,7 @@ def get_files_and_dirs(directory, file_suffix="", logging = True):
 
 def get_top_dirs(directory):
     """Walk `directory' and get a list of all top directory names in it."""
-    la.LoggingAccess().log("Searching in " + directory + " for: top dirs", la.Verbosity.TEST)
+    la.LoggingAccess().log("Searching in " + directory + " for: top dirs", vc.Verbosity.TEST)
     resList = []
     for root, dirs, files in os.walk(directory):
         for d in dirs:
@@ -91,7 +91,7 @@ def get_top_dirs(directory):
 
 def get_top_dirs_and_files(directory):
     """Walk `directory' and get a list of all top directory names in it."""
-    la.LoggingAccess().log("Searching in " + directory + " for: top dirs and files", la.Verbosity.TEST)
+    la.LoggingAccess().log("Searching in " + directory + " for: top dirs and files", vc.Verbosity.TEST)
     resList = []
     for root, dirs, files in os.walk(directory):
         for f in files:
@@ -159,9 +159,8 @@ def two_lists_diff(desired_list, elements_to_remove):
 
 
 def get_32bit_id_in_nvra(nvra):
-    from config.global_config import get_32b_arch_identifiers_in_scriptlets
     parts = nvra.split(".")
-    parts[-1] = get_32b_arch_identifiers_in_scriptlets(parts[-1])
+    parts[-1] = gc.get_32b_arch_identifiers_in_scriptlets(parts[-1])
     nvra = ".".join(parts)
     return nvra
 
@@ -171,13 +170,12 @@ def get_32bit_id_in_nvra(nvra):
 def log_failed_test(instance, fail):
     instance.failed += 1
     instance.list_of_failed_tests.append(fail)
-    la.LoggingAccess().log("        " + fail, la.Verbosity.TEST)
+    la.LoggingAccess().log("        " + fail, vc.Verbosity.TEST)
     return
 
 
 def get_arch(instance):
-    from config.global_config import get_32b_arch_identifiers_in_scriptlets
-    return get_32b_arch_identifiers_in_scriptlets(instance.getCurrentArch())
+    return gc.get_32b_arch_identifiers_in_scriptlets(instance.getCurrentArch())
 
 
 # this method is shortcut for getting your passes or fails for the sum-up, give two arguments - instance of object
@@ -193,11 +191,11 @@ def passed_or_failed(instance, bool, iffailed, ifpassed=""):
     if bool:
         instance.passed += 1
         if ifpassed != "":
-            la.LoggingAccess().log("        " + ifpassed, la.Verbosity.TEST)
+            la.LoggingAccess().log("        " + ifpassed, vc.Verbosity.TEST)
     else:
-        if issubclass(instance.__class__, (JdkConfiguration, BaseTest)):
+        if issubclass(instance.__class__, (cs.JdkConfiguration, bx.BaseTest)):
             instance.failed += 1
-        la.LoggingAccess().log("        " + iffailed, la.Verbosity.TEST)
+        la.LoggingAccess().log("        " + iffailed, vc.Verbosity.TEST)
         testcase.set_view_file_stub(iffailed)
     return bool
 

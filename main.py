@@ -9,13 +9,14 @@ import sys
 import config.general_parser
 import config.runtime_config
 import utils.test_utils as tu
-from outputControl import logging_access as la
+import outputControl.logging_access as la
+import config.verbosity_config as vc
 
 
 def getTestFiles():
     dir = os.path.dirname(os.path.abspath(__file__))
     flist = tu.get_files(dir+"/testcases", "_test.py")
-    la.LoggingAccess().log("Found " + str(len(flist))+" files to run.", la.Verbosity.TEST)
+    la.LoggingAccess().log("Found " + str(len(flist))+" files to run.", vc.Verbosity.TEST)
     for n, file in enumerate(flist):
         flist[n] = file[len(dir)+1:-3].replace("/",".")
     if config.global_config.leSort:
@@ -41,7 +42,7 @@ def header():
 
 def runDocks():
     header()
-    la.LoggingAccess().log("Running documentation", la.Verbosity.TEST)
+    la.LoggingAccess().log("Running documentation", vc.Verbosity.TEST)
     dlist = []
     ilist = []
     flist = []
@@ -58,7 +59,7 @@ def runDocks():
 
 def runTasks():
     header()
-    la.LoggingAccess().log("Running all testsuites", la.Verbosity.TEST)
+    la.LoggingAccess().log("Running all testsuites", vc.Verbosity.TEST)
     plist=[]
     flist=[]
     clist = []

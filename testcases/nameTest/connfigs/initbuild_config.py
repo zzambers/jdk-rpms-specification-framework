@@ -1,7 +1,7 @@
 import re
 
 import config.global_config as gc
-from outputControl import logging_access as la
+import outputControl.logging_access as la
 from utils.core.configuration_specific import JdkConfiguration
 
 

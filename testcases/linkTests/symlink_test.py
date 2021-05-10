@@ -1,6 +1,6 @@
 import os
 import sys
-from outputControl import logging_access as la
+import outputControl.logging_access as la
 import config.runtime_config as rc
 import utils.core.base_xtest as bt
 from utils.core.configuration_specific import JdkConfiguration
@@ -11,6 +11,7 @@ import utils.pkg_name_split as pkgsplit
 from utils.test_constants import subpackages_without_alternatives
 from enum import Enum
 from outputControl import dom_objects as do
+import config.verbosity_config as vc
 
 OPENJFXDIR = "/usr/lib/jvm/openjfx"
 
@@ -129,7 +130,7 @@ class BaseMethods(JdkConfiguration):
         pkgs = SymlinkTest.instance.getBuild()
 
         DefaultMock().provideCleanUsefullRoot()
-        SymlinkTest.instance.log("Getting pre-existing symlinks", la.Verbosity.TEST)
+        SymlinkTest.instance.log("Getting pre-existing symlinks", vc.Verbosity.TEST)
         default_symlink_list = DefaultMock().executeCommand(["symlinks -rvs /"])[0].split("\n")
 
         for pkg in pkgs:
@@ -151,7 +152,7 @@ class BaseMethods(JdkConfiguration):
                 if link.type_of_symlink == SymlinkTypes.DANGLING:
                     SymlinkTest.instance.log("Found dangling link in {}: {}. Further check ongoing, determining whether"
                                              " this is expected behavior.".format(subpackage, link.__str__()),
-                                             la.Verbosity.TEST)
+                                             vc.Verbosity.TEST)
                     # dangling links must be checked for excludes
                     self.check_dangling_symlinks(link, subpackage)
 
@@ -160,8 +161,8 @@ class BaseMethods(JdkConfiguration):
                     # TODO: not broken
                     passed_or_failed(self, True, "")
                     SymlinkTest.instance.log("Found valid link in {}: ".format(subpackage) + link.__str__(),
-                                              la.Verbosity.TEST)
-        SymlinkTest.instance.log("Failed symlinks tests: " + "\n".join(self.list_of_failed_tests), la.Verbosity.TEST)
+                                              vc.Verbosity.TEST)
+        SymlinkTest.instance.log("Failed symlinks tests: " + "\n".join(self.list_of_failed_tests), vc.Verbosity.TEST)
         return self.passed, self.failed
 
 
@@ -176,7 +177,7 @@ class SymlinkTest(bt.BaseTest):
     def setCSCH(self):
         SymlinkTest.instance = self
         rpms = rc.RuntimeConfig().getRpmList()
-        self.log("Checking symlinks for: " + rpms.getMajorPackage(), la.Verbosity.TEST)
+        self.log("Checking symlinks for: " + rpms.getMajorPackage(), vc.Verbosity.TEST)
         self.csch = BaseMethods()
         return
 

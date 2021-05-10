@@ -10,8 +10,9 @@ import utils.process_utils as pu
 import config.global_config
 import config.runtime_config
 import utils.core.configuration_specific as cs
-from outputControl import logging_access as la
-from outputControl import dom_objects as do
+import outputControl.logging_access as la
+import outputControl.dom_objects as do
+import config.verbosity_config as vc
 
 def lsort(someList):
     if config.global_config.leSort:
@@ -103,7 +104,7 @@ class BaseTestRunner:
         archs = self._cleanArchs()
         methods = lsort(inspect.getmembers(self, predicate=inspect.ismethod))
         for i, arch in enumerate(archs):
-            la.LoggingAccess().log("", la.Verbosity.JTREG, type(self).__name__ + "_" + arch)
+            la.LoggingAccess().log("", vc.Verbosity.JTREG, type(self).__name__ + "_" + arch)
             self.current_arch = arch
             for a, b in methods:
                 methodOnly = False
@@ -143,7 +144,7 @@ class BaseTestRunner:
                     methodEnd = time.process_time()
                     ms = (methodEnd)*1000-(methodStart*1000)
             rpms = config.runtime_config.RuntimeConfig().getRpmList()
-            la.LoggingAccess().log("<?xml version=\"1.0\"?>\n<testsuites>", la.Verbosity.JTREG,
+            la.LoggingAccess().log("<?xml version=\"1.0\"?>\n<testsuites>", vc.Verbosity.JTREG,
                                            type(self).__name__)
             failed_for_architecture = do.Tests().count_failed()
             passed_for_architecture = len(do.Tests().get_tests()) - do.Tests().count_failed()
@@ -151,12 +152,12 @@ class BaseTestRunner:
                     tu.xmltestsuite(0, failed_for_architecture, passed_for_architecture, passed_for_architecture +
                                     failed_for_architecture, 0, type(self).__name__, rpms.getOs()
                                     + rpms.getOsVersion() + "-vagrant", ms, dt.datetime.now().isoformat()),
-                    la.Verbosity.JTREG, type(self).__name__)
+                    vc.Verbosity.JTREG, type(self).__name__)
             for testcase in do.Tests().get_tests():
-                    la.LoggingAccess().log(testcase.print_test_case(), la.Verbosity.JTREG, type(self).__name__)
+                    la.LoggingAccess().log(testcase.print_test_case(), vc.Verbosity.JTREG, type(self).__name__)
             la.LoggingAccess().log("    <system-out></system-out>\n    " +
                                        "<system-err></system-err>\n  </testsuite>\n</testsuites>",
-                                       la.Verbosity.JTREG, type(self).__name__)
+                                       vc.Verbosity.JTREG, type(self).__name__)
             self.indent = "    "
             self.log("finished: " + a + "[" + self.current_arch + "] " + str(i + 1) + "/" + str(len(archs)) +
                          " in "+str(round(ms,3))+"ms")
@@ -221,7 +222,7 @@ class BaseTestRunner:
             " - documented/ignored/failed: " + str(documented) + "/" + str(ignored) + "/" + str(failed))
         return documented, ignored, failed
 
-    def log(self, arg, verbosity=la.Verbosity.ERROR):
+    def log(self, arg, verbosity=vc.Verbosity.ERROR):
         la.LoggingAccess().log(self.indent + arg, verbosity)
 
 

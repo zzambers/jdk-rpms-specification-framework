@@ -1,18 +1,15 @@
 import utils.mock.mock_executor as mexe
 import utils.pkg_name_split as pkgsplit
 import utils.mock.mock_execution_exception as mexc
-import utils.test_utils as tu
 import os
 import config.runtime_config as rc
-from testcases.alternativesTests.binaries_test_paths import PathTest
-from utils.test_constants import *
-from utils.test_utils import two_lists_diff as diff
-from utils.test_utils import passed_or_failed
-from outputControl import logging_access as la
-from outputControl import dom_objects as do
+import testcases.alternativesTests.binaries_test_paths as btp
+import utils.test_constants as tc
+import utils.test_utils as tu
+import outputControl.logging_access as la
+import config.verbosity_config as vc
 
-
-class GetAllBinariesAndSlaves(PathTest):
+class GetAllBinariesAndSlaves(btp.PathTest):
     rpms = rc.RuntimeConfig().getRpmList()
 
     def document_subpackages(self, args=None):
@@ -82,11 +79,11 @@ class GetAllBinariesAndSlaves(PathTest):
             try:
                 slaves = mexe.DefaultMock().get_slaves(m)
             except mexc.MockExecutionException:
-                self.binaries_test.log("No relevant slaves were present for " + _subpkg + ".", la.Verbosity.TEST)
+                self.binaries_test.log("No relevant slaves were present for " + _subpkg + ".", vc.Verbosity.TEST)
                 continue
-            self.binaries_test.log("Found slaves for {}: {}".format(_subpkg, str(slaves)), la.Verbosity.TEST)
+            self.binaries_test.log("Found slaves for {}: {}".format(_subpkg, str(slaves)), vc.Verbosity.TEST)
 
-            if m in [JAVA, JAVAC]:
+            if m in [tc.JAVA, tc.JAVAC]:
                 clean_slaves.append(m)
 
             # skipping manpage slaves
@@ -101,7 +98,7 @@ class GetAllBinariesAndSlaves(PathTest):
         for pkg in pkgs:
             name = os.path.basename(pkg)
             _subpkg = tu.rename_default_subpkg(pkgsplit.get_subpackage_only(name))
-            if _subpkg in subpackages_without_alternatives() + get_javadoc_dirs():
+            if _subpkg in tc.subpackages_without_alternatives() + tc.get_javadoc_dirs():
                 self.binaries_test.log("Skipping binaries extraction for " + _subpkg)
                 self.skipped.append(_subpkg)
                 continue
@@ -112,12 +109,12 @@ class GetAllBinariesAndSlaves(PathTest):
 
             if binaries[1] != 0:
                 self.binaries_test.log("Location {} does not exist, binaries test skipped "
-                                       "for ".format(binary_directory_path) + name, la.Verbosity.TEST)
+                                       "for ".format(binary_directory_path) + name, vc.Verbosity.TEST)
 
                 continue
             else:
                 self.binaries_test.log("Binaries found at {}: {}".format(binary_directory_path,
-                                                                         ", ".join(binaries[0].split("\n"))), la.Verbosity.TEST)
+                                                                         ", ".join(binaries[0].split("\n"))), vc.Verbosity.TEST)
 
             slaves = self.get_slaves(_subpkg)
 
@@ -142,7 +139,7 @@ class BinarySlaveTestMethods(GetAllBinariesAndSlaves):
         for subpkg in jre_subpackages:
             for sdk_subpkg in sdk_subpackages:
                 cont = False
-                for suffix in get_debug_suffixes():
+                for suffix in tc.get_debug_suffixes():
                     try:
                         if suffix in subpkg and suffix in sdk_subpkg:
                             current_subpkg = subpkg
@@ -173,7 +170,7 @@ class BinarySlaveTestMethods(GetAllBinariesAndSlaves):
         return
 
     def _perform_all_checks(self):
-        passed_or_failed(self, sorted(self.installed_slaves.keys()) == sorted(self.installed_binaries.keys()),
+        tu.passed_or_failed(self, sorted(self.installed_slaves.keys()) == sorted(self.installed_binaries.keys()),
                                 "Subpackages that contain binaries and slaves do not match. Subpackages with"
                                 "binaries: {}, Subpackages with slaves: {}".format(
                                                                 sorted(self.installed_binaries.keys()),
@@ -183,10 +180,10 @@ class BinarySlaveTestMethods(GetAllBinariesAndSlaves):
                 if subpackage in self.installed_binaries or subpackage in self.installed_slaves:
                     slaves = self.installed_slaves[subpackage]
                     binaries = self.installed_binaries[subpackage]
-                    passed_or_failed(self, sorted(binaries) == sorted(slaves),
+                    tu.passed_or_failed(self, sorted(binaries) == sorted(slaves),
                                             "Binaries do not match slaves in {}. Missing binaries: {}"
-                                            " Missing slaves: {}".format(subpackage, diff(slaves, binaries),
-                                                                         diff(binaries, slaves)))
+                                            " Missing slaves: {}".format(subpackage, tu.two_lists_diff(slaves, binaries),
+                                                                         tu.two_lists_diff(binaries, slaves)))
                     self._check_binaries_against_hardcoded_list(binaries, subpackage)
                 else:
                     tu.passed_or_failed(self, False, "No binaries or missing subpkg: " + subpackage)
@@ -212,9 +209,9 @@ class BinarySlaveTestMethods(GetAllBinariesAndSlaves):
 
         for subpkg in self.installed_binaries.keys():
                     self.binaries_test.log("Presented binaries for {}: ".format(subpkg) +
-                                           str(sorted(self.installed_binaries[subpkg])), la.Verbosity.TEST)
+                                           str(sorted(self.installed_binaries[subpkg])), vc.Verbosity.TEST)
                     self.binaries_test.log("Presented slaves for {}: ".format(subpkg) +
-                                           str(sorted(self.installed_slaves[subpkg])), la.Verbosity.TEST)
+                                           str(sorted(self.installed_slaves[subpkg])), vc.Verbosity.TEST)
 
-        self.binaries_test.log("Failed tests: " + "\n ".join(self.list_of_failed_tests), la.Verbosity.ERROR)
+        self.binaries_test.log("Failed tests: " + "\n ".join(self.list_of_failed_tests), vc.Verbosity.ERROR)
         return self.passed, self.failed
