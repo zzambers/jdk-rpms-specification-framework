@@ -87,7 +87,7 @@ class Default(cs.JdkConfiguration):
             extra_ghosts = resolved_rpm_ghosts.difference(set(resolved_actual_ghosts.keys()))
             missing_ghosts_masters = []
             for ghost in missing_ghosts:
-                missing_ghosts_masters.append(resolved_actual_ghosts[ghost])
+                missing_ghosts_masters.append(ghost)
             if len(missing_ghosts) > 0:
                 tu.passed_or_failed(self, False, "Masters not ghosted via %ghost declaration in specfile: " + str(missing_ghosts_masters))
             if len(extra_ghosts) >0:
