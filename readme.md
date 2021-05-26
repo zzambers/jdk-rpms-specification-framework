@@ -110,3 +110,11 @@ Jtreg logs are xml files located in *jtregLogs*. These files are then processed 
 The report is generated upon calling of the function `passed_or_failed()` from *test_utils* file. This function substitutes assert function that are usually used in test writing, as it checks boolean passed to 
 it as argument and handles all the logging to both *jsf.log* and jtreg xml logfiles. All other classes and methods important for jtreg logging are located in the *outputControl* package. For reference on how to 
 use the method see arbitrary test from *testcases*.
+
+#Mock
+"In object-oriented programming, mock objects are simulated objects that mimic the behavior of real objects in controlled ways." - [Wikipedia](https://en.wikipedia.org/wiki/Mock_object) \
+In our case, the mock object are used to simulate whole systems. Fedora in particular. Mocked system may be configured in *utils/mock/mock_executor.py*. \
+So how does it work? Before the testcase a clean mock of the specified system is launched. The problem is, that we only simulate fedora systems, so in order to test RHEL rpms, we usually have to manually unpack the tested rpms and launch a postscript over them. This should in theory result in a similar behaviour as a regular installation would be. \
+It often happens, that a new tester kills the test on local before finishing and interrupts the mock execution. This means that mock wont have time to clean the system of current mocks. The presence of the leftover mocks blocks other execution with the same mock version with error message *Build chroot is locked, please restart the testSuite*. \
+The solvation of this problem is rather easy. You only need to execute command ```mock --orphanskill``` followed by ```mock --scrub=all```. This usually solves the problem. \
+The last resort in the special cases is to delete the */var/lib/MOCK_OVERLAYFS* folder.
