@@ -139,24 +139,18 @@ class BinarySlaveTestMethods(GetAllBinariesAndSlaves):
         for subpkg in jre_subpackages:
             for sdk_subpkg in sdk_subpackages:
                 cont = False
-                for suffix in tc.get_debug_suffixes():
-                    try:
-                        if suffix in subpkg and suffix in sdk_subpkg:
-                            current_subpkg = subpkg
-                            jre = self.installed_binaries[current_subpkg]
-                            current_subpkg = sdk_subpkg
-                            sdk = self.installed_binaries[current_subpkg]
-                            break
-                        elif suffix not in subpkg and suffix not in sdk_subpkg:
-                            current_subpkg = sdk_subpkg
-                            sdk = self.installed_binaries[current_subpkg]
-                            current_subpkg = subpkg
-                            jre = self.installed_binaries[current_subpkg]
-                        else:
-                            cont = True
-                            break
-                    except KeyError:
-                        la.LoggingAccess().log("Subpkg " + current_subpkg + " not containing binaries and is probably "
+                try:
+                    if self._extract_suffix_from_subpkg(subpkg) == self._extract_suffix_from_subpkg(sdk_subpkg):
+                        current_subpkg = subpkg
+                        jre = self.installed_binaries[current_subpkg]
+                        current_subpkg = sdk_subpkg
+                        sdk = self.installed_binaries[current_subpkg]
+                        break
+                    else:
+                        cont = True
+                        break
+                except KeyError:
+                    la.LoggingAccess().log("Subpkg " + current_subpkg + " not containing binaries and is probably "
                                                                             "missing. This is being reported in subpkg test.")
                 if cont:
                     continue
@@ -169,6 +163,12 @@ class BinarySlaveTestMethods(GetAllBinariesAndSlaves):
                         tu.passed_or_failed(self, False, "Binary " + j + " is present in JRE, but is missing in SDK.")
         return
 
+    def _extract_suffix_from_subpkg(self, subpkg):
+        for suffix in tc.get_debug_suffixes():
+            if suffix in subpkg:
+                return suffix
+        return ""
+
     def _perform_all_checks(self):
         tu.passed_or_failed(self, sorted(self.installed_slaves.keys()) == sorted(self.installed_binaries.keys()),
                                 "Subpackages that contain binaries and slaves do not match. Subpackages with"
@@ -180,7 +180,12 @@ class BinarySlaveTestMethods(GetAllBinariesAndSlaves):
                 if subpackage in self.installed_binaries or subpackage in self.installed_slaves:
                     slaves = self.installed_slaves[subpackage]
                     binaries = self.installed_binaries[subpackage]
-                    tu.passed_or_failed(self, sorted(binaries) == sorted(slaves),
+                    if(sorted(binaries) != sorted(slaves) and subpackage == "devel" and self.rpms.getMajorVersionSimplified() == 8):
+                        diff = tu.two_lists_diff(binaries, slaves)
+                        diff = tu.two_lists_diff(diff, self.installed_slaves["headless"])
+                    else:
+                        diff = []
+                    tu.passed_or_failed(self, diff == [],
                                             "Binaries do not match slaves in {}. Missing binaries: {}"
                                             " Missing slaves: {}".format(subpackage, tu.two_lists_diff(slaves, binaries),
                                                                          tu.two_lists_diff(binaries, slaves)))
