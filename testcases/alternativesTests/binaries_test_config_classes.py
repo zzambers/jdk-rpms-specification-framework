@@ -308,9 +308,9 @@ class OpenJdk11(OpenJdk10):
                       'jconsole',
                       'jdb', 'jdeprscan', 'jdeps', 'jhsdb', 'jimage', 'jinfo', 'jlink', 'jmap', 'jmod', 'jps',
                       'jrunscript',
-                      'jshell', 'jstack', 'jstat', 'jstatd', 'rmic', 'serialver', "jfr", 'alt-java']
+                      'jshell', 'jstack', 'jstat', 'jstatd', 'rmic', 'serialver', "jfr"]
     HEADLESS_BINARIES = ["java", "jjs", "keytool", "pack200",
-                         "rmid", "rmiregistry", "unpack200"]
+                         "rmid", "rmiregistry", "unpack200", 'alt-java']
 
 
 class OpenJdk11x64(OpenJdk10x64):
@@ -319,9 +319,9 @@ class OpenJdk11x64(OpenJdk10x64):
                       'jconsole',
                       'jdb', 'jdeprscan', 'jdeps', 'jhsdb', 'jimage', 'jinfo', 'jlink', 'jmap', 'jmod', 'jps',
                       'jrunscript',
-                      'jshell', 'jstack', 'jstat', 'jstatd', 'rmic', 'serialver', "jfr", 'alt-java']
+                      'jshell', 'jstack', 'jstat', 'jstatd', 'rmic', 'serialver', "jfr"]
     HEADLESS_BINARIES = ["java", "jjs", "keytool","pack200",
-                         "rmid", "rmiregistry", "unpack200"]
+                         "rmid", "rmiregistry", "unpack200", 'alt-java']
 
 
 class OpenJdk11NoDebugNoJhsdb(OpenJdk10):
@@ -330,9 +330,9 @@ class OpenJdk11NoDebugNoJhsdb(OpenJdk10):
                       'jconsole',
                       'jdb', 'jdeprscan', 'jdeps', 'jimage', 'jinfo', 'jlink', 'jmap', 'jmod', 'jps',
                       'jrunscript',
-                      'jshell', 'jstack', 'jstat', 'jstatd', 'rmic', 'serialver', "jfr", 'alt-java']
+                      'jshell', 'jstack', 'jstat', 'jstatd', 'rmic', 'serialver', "jfr"]
     HEADLESS_BINARIES = ["java", "jjs", "keytool", "pack200",
-                         "rmid", "rmiregistry", "unpack200"]
+                         "rmid", "rmiregistry", "unpack200", 'alt-java']
 
 
 class OpenJdk11Debug(OpenJdk10Debug):
@@ -341,9 +341,9 @@ class OpenJdk11Debug(OpenJdk10Debug):
                       'jconsole',
                       'jdb', 'jdeprscan', 'jdeps', 'jhsdb', 'jimage', 'jinfo', 'jlink', 'jmap', 'jmod', 'jps',
                       'jrunscript',
-                      'jshell', 'jstack', 'jstat', 'jstatd', 'rmic', 'serialver', "jfr", 'alt-java']
+                      'jshell', 'jstack', 'jstat', 'jstatd', 'rmic', 'serialver', "jfr"]
     HEADLESS_BINARIES = ["java", "jjs", "keytool","pack200",
-                         "rmid", "rmiregistry", "unpack200"]
+                         "rmid", "rmiregistry", "unpack200", 'alt-java']
 
 
 class OpenJdk11NoJhsdb(OpenJdk11Debug):
@@ -352,9 +352,9 @@ class OpenJdk11NoJhsdb(OpenJdk11Debug):
                       'jconsole',
                       'jdb', 'jdeprscan', 'jdeps', 'jimage', 'jinfo', 'jlink', 'jmap', 'jmod', 'jps',
                       'jrunscript',
-                      'jshell', 'jstack', 'jstat', 'jstatd', 'rmic', 'serialver', "jfr", 'alt-java']
+                      'jshell', 'jstack', 'jstat', 'jstatd', 'rmic', 'serialver', "jfr"]
     HEADLESS_BINARIES = ["java", "jjs", "keytool", "pack200",
-                         "rmid", "rmiregistry", "unpack200"]
+                         "rmid", "rmiregistry", "unpack200", 'alt-java']
 
 
 class OpenJdkLatest(OpenJdk11):
@@ -363,9 +363,9 @@ class OpenJdkLatest(OpenJdk11):
                       'jconsole',
                       'jdb', 'jdeprscan', 'jdeps', 'jhsdb', 'jimage', 'jinfo', 'jlink', 'jmap', 'jmod', 'jps',
                       'jrunscript',
-                      'jshell', 'jstack', 'jstat', 'jstatd', 'serialver', 'jfr', 'jpackage', 'alt-java']
+                      'jshell', 'jstack', 'jstat', 'jstatd', 'serialver', 'jfr', 'jpackage']
     HEADLESS_BINARIES = ["java", "keytool",
-                         "rmid", "rmiregistry"]
+                         "rmid", "rmiregistry", 'alt-java']
 
     def remove_binaries_without_slaves(self, args=None):
         subpackage = self._get_jre_subpackage()[0]
@@ -379,9 +379,9 @@ class OpenJdkLatestx64(OpenJdk11x64):
                       'jconsole',
                       'jdb', 'jdeprscan', 'jdeps', 'jhsdb', 'jimage', 'jinfo', 'jlink', 'jmap', 'jmod', 'jps',
                       'jrunscript',
-                      'jshell', 'jstack', 'jstat', 'jstatd', 'serialver', 'jfr', 'jpackage', 'alt-java']
+                      'jshell', 'jstack', 'jstat', 'jstatd', 'serialver', 'jfr', 'jpackage']
     HEADLESS_BINARIES = ["java", "keytool",
-                         "rmid", "rmiregistry"]
+                         "rmid", "rmiregistry", 'alt-java']
 
     def remove_binaries_without_slaves(self, args=None):
         subpackage = self._get_jre_subpackage()[0]
@@ -395,9 +395,9 @@ class OpenJdkLatestNoDebugNoJhsdb(OpenJdk11):
                       'jconsole',
                       'jdb', 'jdeprscan', 'jdeps', 'jimage', 'jinfo', 'jlink', 'jmap', 'jmod', 'jps',
                       'jrunscript',
-                      'jshell', 'jstack', 'jstat', 'jstatd', 'serialver', 'jfr', 'jpackage', 'alt-java']
+                      'jshell', 'jstack', 'jstat', 'jstatd', 'serialver', 'jfr', 'jpackage']
     HEADLESS_BINARIES = ["java", "keytool",
-                         "rmid", "rmiregistry"]
+                         "rmid", "rmiregistry", 'alt-java']
 
     def remove_binaries_without_slaves(self, args=None):
         subpackage = self._get_jre_subpackage()[0]
@@ -411,9 +411,9 @@ class OpenJdkLatestDebug(OpenJdk11Debug):
                       'jconsole',
                       'jdb', 'jdeprscan', 'jdeps', 'jhsdb', 'jimage', 'jinfo', 'jlink', 'jmap', 'jmod', 'jps',
                       'jrunscript',
-                      'jshell', 'jstack', 'jstat', 'jstatd', 'serialver', 'jfr', 'jpackage', 'alt-java']
+                      'jshell', 'jstack', 'jstat', 'jstatd', 'serialver', 'jfr', 'jpackage']
     HEADLESS_BINARIES = ["java", "keytool",
-                         "rmid", "rmiregistry"]
+                         "rmid", "rmiregistry", 'alt-java']
 
     def remove_binaries_without_slaves(self, args=None):
         subpackage = self._get_jre_subpackage()[0]
@@ -427,9 +427,9 @@ class OpenJdkLatestNoJhsdb(OpenJdkLatestDebug):
                       'jconsole',
                       'jdb', 'jdeprscan', 'jdeps', 'jimage', 'jinfo', 'jlink', 'jmap', 'jmod', 'jps',
                       'jrunscript',
-                      'jshell', 'jstack', 'jstat', 'jstatd', 'serialver', 'jfr', 'jpackage', 'alt-java']
+                      'jshell', 'jstack', 'jstat', 'jstatd', 'serialver', 'jfr', 'jpackage']
     HEADLESS_BINARIES = ["java", "keytool",
-                         "rmid", "rmiregistry"]
+                         "rmid", "rmiregistry", 'alt-java']
 
 
 
