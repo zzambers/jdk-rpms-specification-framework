@@ -125,7 +125,7 @@ The last resort in the special cases is to delete the */var/lib/MOCK_OVERLAYFS* 
 **Configuration**
 
 Before running the JSF for the first time on the new system, we have to first configure mock plugins to work correctly. By default the mock uses *lvm* plugin for snapshotting, but as this proved to be very hard to configure and use eventually, we switched to using *overlayfs* plugin. 
-To configure mock to use this plugin it is required to create a new directory somewhere accesible for all users using mock and edit the */etc/mock/default.cfg* file with adding following three lines into the config file:
+To configure mock to use this plugin it is required to create a new directory somewhere accesible for all users using mock and edit the */etc/mock/site-defaults.cfg* file with adding following three lines into the config file:
 ```
 config_opts['plugin_conf']['overlayfs_enable'] = True
 config_opts['plugin_conf']['root_cache_enable'] = False
