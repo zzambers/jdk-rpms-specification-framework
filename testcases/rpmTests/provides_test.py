@@ -328,6 +328,7 @@ class JavaDocZipTechPreview(Empty):
     def __init__(self, name, java_ver, vendor, pkg, version, end, arch, filename):
         super(JavaDocZipTechPreview, self).__init__(name, java_ver, vendor, pkg, version, end, arch, filename)
         self.expected_provides["-".join([name, java_ver, pkg.replace("-zip", "")])] = ns.get_version_full(filename)
+        self.expected_provides["-".join([name, java_ver, pkg])] = ns.get_version_full(filename)
         self.expected_provides["-".join([name, java_ver, vendor, pkg.replace("-zip", "")])] = ns.get_version_full(filename)
         self.expected_provides["-".join([name, java_ver, vendor, pkg])] = ns.get_version_full(filename)
         self.expected_provides["-".join([name, java_ver, vendor, pkg]) + ("({})".format(arch) if (arch != "noarch") else "")] = ns.get_version_full(filename)
