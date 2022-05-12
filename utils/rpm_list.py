@@ -202,7 +202,10 @@ class RpmList:
             else:
                 return int(self.getMajorVersionSimplified()) == 8
         else:
-            return int(self.getMajorVersionSimplified()) == 8
+            if int(self.getOsVersion()) <= 8:
+                return int(self.getMajorVersionSimplified()) == 8
+            else:
+                return int(self.getMajorVersionSimplified()) == 11
 
 
 def isFedora(dist):
