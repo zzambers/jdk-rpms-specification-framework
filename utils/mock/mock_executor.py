@@ -206,7 +206,7 @@ class Mock:
         if resetBuildRoot:
             DefaultMock().provideCleanUsefullRoot()
         out, serr, res = utils.process_utils.executeShell("rpm2cpio " + rpmPath + " | " + self.mainCommandAsString() +
-                                                          " --shell \"cpio -idmv\"")
+                                                          " --shell \"cd / && cpio -idmv\"")
         return out, serr, res
 
     def mkdirP(self, dirName):
