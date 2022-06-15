@@ -114,7 +114,6 @@ class CheckPostinstallScript(BasePackages):
                                            " : " + ", ".join(expected_masters), vc.Verbosity.TEST)
         PostinstallScriptTest.instance.log("Postinstall present in " + str(len(actual_masters)) + " : " +
                                            ", ".join(actual_masters), vc.Verbosity.TEST)
-        passed_or_failed(self, set(expected_masters.keys()) == set(actual_masters.keys()), "expected subpkgs do not match actual ones: " + str(expected_masters.keys()) + " != " + str(actual_masters.keys()))
         for subpkg in expected_masters.keys():
             if not passed_or_failed(self, subpkg in actual_masters.keys(), "There is no such subpackage as " +
                                                                            subpkg + " that contains masters."):
