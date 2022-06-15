@@ -98,7 +98,7 @@ class CheckPostinstallScript(BasePackages):
                                                                                "subpackages does not contain "
                                                                                "any postinstall.")
                 continue
-            if not DefaultMock().postinstall_exception_checked(pkg):
+            if not DefaultMock().run_all_scriptlets_after_postinstall(pkg):
                 skipped.append(_subpackage)
                 continue
             pkg_masters = DefaultMock().get_masters()

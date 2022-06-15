@@ -138,7 +138,7 @@ class BaseMethods(JdkConfiguration):
             _subpkg = rename_default_subpkg(pkgsplit.get_subpackage_only(name))
             if _subpkg in subpackages_without_alternatives():
                 continue
-            if not DefaultMock().postinstall_exception_checked(pkg):
+            if not DefaultMock().run_all_scriptlets_after_postinstall(pkg):
                 continue
 
             # iterating over all directories recursively (-r) and under all symlinks (-v)

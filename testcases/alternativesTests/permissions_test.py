@@ -61,7 +61,7 @@ class BaseTest(JdkConfiguration):
                 PermissionTest.instance.log("Skipping " + pkg, vc.Verbosity.TEST)
                 continue
 
-            if not DefaultMock().postinstall_exception_checked(pkg):
+            if not DefaultMock().run_all_scriptlets_after_postinstall(pkg):
                 continue
 
             # get content of jvm directory

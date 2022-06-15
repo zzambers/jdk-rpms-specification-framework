@@ -65,7 +65,7 @@ class Default(cs.JdkConfiguration):
     def _check_ghosts_per_file(self, file):
         rpm_ghosts = self._get_actual_ghosts(file)
         default_masters = set(mexe.DefaultMock().get_default_masters())
-        mexe.DefaultMock().postinstall_exception_checked("rpms/" + file)
+        mexe.DefaultMock().run_all_scriptlets_after_postinstall("rpms/" + file)
         if rc.RuntimeConfig().getRpmList().is_system_jdk():
             actual_ghosts = set(mexe.DefaultMock().get_masters()).difference(default_masters)
         else:

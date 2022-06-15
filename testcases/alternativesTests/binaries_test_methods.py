@@ -102,7 +102,7 @@ class GetAllBinariesAndSlaves(btp.PathTest):
                 self.binaries_test.log("Skipping binaries extraction for " + _subpkg)
                 self.skipped.append(_subpkg)
                 continue
-            if not mexe.DefaultMock().postinstall_exception_checked(pkg):
+            if not mexe.DefaultMock().run_all_scriptlets_after_postinstall(pkg):
                 self.binaries_test.log("Failed to execute postinstall. Slaves will not be found for " + _subpkg)
             binary_directory_path = self._get_binary_directory_path(name)
             binaries = mexe.DefaultMock().execute_ls(binary_directory_path)

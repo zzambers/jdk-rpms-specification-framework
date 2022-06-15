@@ -116,7 +116,7 @@ class PathTest(BaseTest):
             if _subpkg in subpackages_without_alternatives() + get_javadoc_dirs():
                 self.binaries_test.log("Skipping path test for " + _subpkg)
                 continue
-            if not DefaultMock().postinstall_exception_checked(pkg):
+            if not DefaultMock().run_all_scriptlets_after_postinstall(pkg):
                 self.binaries_test.log("Skipping path test because of missing post install scriptlet.")
                 continue
             if (_subpkg == DEFAULT or _subpkg in [DEFAULT + suffix for suffix in get_debug_suffixes()]) and int(pkgsplit.simplify_full_version(pkgsplit.get_minor_ver(name))) >= 10:

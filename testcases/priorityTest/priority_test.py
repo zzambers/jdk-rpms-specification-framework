@@ -94,7 +94,7 @@ class PriorityTest(JdkConfiguration):
 
 class MajorCheck(PriorityTest):
     def _prepare_for_check(self, pkg):
-        return DefaultMock().postinstall_exception_checked(pkg)
+        return DefaultMock().run_all_scriptlets_after_postinstall(pkg)
 
     def _check_priorities(self, pkgs):
 
@@ -196,8 +196,8 @@ class Ibm8Rhel8Java(ProprietaryJava8):
     def _prepare_for_check(self, pkg):
         output = True
         if "plugin" in pkg:
-            output = DefaultMock().postinstall_exception_checked(pkg.replace("plugin", "webstart"))
-        return DefaultMock().postinstall_exception_checked(pkg) and output
+            output = DefaultMock().run_all_scriptlets_after_postinstall(pkg.replace("plugin", "webstart"))
+        return DefaultMock().run_all_scriptlets_after_postinstall(pkg) and output
 
 
 class PriorityCheck(utils.core.base_xtest.BaseTest):

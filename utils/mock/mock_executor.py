@@ -273,16 +273,17 @@ class Mock:
     def getSnapshot(self, name):
         return self._rollbackCommand(name)
 
-    def postinstall_exception_checked(self, pkg):
-        try:
-            DefaultMock().install_postscript(pkg)
-        except utils.mock.mock_execution_exception.MockExecutionException:
-            la.LoggingAccess().log("        " + "Postinstall script not found in " +
-                                                             os.path.basename(pkg),
-                                                             vc.Verbosity.TEST)
-            return False
-
+    def run_all_scriptlets_after_postinstall(self, pkg):
+        for script in utils.rpmbuild_utils.ScripletStarterFinisher.allScriplets:
+            try:
+                self._install_scriptlet(pkg, script)
+            except utils.mock.mock_execution_exception.MockExecutionException:
+                la.LoggingAccess().log("        " + script + " script not found in " +
+                                       os.path.basename(pkg),
+                                       vc.Verbosity.TEST)
         return True
+
+
 
     def install_postscript(self, pkg):
         return self._install_scriptlet(pkg, utils.rpmbuild_utils.POSTINSTALL)

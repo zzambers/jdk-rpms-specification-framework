@@ -189,7 +189,7 @@ class ManpageTestMethods(cs.JdkConfiguration):
                 continue
 
             # first check links
-            if not mexe.DefaultMock().postinstall_exception_checked(pkg):
+            if not mexe.DefaultMock().run_all_scriptlets_after_postinstall(pkg):
                 self.skipped.append(_subpkg)
                 continue
             masters = mexe.DefaultMock().get_masters()

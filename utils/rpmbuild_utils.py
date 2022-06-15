@@ -84,6 +84,8 @@ class ScripletStarterFinisher:
         POSTTRANS
     ]
 
+    postScripts = allScriplets[2:]
+
     scriptlet = "scriptlet"
 
     def __init__(self, iid):
