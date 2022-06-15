@@ -364,8 +364,7 @@ class OpenJdkLatest(OpenJdk11):
                       'jdb', 'jdeprscan', 'jdeps', 'jhsdb', 'jimage', 'jinfo', 'jlink', 'jmap', 'jmod', 'jps',
                       'jrunscript',
                       'jshell', 'jstack', 'jstat', 'jstatd', 'serialver', 'jfr', 'jpackage']
-    HEADLESS_BINARIES = ["java", "keytool",
-                         "rmid", "rmiregistry", 'alt-java']
+    HEADLESS_BINARIES = ["java", "keytool", "rmiregistry", 'alt-java']
 
     def remove_binaries_without_slaves(self, args=None):
         subpackage = self._get_jre_subpackage()[0]
@@ -375,13 +374,12 @@ class OpenJdkLatest(OpenJdk11):
 
 class OpenJdkLatestx64(OpenJdk11x64):
     DEFAULT_BINARIES = []
-    DEVEL_BINARIES = ['jar', 'jaotc', 'jarsigner', 'javac', 'javadoc', 'javap', 'jcmd',
+    DEVEL_BINARIES = ['jar', 'jarsigner', 'javac', 'javadoc', 'javap', 'jcmd',
                       'jconsole',
                       'jdb', 'jdeprscan', 'jdeps', 'jhsdb', 'jimage', 'jinfo', 'jlink', 'jmap', 'jmod', 'jps',
                       'jrunscript',
                       'jshell', 'jstack', 'jstat', 'jstatd', 'serialver', 'jfr', 'jpackage']
-    HEADLESS_BINARIES = ["java", "keytool",
-                         "rmid", "rmiregistry", 'alt-java']
+    HEADLESS_BINARIES = ["java", "keytool", "rmiregistry", 'alt-java']
 
     def remove_binaries_without_slaves(self, args=None):
         subpackage = self._get_jre_subpackage()[0]
@@ -396,8 +394,7 @@ class OpenJdkLatestNoDebugNoJhsdb(OpenJdk11):
                       'jdb', 'jdeprscan', 'jdeps', 'jimage', 'jinfo', 'jlink', 'jmap', 'jmod', 'jps',
                       'jrunscript',
                       'jshell', 'jstack', 'jstat', 'jstatd', 'serialver', 'jfr', 'jpackage']
-    HEADLESS_BINARIES = ["java", "keytool",
-                         "rmid", "rmiregistry", 'alt-java']
+    HEADLESS_BINARIES = ["java", "keytool", "rmiregistry", 'alt-java']
 
     def remove_binaries_without_slaves(self, args=None):
         subpackage = self._get_jre_subpackage()[0]
@@ -412,8 +409,7 @@ class OpenJdkLatestDebug(OpenJdk11Debug):
                       'jdb', 'jdeprscan', 'jdeps', 'jhsdb', 'jimage', 'jinfo', 'jlink', 'jmap', 'jmod', 'jps',
                       'jrunscript',
                       'jshell', 'jstack', 'jstat', 'jstatd', 'serialver', 'jfr', 'jpackage']
-    HEADLESS_BINARIES = ["java", "keytool",
-                         "rmid", "rmiregistry", 'alt-java']
+    HEADLESS_BINARIES = ["java", "keytool", "rmiregistry", 'alt-java']
 
     def remove_binaries_without_slaves(self, args=None):
         subpackage = self._get_jre_subpackage()[0]
@@ -428,8 +424,7 @@ class OpenJdkLatestNoJhsdb(OpenJdkLatestDebug):
                       'jdb', 'jdeprscan', 'jdeps', 'jimage', 'jinfo', 'jlink', 'jmap', 'jmod', 'jps',
                       'jrunscript',
                       'jshell', 'jstack', 'jstat', 'jstatd', 'serialver', 'jfr', 'jpackage']
-    HEADLESS_BINARIES = ["java", "keytool",
-                         "rmid", "rmiregistry", 'alt-java']
+    HEADLESS_BINARIES = ["java", "keytool", "rmiregistry", 'alt-java']
 
 
 
