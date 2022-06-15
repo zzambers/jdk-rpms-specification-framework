@@ -37,11 +37,8 @@ class GhostTest(bt.BaseTest):
             elif int(rpms.getMajorVersionSimplified()) == 11:
                 self.csch = Ojdk11JIT()
                 return
-            else:
-                self.csch = OjdklatestJIT()
-                return
         else:
-            self.csch = Default()
+            self.csch = OjdklatestJIT()
             return
 
 
@@ -77,9 +74,12 @@ class Default(cs.JdkConfiguration):
         resolved_actual_ghosts = {}
         for ghost in rpm_ghosts:
             newghost = ghost.replace("\n", "")
-            resolved_rpm_ghosts.add(tu.resolve_link(newghost))
+            # skipping rpmmoved ghosts - those are only for removed/moved directories so that user doesnt loose data upon upgrade
+            if not newghost.endswith(".rpmmoved"):
+                resolved_rpm_ghosts.add(tu.resolve_link(newghost))
         for ghost in actual_ghosts:
-            resolved_actual_ghosts[(tu.resolve_link(mexe.DefaultMock().get_target(ghost)))] = ghost
+            resolved_ghost = tu.resolve_link(mexe.DefaultMock().get_target(ghost))
+            resolved_actual_ghosts[resolved_ghost] = ghost
         for ghost in self._get_hardcoded_ghosts(file):
             resolved_actual_ghosts[ghost] = "hardcoded"
         if not tu.passed_or_failed(self, set(resolved_actual_ghosts.keys()) == resolved_rpm_ghosts, "Sets of ghost are not correct for " + file + ". Differences will follow."):
@@ -154,7 +154,6 @@ class OjdklatestJIT(Default):
             if arch == "i686" or arch == "armv7hl":
                 nvra = nvra.replace(arch, archinstall)
             ghosts.add("/usr/lib/jvm/" + nvra + debugsuffix + "/lib/server/classes.jsa")
-            ghosts.add("/usr/lib/jvm/" + nvra + debugsuffix + "/lib/client/classes.jsa")
         return ghosts
 
 
