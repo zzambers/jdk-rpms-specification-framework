@@ -123,9 +123,10 @@ class CheckPostinstallScript(BasePackages):
                                                ", ".join(sorted(expected_masters[subpkg])), vc.Verbosity.TEST)
             PostinstallScriptTest.instance.log("Presented masters for " + subpkg + " : " +
                                                ", ".join(sorted(actual_masters[subpkg])), vc.Verbosity.TEST)
-            passed_or_failed(self, sorted(expected_masters[subpkg]) == sorted(actual_masters[subpkg]),
-                             "expected masters do not match actual ones for {}: ".format(subpkg) +
-                             str(sorted(expected_masters[subpkg])) + " != " + str(sorted(actual_masters[subpkg])))
+            missing_masters = set(expected_masters[subpkg]).difference(set(actual_masters[subpkg]))
+            extra_masters = set(actual_masters[subpkg]).difference(set(expected_masters[subpkg]))
+            passed_or_failed(self, len(missing_masters) == 0 and len(extra_masters) == 0,
+                             "Expected masters do not match actual ones for {}. Extra masters: {}. Missing masters: {}.".format(subpkg, extra_masters, missing_masters))
 
         return self.passed, self.failed
 
