@@ -42,7 +42,6 @@ class MainPackagePresent(JdkConfiguration):
                 else:
                     missingSubpackages.append(subpkg)
             passed_or_failed(self, False, "Set of subpackages not as expected. \nextra subpkgs: " + str(ssGiven) + "\nmissing subpkgs: " + str(missingSubpackages))
-            passed_or_failed(self, subpkg in ssGiven, subpkg + " is missing in given set of rpms.")
 
 
 
@@ -204,7 +203,6 @@ class OpenJdk11DebugFc(OpenJdk8Debug):
         subpackages.discard("accessibility")
         for suffix in get_debug_suffixes():
             subpackages.discard("accessibility" + suffix)
-            subpackages.discard("src" + suffix)
             subpackages.update({"jmods" + suffix})
         subpackages.update({"jmods", "debugsource"})
         subpackages.update(self._get_debuginfo())
