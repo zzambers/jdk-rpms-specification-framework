@@ -27,19 +27,7 @@ class BinariesTest(bt.BaseTest):
         self.log("Checking binaries and slaves for " + rpms.getMajorPackage(), vc.Verbosity.TEST)
 
         if rpms.getVendor() == gc.OPENJDK or rpms.getVendor() == gc.OPENJ9:
-            if rpms.getMajorVersionSimplified() == "6":
-                if self.getCurrentArch() in (gc.getX86_64Arch() + gc.getPower64BeAchs()):
-                    self.csch = tcc.OpenJdk6PowBeArchAndX86(BinariesTest.instance)
-                    return
-                else:
-                    self.csch = tcc.OpenJdk6(BinariesTest.instance)
-                    return
-
-            elif rpms.getMajorVersionSimplified() == "7":
-                self.csch = tcc.OpenJdk7(BinariesTest.instance)
-                return
-
-            elif rpms.getMajorVersionSimplified() == "8":
+            if rpms.getMajorVersionSimplified() == "8":
                 if rpms.getVendor() == gc.OPENJ9:
                     self.csch = tcc.OpenJdk8(BinariesTest.instance)
                 elif rpms.isFedora():

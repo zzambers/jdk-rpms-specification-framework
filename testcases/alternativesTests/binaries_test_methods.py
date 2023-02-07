@@ -45,8 +45,8 @@ class GetAllBinariesAndSlaves(btp.PathTest):
         return
 
     def check_subdirectory_slaves(self, args=None):
-        jre_slave = "jre"
-        sdk_slave = "java_sdk"
+        jre_slave = "java"
+        sdk_slave = "javac"
         self._document(jre_slave + " and " + sdk_slave + " are slaves that point at directories in /usr/lib/jvm.")
         jre_subpackages = self._get_jre_subpackage()
         sdk_subpackages = self._get_sdk_subpackage()

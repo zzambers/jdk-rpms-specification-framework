@@ -11,15 +11,12 @@ import outputControl.logging_access as la
 # Respect the class naming purpose, inheritance (if possible), and class placement (or this gets very messy)!!!
 
 
-class OpenJdk6(bsm.BinarySlaveTestMethods):
-    def _get_binary_directory(self, name):
-        directory = super()._get_binary_directory(name)
-        unnecessary_part = directory.split("-")[-1]
-        directory = directory.replace("-" + unnecessary_part, "")
-        return directory
-
+class OpenJdk8(bsm.BinarySlaveTestMethods):
     def _policytool_binary_subpackages(self):
-        return self._get_subpackages_with_binaries()
+        return [tc.DEFAULT, tc.DEVEL]
+
+    def _get_binary_directory(self, name):
+        return super(btp.PathTest, self)._get_binary_directory(name)
 
     def handle_policytool(self, args=None):
         self._document(tc.POLICYTOOL + " is a binary that behaves differently than normal binaries. It has binaries in {} "
@@ -45,33 +42,12 @@ class OpenJdk6(bsm.BinarySlaveTestMethods):
         return
 
     def _policytool_slave_subpackages(self):
-        return self._get_sdk_subpackage()
-
-
-class OpenJdk6PowBeArchAndX86(OpenJdk6):
-    def _get_binary_directory(self, name):
-        return super()._get_binary_directory(name) + "." + self._get_arch()
-
-
-class OpenJdk7(OpenJdk6):
-    def _get_binary_directory(self, name):
-        return super(btp.PathTest, self)._get_binary_directory(name)
+        return [tc.HEADLESS]
 
     def _get_subpackages_with_binaries(self):
         return [tc.DEFAULT, tc.HEADLESS, tc.DEVEL]
 
-    def _policytool_binary_subpackages(self):
-        return [tc.DEFAULT, tc.DEVEL]
-
-    def _policytool_slave_subpackages(self):
-        return self._get_sdk_subpackage()
-
     def _get_jre_subpackage(self):
-        return [tc.HEADLESS]
-
-
-class OpenJdk8(OpenJdk7):
-    def _policytool_slave_subpackages(self):
         return [tc.HEADLESS]
 
 
@@ -427,7 +403,6 @@ class OpenJdkLatestNoJhsdb(OpenJdkLatestDebug):
     HEADLESS_BINARIES = ["java", "keytool", "rmiregistry", 'alt-java']
 
 
-
 class Ibm(bsm.BinarySlaveTestMethods):
     def _policytool_slave_subpackages(self):
         return ["headless"]
@@ -436,7 +411,7 @@ class Ibm(bsm.BinarySlaveTestMethods):
         return [tc.DEFAULT, tc.DEVEL]
 
     def handle_policytool(self, args=None):
-        OpenJdk6.handle_policytool(self)
+        OpenJdk8.handle_policytool(self)
         return
     # classic and j9vm are folders, not binaries
     def _remove_excludes(self):
@@ -617,7 +592,6 @@ class Oracle7(Oracle6ArchPlugin):
 
     def _get_checked_masters(self):
         masters = super()._get_checked_masters()
-        masters.append(tc.JAVAFXPACKAGER)
         return masters
 
     def _get_binary_directory(self, name):
