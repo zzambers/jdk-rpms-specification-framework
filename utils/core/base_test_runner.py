@@ -106,6 +106,7 @@ class BaseTestRunner:
         for i, arch in enumerate(archs):
             la.LoggingAccess().log("", vc.Verbosity.JTREG, type(self).__name__ + "_" + arch)
             self.current_arch = arch
+            config.runtime_config.RuntimeConfig().current_arch = arch
             for a, b in methods:
                 methodOnly = False
                 if str(a).startswith("test_"):
