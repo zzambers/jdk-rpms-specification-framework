@@ -104,7 +104,8 @@ def get_javadoc_dirs():
     return dirs
 
 
-# slowdebug/debug suffixes in various jdk are not trivial task to do, this is very bad hack and can not stay this way
+# following methods should serve as debug suffix identifier per architecture, just call get_debug_suffixes
+# in order to get all suffixes for the current arch
 def identify_debug_suffixes():
     import config.runtime_config as conf
     rpms = conf.RuntimeConfig().getRpmList()
@@ -112,13 +113,14 @@ def identify_debug_suffixes():
 
 
 def get_debug_suffixes():
+    import config.runtime_config as conf
     if not DebugSuffixHolder().debug_suffixes:
         DebugSuffixHolder().debug_suffixes = identify_debug_suffixes()
-    return DebugSuffixHolder().debug_suffixes
+    return DebugSuffixHolder().debug_suffixes[conf.RuntimeConfig().current_arch]
 
 
 class DebugSuffixHolder(metaclass=Singleton):
     def __init__(self):
-        self.debug_suffixes = set()
+        self.debug_suffixes = dict()
 
 

@@ -69,11 +69,14 @@ class RpmList:
         return ns.simplify_version(vers)
 
     def getDebugSuffixes(self):
-        suffixes = set()
+        suffixes = dict()
+        for arch in self.getAllArches():
+            suffixes[arch] = set()
         for file in self.files:
             for suffix in tc.KNOWN_DEBUG_SUFFIXES:
-                if suffix not in suffixes and suffix in file:
-                    suffixes.add(suffix[:-1])
+                current_arch = ns.get_arch(file)
+                if suffix not in suffixes[current_arch] and suffix in file:
+                    suffixes[current_arch].add(suffix[:-1])
         return suffixes
 
     def getJava(self):
