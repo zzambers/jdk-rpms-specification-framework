@@ -13,7 +13,10 @@ import outputControl.logging_access as la
 
 class OpenJdk8(bsm.BinarySlaveTestMethods):
     def _policytool_binary_subpackages(self):
-        return [tc.DEFAULT, tc.DEVEL]
+        subpkgs = [tc.DEFAULT, tc.DEVEL]
+        for suffix in tc.get_debug_suffixes():
+            subpkgs.extend([tc.DEVEL + suffix, tc.DEFAULT + suffix])
+        return subpkgs
 
     def _get_binary_directory(self, name):
         return super(btp.PathTest, self)._get_binary_directory(name)
@@ -42,39 +45,22 @@ class OpenJdk8(bsm.BinarySlaveTestMethods):
         return
 
     def _policytool_slave_subpackages(self):
-        return [tc.HEADLESS]
-
-    def _get_subpackages_with_binaries(self):
-        return [tc.DEFAULT, tc.HEADLESS, tc.DEVEL]
-
-    def _get_jre_subpackage(self):
-        return [tc.HEADLESS]
-
-
-class OpenJdk8Debug(OpenJdk8):
-    def _policytool_binary_subpackages(self):
-        subpkgs = []
-        for suffix in tc.get_debug_suffixes():
-            subpkgs.extend([tc.DEVEL + suffix, tc.DEFAULT + suffix])
-        return super()._policytool_binary_subpackages() + subpkgs
-
-    def _policytool_slave_subpackages(self):
-        subpkgs = []
+        subpkgs = [tc.HEADLESS]
         for suffix in tc.get_debug_suffixes():
             subpkgs.extend([tc.HEADLESS + suffix])
-        return super()._policytool_slave_subpackages() + subpkgs
+        return subpkgs
 
     def _get_subpackages_with_binaries(self):
-        subpkgs = []
+        subpkgs = [tc.DEFAULT, tc.HEADLESS, tc.DEVEL]
         for suffix in tc.get_debug_suffixes():
             subpkgs.extend([tc.HEADLESS + suffix, tc.DEVEL + suffix, tc.DEFAULT + suffix])
-        return super()._get_subpackages_with_binaries() + subpkgs
+        return subpkgs
 
     def _get_jre_subpackage(self):
-        subpkgs = []
+        subpkgs = [tc.HEADLESS]
         for suffix in tc.get_debug_suffixes():
             subpkgs.extend([tc.HEADLESS + suffix])
-        return super()._get_jre_subpackage() + subpkgs
+        return subpkgs
 
     def _get_sdk_subpackage(self):
         subpkgs = []
@@ -83,7 +69,7 @@ class OpenJdk8Debug(OpenJdk8):
         return super()._get_sdk_subpackage() + subpkgs
 
 
-class OpenJDK8JFX(OpenJdk8Debug):
+class OpenJdk8Jfx(OpenJdk8):
     def _jfx_check(self, list_of_elements, subpackage, slave_or_bin):
         """
         OpenJFX packaging is broken by design - binaries are in ojfx-devel, links are in headless.
@@ -106,37 +92,26 @@ class OpenJDK8JFX(OpenJdk8Debug):
 
 
 class OpenJdk8NoExports(OpenJdk8):
-    # if get_var() == OJDK8 else OpenJDK8JFX if get_var() == OJDK8JFX else OpenJdk8Debug
-
     def check_exports_slaves(self, args=None):
         return
 
 
-class OpenJdk8NoExportsDebugJFX(OpenJDK8JFX):
-
+class OpenJdk8NoExportsJfx(OpenJdk8Jfx):
     def check_exports_slaves(self, args=None):
-        OpenJdk8NoExports.check_exports_slaves(self)
         return
 
-
-class OpenJdk8NoExportsDebug(OpenJdk8Debug):
-    def check_exports_slaves(self, args=None):
-        OpenJdk8NoExports.check_exports_slaves(self)
-        return
+# TODO: check whether these last two exports classes are indeed needed
 
 
-class OpenJdk9(OpenJdk8):
-
-    # same goes for debug pairs
+class OpenJdk11(OpenJdk8):
     DEFAULT_BINARIES = []
-    DEVEL_BINARIES = ['appletviewer', 'idlj', 'jar', 'jarsigner', 'javac', 'javadoc', 'javah', 'javap', 'jcmd',
+    DEVEL_BINARIES = ['jar', 'jarsigner', 'javac', 'javadoc', 'javap', 'jcmd',
                       'jconsole',
                       'jdb', 'jdeprscan', 'jdeps', 'jhsdb', 'jimage', 'jinfo', 'jlink', 'jmap', 'jmod', 'jps',
                       'jrunscript',
-                      'jshell', 'jstack', 'jstat', 'jstatd', 'rmic', 'schemagen', 'serialver', 'wsgen', 'wsimport',
-                      'xjc']
-    HEADLESS_BINARIES = ["appletviewer", "idlj", "java", "jjs", "jrunscript", "keytool", "orbd", "pack200",
-                         "rmid", "rmiregistry", "servertool", "tnameserv", "unpack200"]
+                      'jshell', 'jstack', 'jstat', 'jstatd', 'rmic', 'serialver', "jfr"]
+    HEADLESS_BINARIES = ["java", "jjs", "keytool", "pack200",
+                         "rmid", "rmiregistry", "unpack200", 'alt-java']
 
     def _get_binaries_as_dict(self):
         dict = {tc.DEFAULT: self.DEFAULT_BINARIES,
@@ -148,6 +123,9 @@ class OpenJdk9(OpenJdk8):
         return dict
 
     def _get_binary_directory_path(self, name):
+        for suffix in tc.get_debug_suffixes():
+            if suffix in name:
+                return tc.JVM_DIR + "/" + tu.get_32bit_id_in_nvra(pkgsplit.get_nvra(name)) + suffix + tc.SDK_DIRECTORY
         return tc.JVM_DIR + "/" + tu.get_32bit_id_in_nvra(pkgsplit.get_nvra(name)) + tc.SDK_DIRECTORY
 
     def _check_binaries_against_hardcoded_list(self, binaries, subpackage):
@@ -170,58 +148,16 @@ class OpenJdk9(OpenJdk8):
         return
 
     def _policytool_slave_subpackages(self):
-        return [tc.HEADLESS]
+        return [tc.HEADLESS] + [tc.HEADLESS + suffix for suffix in tc.get_debug_suffixes()]
 
     def _policytool_binary_subpackages(self):
-        return [tc.DEFAULT]
+        return [tc.DEFAULT] + [tc.DEFAULT + suffix for suffix in tc.get_debug_suffixes()]
 
     def document_jre_sdk(self, args=None):
         return
 
-
-class OpenJdk9Debug(OpenJdk9):
-    def _get_binary_directory_path(self, name):
-        for suffix in tc.get_debug_suffixes():
-            if suffix in name:
-                return tc.JVM_DIR + "/" + tu.get_32bit_id_in_nvra(pkgsplit.get_nvra(name)) + suffix + tc.SDK_DIRECTORY
-        return super()._get_binary_directory_path(name)
-
-    def _policytool_binary_subpackages(self):
-        return super()._policytool_binary_subpackages() + [tc.DEFAULT + suffix for suffix in tc.get_debug_suffixes()]
-
-    def _policytool_slave_subpackages(self):
-        return super()._policytool_slave_subpackages() + [tc.HEADLESS + suffix for suffix in tc.get_debug_suffixes()]
-
-    def _get_subpackages_with_binaries(self):
-        subpkgs = []
-        for suffix in tc.get_debug_suffixes():
-            subpkgs.extend([tc.HEADLESS + suffix, tc.DEVEL + suffix,
-                                                           tc.DEFAULT + suffix])
-        return super()._get_subpackages_with_binaries() + subpkgs
-
-    def _get_jre_subpackage(self):
-        return super()._get_jre_subpackage() + [tc.HEADLESS + suffix for suffix in tc.get_debug_suffixes()]
-
-    def _get_sdk_subpackage(self):
-        return super()._get_sdk_subpackage() + [tc.DEVEL + suffix for suffix in tc.get_debug_suffixes()]
-
-
-class OpenJdk10(OpenJdk9):
-    DEFAULT_BINARIES = []
-    DEVEL_BINARIES = ['appletviewer', 'idlj', 'jar', 'jarsigner', 'javac', 'javadoc', 'javap', 'jcmd',
-                      'jconsole',
-                      'jdb', 'jdeprscan', 'jdeps', 'jhsdb', 'jimage', 'jinfo', 'jlink', 'jmap', 'jmod', 'jps',
-                      'jrunscript',
-                      'jshell', 'jstack', 'jstat', 'jstatd', 'rmic', 'schemagen', 'serialver', 'wsgen', 'wsimport',
-                      'xjc']
-    HEADLESS_BINARIES = ["java", "jjs", "keytool", "orbd", "pack200",
-                         "rmid", "rmiregistry", "servertool", "tnameserv", "unpack200"]
-
     def check_java_cgi(self, args=None):
         return
-
-    def check_exports_slaves(self, args=None):
-        return OpenJdk8NoExports.check_exports_slaves(self)
 
     def handle_policytool(self, args=None):
         self._document("From JDK 10, there is no policytool.")
@@ -229,100 +165,24 @@ class OpenJdk10(OpenJdk9):
 
     def _get_subpackages_with_binaries(self):
         subpackages = super()._get_subpackages_with_binaries()
-        subpackages.remove(tc.DEFAULT)
+        for pkg in subpackages:
+            if tc.DEFAULT in pkg:
+                subpackages.remove(pkg)
         return subpackages
 
 
-class OpenJdk10Debug(OpenJdk9Debug):
-    DEFAULT_BINARIES = []
-    DEVEL_BINARIES = ['appletviewer', 'idlj', 'jar', 'jarsigner', 'javac', 'javadoc', 'javap', 'jcmd',
-                      'jconsole',
-                      'jdb', 'jdeprscan', 'jdeps', 'jhsdb', 'jimage', 'jinfo', 'jlink', 'jmap', 'jmod', 'jps',
-                      'jrunscript',
-                      'jshell', 'jstack', 'jstat', 'jstatd', 'rmic', 'schemagen', 'serialver', 'wsgen', 'wsimport',
-                      'xjc']
-    HEADLESS_BINARIES = ["java", "jjs", "keytool", "orbd", "pack200",
-                         "rmid", "rmiregistry", "servertool", "tnameserv", "unpack200"]
-
-    def _get_subpackages_with_binaries(self):
-        subpackages = super()._get_subpackages_with_binaries()
-        subpackages.remove(tc.DEFAULT)
-        for suffix in tc.get_debug_suffixes():
-            subpackages.remove(tc.DEFAULT + suffix)
-        return subpackages
-
-    def handle_policytool(self, args=None):
-        self._document("From JDK 10, there is no policytool.")
-        return
-
-    def check_java_cgi(self, args=None):
-        return
-
-    def check_exports_slaves(self, args=None):
-        return OpenJdk8NoExports.check_exports_slaves(self)
-
-
-class OpenJdk10x64(OpenJdk10Debug):
-    """
-    This class has to be created due to extra jaotc binary. This binary is available only for x64 architecture Linux.
-    It allows AoT compilation, for more info see http://openjdk.java.net/jeps/295
-    """
-    DEFAULT_BINARIES = []
-    DEVEL_BINARIES = ['appletviewer', 'idlj', 'jar', 'jaotc', 'jarsigner', 'javac', 'javadoc', 'javap', 'jcmd',
-                      'jconsole',
-                      'jdb', 'jdeprscan', 'jdeps', 'jhsdb', 'jimage', 'jinfo', 'jlink', 'jmap', 'jmod', 'jps',
-                      'jrunscript',
-                      'jshell', 'jstack', 'jstat', 'jstatd', 'rmic', 'schemagen', 'serialver', 'wsgen', 'wsimport',
-                      'xjc']
-    HEADLESS_BINARIES = ["java", "jjs", "keytool", "pack200",
-                         "rmid", "rmiregistry", "tnameserv", "unpack200"]
-
-
-class OpenJdk11(OpenJdk10):
-    DEFAULT_BINARIES = []
-    DEVEL_BINARIES = ['jar', 'jarsigner', 'javac', 'javadoc', 'javap', 'jcmd',
-                      'jconsole',
-                      'jdb', 'jdeprscan', 'jdeps', 'jhsdb', 'jimage', 'jinfo', 'jlink', 'jmap', 'jmod', 'jps',
-                      'jrunscript',
-                      'jshell', 'jstack', 'jstat', 'jstatd', 'rmic', 'serialver', "jfr"]
-    HEADLESS_BINARIES = ["java", "jjs", "keytool", "pack200",
-                         "rmid", "rmiregistry", "unpack200", 'alt-java']
-
-
-class OpenJdk11x64(OpenJdk10x64):
+class OpenJdk11x64(OpenJdk11):
     DEFAULT_BINARIES = []
     DEVEL_BINARIES = ['jar', 'jaotc', 'jarsigner', 'javac', 'javadoc', 'javap', 'jcmd',
                       'jconsole',
                       'jdb', 'jdeprscan', 'jdeps', 'jhsdb', 'jimage', 'jinfo', 'jlink', 'jmap', 'jmod', 'jps',
                       'jrunscript',
                       'jshell', 'jstack', 'jstat', 'jstatd', 'rmic', 'serialver', "jfr"]
-    HEADLESS_BINARIES = ["java", "jjs", "keytool","pack200",
-                         "rmid", "rmiregistry", "unpack200", 'alt-java']
-
-
-class OpenJdk11NoDebugNoJhsdb(OpenJdk10):
-    DEFAULT_BINARIES = []
-    DEVEL_BINARIES = ['jar', 'jarsigner', 'javac', 'javadoc', 'javap', 'jcmd',
-                      'jconsole',
-                      'jdb', 'jdeprscan', 'jdeps', 'jimage', 'jinfo', 'jlink', 'jmap', 'jmod', 'jps',
-                      'jrunscript',
-                      'jshell', 'jstack', 'jstat', 'jstatd', 'rmic', 'serialver', "jfr"]
     HEADLESS_BINARIES = ["java", "jjs", "keytool", "pack200",
                          "rmid", "rmiregistry", "unpack200", 'alt-java']
 
 
-class OpenJdk11Debug(OpenJdk10Debug):
-    DEFAULT_BINARIES = []
-    DEVEL_BINARIES = ['jar', 'jarsigner', 'javac', 'javadoc', 'javap', 'jcmd',
-                      'jconsole',
-                      'jdb', 'jdeprscan', 'jdeps', 'jhsdb', 'jimage', 'jinfo', 'jlink', 'jmap', 'jmod', 'jps',
-                      'jrunscript',
-                      'jshell', 'jstack', 'jstat', 'jstatd', 'rmic', 'serialver', "jfr"]
-    HEADLESS_BINARIES = ["java", "jjs", "keytool","pack200",
-                         "rmid", "rmiregistry", "unpack200", 'alt-java']
-
-
-class OpenJdk11NoJhsdb(OpenJdk11Debug):
+class OpenJdk11NoJhsdb(OpenJdk11):
     DEFAULT_BINARIES = []
     DEVEL_BINARIES = ['jar', 'jarsigner', 'javac', 'javadoc', 'javap', 'jcmd',
                       'jconsole',
@@ -348,52 +208,7 @@ class OpenJdkLatest(OpenJdk11):
             self.installed_binaries[subpackage].remove("jfr")
 
 
-class OpenJdkLatestx64(OpenJdk11x64):
-    DEFAULT_BINARIES = []
-    DEVEL_BINARIES = ['jar', 'jarsigner', 'javac', 'javadoc', 'javap', 'jcmd',
-                      'jconsole',
-                      'jdb', 'jdeprscan', 'jdeps', 'jhsdb', 'jimage', 'jinfo', 'jlink', 'jmap', 'jmod', 'jps',
-                      'jrunscript',
-                      'jshell', 'jstack', 'jstat', 'jstatd', 'serialver', 'jfr', 'jpackage']
-    HEADLESS_BINARIES = ["java", "keytool", "rmiregistry", 'alt-java']
-
-    def remove_binaries_without_slaves(self, args=None):
-        subpackage = self._get_jre_subpackage()[0]
-        if "devel" in subpackage:
-            self.installed_binaries[subpackage].remove("jfr")
-
-
-class OpenJdkLatestNoDebugNoJhsdb(OpenJdk11):
-    DEFAULT_BINARIES = []
-    DEVEL_BINARIES = ['jar', 'jarsigner', 'javac', 'javadoc', 'javap', 'jcmd',
-                      'jconsole',
-                      'jdb', 'jdeprscan', 'jdeps', 'jimage', 'jinfo', 'jlink', 'jmap', 'jmod', 'jps',
-                      'jrunscript',
-                      'jshell', 'jstack', 'jstat', 'jstatd', 'serialver', 'jfr', 'jpackage']
-    HEADLESS_BINARIES = ["java", "keytool", "rmiregistry", 'alt-java']
-
-    def remove_binaries_without_slaves(self, args=None):
-        subpackage = self._get_jre_subpackage()[0]
-        if "devel" in subpackage:
-            self.installed_binaries[subpackage].remove("jfr")
-
-
-class OpenJdkLatestDebug(OpenJdk11Debug):
-    DEFAULT_BINARIES = []
-    DEVEL_BINARIES = ['jar', 'jarsigner', 'javac', 'javadoc', 'javap', 'jcmd',
-                      'jconsole',
-                      'jdb', 'jdeprscan', 'jdeps', 'jhsdb', 'jimage', 'jinfo', 'jlink', 'jmap', 'jmod', 'jps',
-                      'jrunscript',
-                      'jshell', 'jstack', 'jstat', 'jstatd', 'serialver', 'jfr', 'jpackage']
-    HEADLESS_BINARIES = ["java", "keytool", "rmiregistry", 'alt-java']
-
-    def remove_binaries_without_slaves(self, args=None):
-        subpackage = self._get_jre_subpackage()[0]
-        if "devel" in subpackage:
-            self.installed_binaries[subpackage].remove("jfr")
-
-
-class OpenJdkLatestNoJhsdb(OpenJdkLatestDebug):
+class OpenJdkLatestNoJhsdb(OpenJdkLatest):
     DEFAULT_BINARIES = []
     DEVEL_BINARIES = ['jar', 'jarsigner', 'javac', 'javadoc', 'javap', 'jcmd',
                       'jconsole',

@@ -33,19 +33,19 @@ class BinariesTest(bt.BaseTest):
                 elif rpms.isFedora():
                     if int(rpms.getOsVersion()) > 26:
                         if self.getCurrentArch() in gc.getAarch64Arch() + gc.getPower64LeAchs() + gc.getPower64BeAchs():
-                            self.csch = tcc.OpenJdk8NoExportsDebug(BinariesTest.instance)
+                            self.csch = tcc.OpenJdk8NoExports(BinariesTest.instance)
                             return
                         elif self.getCurrentArch() in gc.getIx86archs() + gc.getX86_64Arch():
-                            self.csch = tcc.OpenJdk8NoExportsDebugJFX(BinariesTest.instance)
+                            self.csch = tcc.OpenJdk8NoExportsJfx(BinariesTest.instance)
                             return
                         else:
                             self.csch = tcc.OpenJdk8NoExports(BinariesTest.instance)
                     elif int(rpms.getOsVersion()) > 24:
                         if self.getCurrentArch() in gc.getAarch64Arch()+ gc.getPower64LeAchs() + gc.getPower64BeAchs():
-                            self.csch = tcc.OpenJdk8Debug(BinariesTest.instance)
+                            self.csch = tcc.OpenJdk8(BinariesTest.instance)
                             return
                         elif self.getCurrentArch() in gc.getIx86archs() + gc.getX86_64Arch():
-                            self.csch = tcc.OpenJDK8JFX(BinariesTest.instance)
+                            self.csch = tcc.OpenJdk8Jfx(BinariesTest.instance)
                             return
                         else:
                             self.csch = tcc.OpenJdk8(BinariesTest.instance)
@@ -56,31 +56,11 @@ class BinariesTest(bt.BaseTest):
                 else:
                     if self.getCurrentArch() in gc.getIx86archs() + gc.getX86_64Arch() + gc.getAarch64Arch() + \
                             gc.getPower64Achs():
-                        self.csch = tcc.OpenJdk8NoExportsDebugJFX(BinariesTest.instance)
+                        self.csch = tcc.OpenJdk8NoExportsJfx(BinariesTest.instance)
                         return
                     else:
                         self.csch = tcc.OpenJdk8NoExports(BinariesTest.instance)
                         return
-
-            elif rpms.getMajorVersionSimplified() == "9":
-                if self.getCurrentArch() in gc.getArm32Achs():
-                    self.csch = tcc.OpenJdk9(BinariesTest.instance)
-                    return
-                else:
-                    self.csch = tcc.OpenJdk9Debug(BinariesTest.instance)
-                    return
-
-            elif rpms.getMajorVersionSimplified() == "10":
-                if self.getCurrentArch() in gc.getArm32Achs():
-                    self.csch = tcc.OpenJdk10(BinariesTest.instance)
-                    return
-                elif self.getCurrentArch() in gc.getX86_64Arch():
-                    self.csch = tcc.OpenJdk10x64(BinariesTest.instance)
-                    return
-                else:
-                    self.csch = tcc.OpenJdk10Debug(BinariesTest.instance)
-                    return
-
             elif rpms.getMajorVersionSimplified() == "11":
                 if self.getCurrentArch() in gc.getArm32Achs() or rpms.getVendor() == gc.OPENJ9:
                     self.csch = tcc.OpenJdk11(BinariesTest.instance)
@@ -93,25 +73,25 @@ class BinariesTest(bt.BaseTest):
                     return
                 else:
                     if rpms.isRhel() and self.getCurrentArch() in gc.getS390Arch() + gc.getPpc32Arch():
-                        self.csch = tcc.OpenJdk11NoDebugNoJhsdb(BinariesTest.instance)
+                        self.csch = tcc.OpenJdk11NoJhsdb(BinariesTest.instance)
                     else:
-                        self.csch = tcc.OpenJdk11Debug(BinariesTest.instance)
+                        self.csch = tcc.OpenJdk11(BinariesTest.instance)
                     return
             elif int(rpms.getMajorVersionSimplified()) >= 12:
                 if self.getCurrentArch() in gc.getArm32Achs():
                     self.csch = tcc.OpenJdkLatest(BinariesTest.instance)
                     return
                 elif self.getCurrentArch() in gc.getX86_64Arch() + gc.getAarch64Arch():
-                    self.csch = tcc.OpenJdkLatestx64(BinariesTest.instance)
+                    self.csch = tcc.OpenJdkLatest(BinariesTest.instance)
                     return
                 elif self.getCurrentArch() in gc.getS390xArch():
                     self.csch = tcc.OpenJdkLatestNoJhsdb(BinariesTest.instance)
                     return
                 else:
                     if rpms.isRhel() and self.getCurrentArch() in gc.getS390Arch() + gc.getPpc32Arch():
-                        self.csch = tcc.OpenJdkLatestNoDebugNoJhsdb(BinariesTest.instance)
+                        self.csch = tcc.OpenJdkLatestNoJhsdb(BinariesTest.instance)
                     else:
-                        self.csch = tcc.OpenJdkLatestDebug(BinariesTest.instance)
+                        self.csch = tcc.OpenJdkLatest(BinariesTest.instance)
                     return
             else:
                 raise ex.UnknownJavaVersionException("Unknown OpenJDK version.")
