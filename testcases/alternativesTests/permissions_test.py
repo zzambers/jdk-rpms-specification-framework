@@ -252,43 +252,18 @@ class BaseTest(JdkConfiguration):
         return
 
 
-# follows implementation of configuration specific classes
-class OpenJdk6(BaseTest):
+class OpenJdk8(BaseTest):
     def _skipped_subpackages(self):
-        return [JAVADOC]
-
-    def _get_target_java_directory(self, name):
-        # ojdk6 is specific in java directory name
-        directory = super()._get_target_java_directory(name)
-        unnecessary_part = directory.split("-")[-1]
-        directory = directory.replace("-" + unnecessary_part, "")
-        return directory
-
-
-class OpenJdk6PowBeArchAndX86(OpenJdk6):
-    def _get_target_java_directory(self, name):
-        return super()._get_target_java_directory(name) + "." + get_arch(PermissionTest.instance)
-
-
-class OpenJdk7(OpenJdk6):
-    def _skipped_subpackages(self):
-        return super()._skipped_subpackages() + [DEFAULT]
-
-    def _get_target_java_directory(self, name):
-        return super(OpenJdk6, self)._get_target_java_directory(name)
-
-
-class OpenJdk8(OpenJdk7):
-    def _skipped_subpackages(self):
-        subpkgs = [JAVADOCZIP]
+        subpkgs = [JAVADOCZIP, JAVADOC, DEFAULT]
         for suffix in get_debug_suffixes():
             subpkgs.extend([JAVADOC + suffix, DEFAULT + suffix, JAVADOCZIP + suffix])
         return super()._skipped_subpackages() + subpkgs
 
-
-class OpenJdk9(OpenJdk8):
-    pass
-
+    def _get_target_java_directory(self, name):
+        directory = super()._get_target_java_directory(name)
+        unnecessary_part = directory.split("-")[-1]
+        directory = directory.replace("-" + unnecessary_part, "")
+        return directory
 
 class Oracle(BaseTest):
     pass
@@ -306,17 +281,7 @@ class PermissionTest(bt.BaseTest):
         rpms = rc.RuntimeConfig().getRpmList()
         self.log("Checking files for " + rpms.getMajorPackage(), vc.Verbosity.TEST)
         if rpms.getVendor() == gc.OPENJDK or rpms.getVendor() == gc.OPENJ9:
-            if rpms.getMajorVersionSimplified() == "6":
-                if self.getCurrentArch() in (gc.getX86_64Arch() + gc.getPower64BeAchs()):
-                    self.csch = OpenJdk6PowBeArchAndX86()
-                    return
-                else:
-                    self.csch = OpenJdk6()
-                    return
-            if rpms.getMajorVersionSimplified() == "7":
-                self.csch = OpenJdk7()
-                return
-            elif rpms.getMajorVersionSimplified() == "8":
+            if rpms.getMajorVersionSimplified() == "8":
                 self.csch = OpenJdk8()
                 return
             elif int(rpms.getMajorVersionSimplified()) >= 9:
@@ -324,14 +289,6 @@ class PermissionTest(bt.BaseTest):
                 return
             else:
                 raise UnknownJavaVersionException("Unknown version of OpenJDK.")
-
-        if rpms.getVendor() == gc.SUN:
-            if self.getCurrentArch() in (gc.getX86_64Arch() + gc.getPower64BeAchs()):
-                self.csch = OpenJdk6PowBeArchAndX86()
-                return
-            else:
-                self.csch = OpenJdk6()
-                return
         if rpms.getVendor() == gc.ORACLE:
             self.csch = Oracle()
             return
