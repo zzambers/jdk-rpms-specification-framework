@@ -136,9 +136,51 @@ class BaseMethods(JdkConfiguration):
 
 
 # here follow configuration classes, determining the unique set of subdirectories for each class
-class OpenJdk6(BaseMethods):
+class OpenJdk8(BaseMethods):
     def _get_expected_subdirectories(self, name):
-        return {DEFAULT: ["jre",
+        subdirs = {HEADLESS: ["jre",
+                             "jre" + "-" + self._get_major_version(),
+                             "jre" + "-" + self.rpms.getVendor(),
+                             "jre" + "-" + self._get_major_version() + "-" + self.rpms.getVendor(),
+                             ],
+                   DEVEL: ["java",
+                           "java" + "-" + self._get_major_version(),
+                           "java" + "-" + self.rpms.getVendor(),
+                           "java" + "-" + self._get_major_version() + "-" + self.rpms.getVendor(),
+                           ]}
+        subdirs[HEADLESS].append(self._get_nvra_suffix(name).replace("java", "jre", 1))
+        subdirs[DEFAULT] = []
+        for suffix in get_debug_suffixes():
+            for subpkg in [HEADLESS, DEFAULT, DEVEL]:
+                subdirs[subpkg + suffix] = copy.copy(subdirs[subpkg])
+        return subdirs
+
+    def _get_nvra_suffix(self, name):
+        directory = pkgsplit.get_nvra(name)
+        for suffix in get_debug_suffixes():
+            if suffix in name:
+                directory = directory + suffix
+                break
+        return directory.replace("i686", "i386").replace("armv7hl", "arm")
+
+    def _get_jre_link(self, expected_link):
+        return super()._get_jre_link(expected_link).replace("i686", "i386")
+
+
+class OpenJdk11(OpenJdk8):
+    def _get_jre_link(self, expected_link):
+        return expected_link.replace("i686", "i386")
+
+
+class Oracle7(BaseMethods):
+    def _get_nvra_suffix(self, name):
+        directory = pkgsplit.get_name_version_release(name)
+        unnecessary_part = directory.split("-")[-1]
+        directory = directory.replace("-" + unnecessary_part, "")
+        return directory
+
+    def _get_expected_subdirectories(self, name):
+        subdirs = {DEFAULT: ["jre",
                           "jre" + "-" + self._get_major_version(),
                           "jre" + "-" + self.rpms.getVendor(),
                           "jre" + "-" + self._get_major_version() + "-" + self.rpms.getVendor(),
@@ -148,53 +190,6 @@ class OpenJdk6(BaseMethods):
                         "java" + "-" + self.rpms.getVendor(),
                         "java" + "-" + self._get_major_version() + "-" + self.rpms.getVendor(),
                         ]}
-
-    def _get_nvra_suffix(self, name):
-        directory = pkgsplit.get_name_version_release(name)
-        unnecessary_part = directory.split("-")[-1]
-        # jdk6 has shorter name of the subdirectory, only name-version
-        directory = directory.replace("-" + unnecessary_part, "")
-        return directory
-
-
-class OpenJdk6PowerBeArchAndX86(OpenJdk6):
-    def _get_nvra_suffix(self, name):
-        return super()._get_nvra_suffix(name) + "." + self._get_arch()
-
-    def _get_expected_subdirectories(self, name):
-        """ ojdk6 on some architectures has architecture included in the subdirs """
-        subdirs = super()._get_expected_subdirectories(name)
-        subdirs[DEFAULT].remove("jre" + "-" + self._get_major_version() + "-" + self.rpms.getVendor())
-        subdirs[DEFAULT].append("jre" + "-" + self._get_major_version() + "-" + self.rpms.getVendor() + "." +
-                                self._get_arch())
-        subdirs[DEVEL].remove("java" + "-" + self._get_major_version() + "-" + self.rpms.getVendor())
-        subdirs[DEVEL].append("java" + "-" + self._get_major_version() + "-" + self.rpms.getVendor() + "." +
-                              self._get_arch())
-        return subdirs
-
-
-class OpenJdk7(OpenJdk6):
-    def _get_nvra_suffix(self, name):
-        """ From jdk7 there is regular /usr/lib/jvm/nvra """
-        nvra = super(OpenJdk6, self)._get_nvra_suffix(name)
-        return nvra
-
-    def _get_expected_subdirectories(self, name):
-        subdirs = super()._get_expected_subdirectories(name)
-        subdirs[HEADLESS] = subdirs[DEFAULT]
-        subdirs[HEADLESS].append(self._get_nvra_suffix(name).replace("java", "jre", 1))
-        subdirs[DEFAULT] = []
-        return subdirs
-
-
-class Oracle7(OpenJdk6):
-    def _get_nvra_suffix(self, name):
-        """ From jdk7 there is regular /usr/lib/jvm/nvra """
-        nvra = super(OpenJdk6, self)._get_nvra_suffix(name)
-        return nvra
-
-    def _get_expected_subdirectories(self, name):
-        subdirs = super()._get_expected_subdirectories(name)
         subdirs[DEFAULT].append(self._get_nvra_suffix(name).replace("java", "jre", 1))
         return subdirs
 
@@ -228,36 +223,8 @@ class Ibm8(Ibm7):
         return self.rpms.getMajorVersion()
 
 
-class Ibm8Rhel8(OpenJdk7):
+class Ibm8Rhel8(OpenJdk8):
     pass
-
-
-
-class OpenJdk8Debug(OpenJdk7):
-    def _get_expected_subdirectories(self, name):
-        subdirs = super()._get_expected_subdirectories(name)
-        for suffix in get_debug_suffixes():
-            for subpkg in [HEADLESS, DEFAULT, DEVEL]:
-                subdirs[subpkg + suffix] = copy.copy(subdirs[subpkg])
-        return subdirs
-
-    def _get_nvra_suffix(self, name):
-        nvra = super()._get_nvra_suffix(name)
-        for suffix in get_debug_suffixes():
-            if suffix in name:
-                nvra = nvra + suffix
-                break
-        return nvra
-
-
-class OpenJdk9D(OpenJdk8Debug):
-    def _get_jre_link(self, expected_link):
-        return expected_link
-
-
-class OpenJdk9(OpenJdk7):
-    def _get_jre_link(self, expected_link):
-        return expected_link
 
 
 class ITW(BaseMethods):
@@ -283,50 +250,15 @@ class SubdirectoryTest(bt.BaseTest):
         rpms = rc.RuntimeConfig().getRpmList()
         self.log("Checking subdirectories for: " + rpms.getMajorPackage(), vc.Verbosity.TEST)
         if rpms.getVendor() == gc.OPENJDK or rpms.getVendor() == gc.OPENJ9:
-            if rpms.getMajorVersionSimplified() == "6":
-                if self.current_arch in (gc.getPower64BeAchs() + gc.getX86_64Arch()):
-                    self.csch = OpenJdk6PowerBeArchAndX86()
-                    return
-                else:
-                    self.csch = OpenJdk6()
-                    return
-            elif rpms.getMajorVersionSimplified() == "7":
-                self.csch = OpenJdk7()
-                return
-            elif rpms.getMajorVersionSimplified() == "8":
-                if self.getCurrentArch() in gc.getIx86archs() + gc.getX86_64Arch() + gc.getPower64LeAchs() \
-                        + gc.getAarch64Arch() + gc.getPower64BeAchs():
-                    self.csch = OpenJdk8Debug()
-                    return
-                else:
-                    self.csch = OpenJdk7()
-                    return
-            elif int(rpms.getMajorVersionSimplified()) >= 9:
-                if self.getCurrentArch() in gc.getIx86archs() + gc.getX86_64Arch() + gc.getPower64LeAchs() \
-                        + gc.getAarch64Arch() + gc.getPower64BeAchs():
-                    self.csch = OpenJdk9D()
-                    return
-                else:
-                    self.csch = OpenJdk9()
-                    return
-            else:
-                raise UnknownJavaVersionException("Unknown OpenJDK version.")
-        elif rpms.getVendor() == gc.SUN:
-            if self.getCurrentArch() in gc.getX86_64Arch():
-                self.csch = OpenJdk6PowerBeArchAndX86()
+            if int(rpms.getMajorVersionSimplified()) == 8:
+                self.csch = OpenJdk8()
                 return
             else:
-                self.csch = OpenJdk6()
+                self.csch = OpenJdk11()
                 return
         elif rpms.getVendor() == gc.ORACLE:
-            if rpms.getMajorVersionSimplified() == "7":
-                self.csch = Oracle7()
-                return
-            elif rpms.getMajorVersionSimplified() == "8":
-                self.csch = Oracle7()
-                return
-            else:
-                raise UnknownJavaVersionException("Unknown Oracle java version.")
+            self.csch = Oracle7()
+            return
         elif rpms.getVendor() == gc.IBM:
             if rpms.getOsVersionMajor() < 8:
                 if rpms.getMajorVersionSimplified() == "7":
