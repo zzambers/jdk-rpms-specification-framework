@@ -14,6 +14,7 @@ import config.runtime_config as rc
 import config.global_config as gc
 import utils.test_constants as tc
 import config.verbosity_config as vc
+import utils.pkg_name_split as ns
 
 
 MANPAGE_SUFFIX = ".1.gz"
@@ -254,43 +255,38 @@ class ManpageTestMethods(cs.JdkConfiguration):
         return
 
 
-class OpenJdk6(ManpageTestMethods):
-    # policytool binary is an exception, it has binary in default but slave in devel, expects policytool is in order
-    def _clean_up_binaries(self, binaries, master, usr_bin):
-        if master == tc.JAVAC:
-            binaries.append(tc.POLICYTOOL)
-            return binaries
-        else:
-            binaries.remove(tc.POLICYTOOL)
-        return binaries
-
-    def _get_subpackages(self):
-        return [tc.DEFAULT, tc.DEVEL]
-
-    def _get_checked_masters(self):
-        return [tc.JAVA, tc.JAVAC]
-
-
-class OpenJdk7(OpenJdk6):
-    # default subpackage has no alternatives, no slaves, no manpages
-    def _get_subpackages(self):
-        return [tc.HEADLESS, tc.DEVEL]
-
-    def _get_manpage_suffixes(self, subpackage):
-        return [MANPAGE_SUFFIX, "-" + self.rpms.getNvr() + "." + self._get_arch() + MANPAGE_SUFFIX]
-
-    # policytool binary is in devel and default, slave in devel
-    def _clean_up_binaries(self, binaries, master, usr_bin):
-        return binaries
-
-
-class OpenJdk8(OpenJdk7):
-    # policytool binary is in default and devel, but slave in headless
+class OpenJdk8(ManpageTestMethods):
     def __init__(self):
         super().__init__()
-        self.missing_manpages.append("jfr")
         self.checked_subpackages = [tc.DEVEL]
+        for suffix in tc.get_debug_suffixes():
+            self.checked_subpackages.append(tc.DEVEL + suffix)
 
+    def _clean_debug_subpackages(self, bins):
+        devel_bins = []
+        if len(tc.get_debug_suffixes()) > 0:
+            ManpageTests.instance.log("Original debug " + SDK_BINARIES + ": " + ", ".join(bins[self._get_subpackages()[3]]),
+                                      vc.Verbosity.TEST)
+            for b in bins[self._get_subpackages()[3]]:
+                if b not in bins[self._get_subpackages()[2]]:
+                    devel_bins.append(b)
+            for suffix in tc.get_debug_suffixes():
+                bins[tc.DEVEL + suffix] = copy.copy(devel_bins)
+        return
+
+    def _get_subpackages(self):
+        subpkgs = [tc.HEADLESS, tc.DEVEL]
+        for suffix in tc.get_debug_suffixes():
+            for subpkg in subpkgs.copy():
+                subpkgs.append(subpkg + suffix)
+        return subpkgs
+
+    def _get_manpage_suffixes(self, subpackage):
+        for suffix in list(tc.get_debug_suffixes()) + [""]:
+            if suffix in subpackage:
+                return [MANPAGE_SUFFIX, "-" + self.rpms.getNvr() + "." + self._get_arch() + suffix + MANPAGE_SUFFIX]
+        else:
+            return [MANPAGE_SUFFIX, "-" + self.rpms.getNvr() + "." + self._get_arch() + MANPAGE_SUFFIX]
 
     def _clean_up_binaries(self, binaries, master, usr_bin):
         if master == tc.JAVA:
@@ -302,98 +298,64 @@ class OpenJdk8(OpenJdk7):
         excludes.extend(["hsdb", "clhsdb"])
         return excludes
 
+    def _get_checked_masters(self):
+        return [tc.JAVA, tc.JAVAC]
 
-class OpenJdk8WithDebug(OpenJdk8):
+
+class OpenJdk8JfrArchs(OpenJdk8):
     def __init__(self):
         super().__init__()
-        for suffix in tc.get_debug_suffixes():
-            self.checked_subpackages.append(tc.DEVEL + suffix)
-
-    def _clean_debug_subpackages(self, bins):
-        devel_bins = []
-        ManpageTests.instance.log("Original debug " + SDK_BINARIES + ": " + ", ".join(bins[self._get_subpackages()[3]]),
-                                  vc.Verbosity.TEST)
-        for b in bins[self._get_subpackages()[3]]:
-            if b not in bins[self._get_subpackages()[2]]:
-                devel_bins.append(b)
-        for suffix in tc.get_debug_suffixes():
-            bins[tc.DEVEL + suffix] = copy.copy(devel_bins)
-        return
-
-    def _get_subpackages(self):
-        subpkgs = [tc.HEADLESS, tc.DEVEL]
-        for suffix in tc.get_debug_suffixes():
-            for subpkg in subpkgs.copy():
-                subpkgs.append(subpkg + suffix)
-        return subpkgs
-
-    def _get_manpage_suffixes(self, subpackage):
-        for suffix in tc.get_debug_suffixes():
-            if suffix in subpackage:
-                return [MANPAGE_SUFFIX, "-" + self.rpms.getNvr() + "." + self._get_arch() + suffix + MANPAGE_SUFFIX]
-        else:
-            return super()._get_manpage_suffixes(subpackage)
+        self.missing_manpages.append("jfr")
 
 
-class OpenJdk10(OpenJdk8):
+class OpenJdk11(OpenJdk8):
     def __init__(self):
         super().__init__()
-        self.missing_manpages = ["jdeprscan", "jhsdb", "jimage", "jlink", "jmod", "jshell"]
+        self.missing_manpages = ["jdeprscan", "jhsdb", "jimage", "jlink", "jmod", "jshell", "jfr"]
 
     def _clean_up_binaries(self, binaries, master, usr_bin):
         return binaries
 
 
-class OpenJdk10Debug(OpenJdk8WithDebug):
+class OpenJdk11NoJaotcMan(OpenJdk11):
     def __init__(self):
         super().__init__()
-        self.missing_manpages = ["jdeprscan", "jhsdb", "jimage", "jlink", "jmod", "jshell"]
-
-    def _clean_up_binaries(self, binaries, master, usr_bin):
-        return binaries
+        self.missing_manpages.append("jaotc")
 
 
-class OpenJdk10Debugx64(OpenJdk10Debug):
-
-    def __init__(self):
-        super().__init__()
-        self.missing_manpages = ["jdeprscan", "jhsdb", "jimage", "jlink", "jmod", "jshell", "jaotc"]
-
-
-class OpenJdk11(OpenJdk10):
-    pass
-
-class OpenJdk11armv7hl(OpenJdk11):
-    pass
-
-class OpenJdk11Debug(OpenJdk10Debug):
-    pass
-
-
-class OpenJdk11Debugx64(OpenJdk10Debugx64):
-    pass
-
-class OpenJdk11s390x(OpenJdk11Debug):
+class OpenJdk11s390x(OpenJdk11):
     def __init__(self):
         super().__init__()
         self.checked_subpackages = [tc.DEVEL]
         for suffix in tc.get_debug_suffixes():
             for subpkg in self.checked_subpackages.copy():
                 self.checked_subpackages.append(subpkg + suffix)
-        self.missing_manpages = ["jdeprscan", "jimage", "jlink", "jmod", "jshell", "jfr"]
+        self.missing_manpages.remove("jhsdb")
 
 
-class OpenJdk12(OpenJdk11):
+class OpenJdk11JfrArchs(OpenJdk11):
+    def __init__(self):
+        super().__init__()
+        self.missing_manpages.append("jfr")
+
+
+class OpenJdk17(OpenJdk11):
     pass
 
-class OpenJdk12Debug(OpenJdk11Debug):
+
+class OpenJdk17s390x(OpenJdk17):
+    def __init__(self):
+        super().__init__()
+        self.checked_subpackages = [tc.DEVEL]
+        for suffix in tc.get_debug_suffixes():
+            for subpkg in self.checked_subpackages.copy():
+                self.checked_subpackages.append(subpkg + suffix)
+        self.missing_manpages.remove("jhsdb")
+
+
+class OpenJdk17JaotcMan(OpenJdk17):
     pass
 
-class OpenJdk12Debugx64(OpenJdk11Debugx64):
-    pass
-
-class OpenJdk12s390x(OpenJdk11s390x):
-    pass
 
 class ITW(ManpageTestMethods):
     def _clean_sdk_from_jre(self, bins, packages):
@@ -526,38 +488,16 @@ class ManpageTests(bt.BaseTest):
         self.log("Checking man pages for " + rpms.getMajorPackage(), vc.Verbosity.TEST)
 
         if rpms.getVendor() == gc.OPENJDK or rpms.getVendor() == gc.OPENJ9:
-            if rpms.getMajorVersionSimplified() == "6":
-                self.csch = OpenJdk6()
-                return
-
-            elif rpms.getMajorVersionSimplified() == "7":
-                self.csch = OpenJdk7()
-                return
-
-            elif rpms.getMajorVersionSimplified() == "8"\
-                    or rpms.getMajorVersionSimplified() == "9":
-                if self.getCurrentArch() in gc.getX86_64Arch() + gc.getIx86archs():
-                    self.csch = OpenJdk8WithDebug()
+            if rpms.getMajorVersionSimplified() == "8":
+                if self.getCurrentArch() in gc.getIx86archs() + gc.getAarch64Arch() + gc.getPower64Achs() + gc.getX86_64Arch():
+                    self.csch = OpenJdk8JfrArchs()
                     return
                 else:
                     self.csch = OpenJdk8()
                     return
-            elif int(rpms.getMajorVersionSimplified()) == 10:
-                if self.getCurrentArch() in gc.getArm32Achs():
-                    self.csch = OpenJdk10()
-                    return
-                elif self.getCurrentArch() in gc.getX86_64Arch():
-                    self.csch = OpenJdk10Debugx64()
-                    return
-                else:
-                    self.csch = OpenJdk10Debug()
-                    return
             elif int(rpms.getMajorVersionSimplified()) == 11:
-                if self.getCurrentArch() in gc.getArm32Achs():
-                    self.csch = OpenJdk11armv7hl()
-                    return
-                elif self.getCurrentArch() in gc.getX86_64Arch() + gc.getAarch64Arch():
-                    self.csch = OpenJdk11Debugx64()
+                if self.getCurrentArch() in gc.getX86_64Arch() + gc.getAarch64Arch():
+                    self.csch = OpenJdk11NoJaotcMan()
                     return
                 else:
                     if rpms.isRhel() and self.getCurrentArch() in gc.getS390Arch() + gc.getPpc32Arch():
@@ -565,22 +505,19 @@ class ManpageTests(bt.BaseTest):
                     elif self.getCurrentArch() in gc.getS390xArch():
                         self.csch = OpenJdk11s390x()
                     else:
-                        self.csch = OpenJdk11Debug()
+                        self.csch = OpenJdk11()
                     return
-            elif int(rpms.getMajorVersionSimplified()) >= 12:
-                if self.getCurrentArch() in gc.getArm32Achs():
-                    self.csch = OpenJdk12()
-                    return
-                elif self.getCurrentArch() in gc.getX86_64Arch() + gc.getAarch64Arch():
-                    self.csch = OpenJdk12Debugx64()
+            elif int(rpms.getMajorVersionSimplified()) >= 17:
+                if self.getCurrentArch() in gc.getX86_64Arch() + gc.getAarch64Arch():
+                    self.csch = OpenJdk17JaotcMan()
                     return
                 else:
                     if rpms.isRhel() and self.getCurrentArch() in gc.getS390Arch() + gc.getPpc32Arch():
-                        self.csch = OpenJdk12()
-                    elif self.getCurrentArch() in gc.getS390xArch() + gc.getPpc32Arch():
-                        self.csch = OpenJdk12s390x()
+                        self.csch = OpenJdk17()
+                    elif self.getCurrentArch() in gc.getS390xArch():
+                        self.csch = OpenJdk17s390x()
                     else:
-                        self.csch = OpenJdk12Debug()
+                        self.csch = OpenJdk17()
                     return
             else:
                 raise ex.UnknownJavaVersionException("Unknown java version.")
