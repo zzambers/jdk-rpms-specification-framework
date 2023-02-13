@@ -7,6 +7,7 @@ import config.runtime_config
 import utils.core.base_xtest
 import outputControl.logging_access as la
 import utils.test_utils as tu
+import utils.rpmbuild_utils as rpmbu
 
 
 class EmptyPackageTest(utils.core.base_xtest.BaseTest):
@@ -17,7 +18,7 @@ class EmptyPackageTest(utils.core.base_xtest.BaseTest):
         pkgs= config.runtime_config.RuntimeConfig().getRpmList().getAllFiles()
         for pkg in pkgs:
             self.log("checking: " + pkg)
-            files = utils.rpmbuild_utils.listFilesInPackage(pkg)
+            files = rpmbu.listFilesInPackage(pkg)
             self.log("got: " + str(len(files)) + " files")
             if split.get_arch(pkg) in config.global_config.getSrcrpmArch():
                 tu.passed_or_failed(self, len(files) > 1, "Wrong number of files in package " + pkg +
