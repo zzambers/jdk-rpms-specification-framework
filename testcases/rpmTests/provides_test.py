@@ -24,7 +24,7 @@ class NonITW(cs.JdkConfiguration):
             lines = output.split("\n")
             provides_dict = {}
             for line in lines:
-                if "=" in line and "debuginfo(build" not in line:
+                if "=" in line and "debuginfo(build" not in line and "bundled" not in line:
                     actual_line = line.split("=")
                     provides_dict[actual_line[0].strip()] = actual_line[1].strip()
             return provides_dict
@@ -48,7 +48,7 @@ class NonITW(cs.JdkConfiguration):
                                            make_rpm_readable(filename) + " is missing provide: " + provide):
                     missing_provides.append(provide)
                 else:
-                    tu.passed_or_failed(self, expected_provides[provide] == actual_provides[provide],
+                    tu.passed_or_failed(self, expected_provides[provide] == actual_provides[provide] or "bundled" in provide,
                                         "wrong version for provide " + provide + " in " + make_rpm_readable(filename))
                     actual_provides.pop(provide)
             if missing_provides:
@@ -97,6 +97,8 @@ class NonITW(cs.JdkConfiguration):
                 provides = JavaDoc(name, java_ver, vendor, pkg, version, end, arch, filename)
             elif "webstart" in pkg:
                 provides = Webstart(name, java_ver, vendor, pkg, version, end, arch, filename)
+            elif "static" in pkg:
+                provides = DebugInfo(name, java_ver, vendor, pkg, version, end, arch, filename)
             else:
                 provides = Default(name, java_ver, vendor, pkg, version, end, arch, filename)
         else:
@@ -139,11 +141,8 @@ class NonITW(cs.JdkConfiguration):
                                                                                            ", ".join(provides_intersection)))
         return
 
-
     def _is_pkg_default(self, pkg):
         return pkg in ["", "debug", "slowdebug", "fastdebug"]
-
-    GHOSTS = {tc.DEVEL:[], tc.HEADLESS:[], tc.JAVADOC:[], tc.JAVADOCZIP:[]}
 
 ###
 
@@ -229,6 +228,7 @@ class Empty:
                 self.expected_provides[splitted[0] + "-" + ("openjdk" if "openjdk" not in splitted[2] else "") +
                                        (("-" + splitted[2]) if (len(splitted) > 2) else "")] = self.expected_provides.pop(key)
 
+
 class DebugInfo(Empty):
     def __init__(self, name, java_ver, vendor, pkg, version, end, arch, filename):
         super(DebugInfo, self).__init__(name, java_ver, vendor, pkg, version, end, arch, filename)
@@ -292,9 +292,12 @@ class Jre(Default):
             ns.get_version_full(filename)
 
 
-class HeadlessTechPreview(JreTechPreview):
+class HeadlessTechPreview(DefaultTechPreview):
     def __init__(self, name, java_ver, vendor, pkg, version, end, arch, filename):
         super(HeadlessTechPreview, self).__init__(name, java_ver, vendor, pkg, version, end, arch, filename)
+        self.expected_provides[("jre" + "-" + java_ver + (("-" + pkg) if pkg else pkg))] = ns.get_version_full(filename)
+        self.expected_provides[("jre" + "-" + java_ver + "-" + vendor + (("-" + pkg) if pkg else pkg))] = \
+            ns.get_version_full(filename)
         self.expected_provides["config({})".format("-".join([name, java_ver, vendor, pkg]))] = \
             ns.get_version_full(filename)
 
@@ -306,18 +309,21 @@ class Headless(Jre):
             ns.get_version_full(filename)
 
 
-class OpenJfx(DebugInfo):
+class OpenJfxTechPreview(DebugInfo):
     def __init__(self, name, java_ver, vendor, pkg, version, end, arch, filename):
-        super(OpenJfx, self).__init__(name, java_ver, vendor, pkg, version, end, arch, filename)
+        super().__init__(name, java_ver, vendor, pkg, version, end, arch, filename)
         pkg = pkg.replace("openjfx", "")
         self.expected_provides[("javafx" + pkg)] = ns.get_version_full(filename)
 
-class OpenJfxTechPreview(DebugInfo):
+
+class OpenJfx(OpenJfxTechPreview):
     pass
+
 
 class JavaDoc(Default):
     def __init__(self, name, java_ver, vendor, pkg, version, end, arch, filename):
         super(JavaDoc, self).__init__(name, java_ver, vendor, pkg, version, end, arch, filename)
+
 
 class JavaDocTechPreview(DefaultTechPreview):
     def __init__(self, name, java_ver, vendor, pkg, version, end, arch, filename):
@@ -338,7 +344,7 @@ class JavaDocZip(JavaDocZipTechPreview):
     def __init__(self, name, java_ver, vendor, pkg, version, end, arch, filename):
         super(JavaDocZip, self).__init__(name, java_ver, vendor, pkg, version, end, arch, filename)
         self.expected_provides["-".join([name, pkg.replace("-zip", "")])] = ns.get_version_full(filename)
-
+        self.expected_provides["-".join([name, pkg])] = ns.get_version_full(filename)
 
 
 class DebugInfoRolling(Empty):
@@ -401,6 +407,7 @@ class Webstart(DebugInfo):
         super(Webstart, self).__init__(name, java_ver, vendor, pkg, version, end, arch, filename)
         self.expected_provides["config({})".format("-".join([name, java_ver, vendor, pkg]))] = ns.get_version_full(filename)
 
+
 class ITWebNonDefault(Empty):
     def __init__(self,  name, java_ver, vendor, pkg, version, end, arch, filename):
         super(ITWebNonDefault, self).__init__(name, java_ver, vendor, pkg, version, end, arch, filename)
@@ -408,7 +415,8 @@ class ITWebNonDefault(Empty):
         self.expected_provides[name + (("-" + pkg) if pkg else pkg) +
                                "({})".format(tu.validate_arch_for_provides(arch))] = ns.get_version_full(filename)
 
-#itw default provides also java plugin and ws versions hardcoded for now as well as version of the java
+
+# itw default provides also java plugin and ws versions hardcoded for now as well as version of the java
 class ITWebDefault(ITWebNonDefault):
     def __init__(self,  name, java_ver, vendor, pkg, version, end, arch, filename):
         super(ITWebDefault, self).__init__(name, java_ver, vendor, pkg, version, end, arch, filename)
@@ -429,6 +437,7 @@ def testAll():
 def documentAll():
     la.LoggingAccess().stdout("Provides")
     return ProvidesTest().execute_special_docs()
+
 
 def main(argv):
     bt.defaultMain(argv, documentAll, testAll)
