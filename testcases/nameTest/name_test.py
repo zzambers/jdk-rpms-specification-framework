@@ -55,7 +55,7 @@ class NameTest(utils.core.base_xtest.BaseTest):
         return self.passed, self.failed
 
     def test_prefix(self):
-        passed, failed = self.checkFilesAgainstValues([gc.JAVA_STRING, gc.ITW], split.get_javaprefix)
+        passed, failed = self.checkFilesAgainstValues([gc.JAVA_STRING, gc.ITW, gc.TEMURIN], split.get_javaprefix)
         return passed, failed
 
     def test_version(self):
@@ -106,6 +106,10 @@ class NameTest(utils.core.base_xtest.BaseTest):
         if config.runtime_config.RuntimeConfig().getRpmList().getJava() == gc.ITW:
             self.log("Set ItwRegexCheck")
             self.csch = testcases.nameTest.connfigs.nametest_config.ItwRegexCheck()
+            return
+        if config.runtime_config.RuntimeConfig().getRpmList().getJava() == gc.TEMURIN:
+            self.log("Set Temurin Regex Check")
+            self.csch = testcases.nameTest.connfigs.nametest_config.TemurinRegexCheck()
             return
         if int(config.runtime_config.RuntimeConfig().getRpmList().getMajorVersionSimplified()) == 9:
             self.log("Set Jdk9RegexCheck")

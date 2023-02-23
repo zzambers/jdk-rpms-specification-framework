@@ -14,7 +14,7 @@ def _rpmname_split_mapper(name):
     parts2 = _dot_split(name)
 
     if gc.TEMURIN in name:
-        return RpmNameParts("java", parts1[1], gc.ADOPTIUM, parts1[2], parts1[4], parts2[0], parts2[1], parts2[2])
+        return RpmNameParts(gc.TEMURIN, parts1[1], gc.ADOPTIUM, parts1[2], parts1[4], parts2[0], parts2[1], parts2[2])
 
     return RpmNameParts(parts1[0], parts1[1], parts1[2], parts1[3], parts1[4], parts2[0], parts2[1], parts2[2])
 

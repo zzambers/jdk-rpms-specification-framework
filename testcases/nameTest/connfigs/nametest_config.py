@@ -21,6 +21,9 @@ CRES_JAVA_REGEXEROLLING = re.compile(JAVA_REGEX_ROLLING)
 ITW_REGEX="^icedtea-web-.*-.*\..*.rpm$"
 CRES_ITW_REGEXE = re.compile(ITW_REGEX)
 
+TEMURIN_REGEX="^temurin-([0-9]*)-.*-.*-.*\..*.rpm$"
+CRES_TEMURIN_REGEXE = re.compile(TEMURIN_REGEX)
+
 class ItwRegexCheck(JdkConfiguration):
 
     def checkRegex(self, name=None):
@@ -56,3 +59,10 @@ class Jdk10RegexCheck(JdkConfiguration):
         else:
             la.LoggingAccess().log("JDK 10 and higher regex check.")
             return CRES_JAVA_REGEXE10.match(name)
+
+
+class TemurinRegexCheck(JdkConfiguration):
+    def checkRegex(self, name=None):
+        self._document("RPMS from Adoptium")
+        la.LoggingAccess().log("Temurin special call for checkRegex")
+        return CRES_TEMURIN_REGEXE.match(name)
