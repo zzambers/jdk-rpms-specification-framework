@@ -157,6 +157,8 @@ ITW = "icedtea-web"
 IBM = "ibm"
 ORACLE = "oracle"
 SUN = "sun"
+ADOPTIUM = "Adoptium"
+TEMURIN = "temurin"
 
 LIST_OF_PROPRIETARY_VENDORS = [IBM, ORACLE]
 LIST_OF_OPEN_VENDORS_EXCEPT_ITW = [OPENJDK]

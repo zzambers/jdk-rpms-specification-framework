@@ -13,6 +13,7 @@ from utils import pkg_name_split as split
 from utils.test_utils import passed_or_failed
 import config.verbosity_config as vc
 
+
 class MainPackagePresent(JdkConfiguration):
 
     def __init__(self):
@@ -42,7 +43,6 @@ class MainPackagePresent(JdkConfiguration):
                 else:
                     missingSubpackages.append(subpkg)
             passed_or_failed(self, False, "Set of subpackages not as expected. \nextra subpkgs: " + str(ssGiven) + "\nmissing subpkgs: " + str(missingSubpackages))
-
 
 
 class BaseSubpackages(MainPackagePresent):
@@ -323,6 +323,12 @@ class Oracle7and8(OracleAndIbmAddPlugin):
         return subpackages
 
 
+class BaseTemurinPackages(BaseSubpackages):
+    def _getSubPackages(self):
+        subpackages = ["jre", "jdk"]
+        return subpackages
+
+
 class SubpackagesTest(utils.core.base_xtest.BaseTest):
     instance = None
 
@@ -438,9 +444,10 @@ class SubpackagesTest(utils.core.base_xtest.BaseTest):
                     return
             else:
                 raise ex.UnknownJavaVersionException("Ibm java version unknown.")
-
+        if rpms.getVendor() == gc.ADOPTIUM:
+            self.csch = BaseTemurinPackages()
+            return
         raise ex.UnknownJavaVersionException("Java version or OS was not recognized by this framework.")
-
 
 
 def testAll():

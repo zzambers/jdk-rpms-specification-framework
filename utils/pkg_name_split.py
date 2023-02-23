@@ -1,6 +1,6 @@
 import re
 from collections import namedtuple
-import config.global_config
+import config.global_config as gc
 import ntpath
 from collections import OrderedDict
 
@@ -9,9 +9,12 @@ RpmNameParts = namedtuple('RpmNameParts',
                            'version', 'release', 'dist', 'arch'])
 
 
-def _rpmname_splithelper(name):
+def _rpmname_split_mapper(name):
     parts1 = _hyphen_split(name)
     parts2 = _dot_split(name)
+
+    if gc.TEMURIN in name:
+        return RpmNameParts("java", parts1[1], gc.ADOPTIUM, parts1[2], parts1[4], parts2[0], parts2[1], parts2[2])
 
     return RpmNameParts(parts1[0], parts1[1], parts1[2], parts1[3], parts1[4], parts2[0], parts2[1], parts2[2])
 
@@ -19,7 +22,6 @@ def _rpmname_splithelper(name):
 def _hyphen_split(name):
     """Split the rpm name according to hyphens, the subpackage string
     can be also empty or contain hyphens - as in devel-debug etc."""
-    gc = config.global_config
     name = name.strip()
     hyphen_parts = name.split('-')
     num_h = len(hyphen_parts)
@@ -67,24 +69,26 @@ def _dot_split(name):
 
 
 def get_javaprefix(name):
-    """Should be always java"""
-    return _get_ith_part(0, name)
+    """Should be always java or temurin"""
+    return _rpmname_split_mapper(name).java
 
 
 def get_major_ver(name):
     """eg 1.7.0 or 9"""
-    return _get_ith_part(1, name)
+    return _rpmname_split_mapper(name).java_ver
 
 
 def get_vendor(name):
     """eg openjdk"""
-    return _get_ith_part(2, name)
+    return _rpmname_split_mapper(name).vendor
 
 
 def get_major_package_name(name):
     """or java-1.8.0-openjdk"""
     parts = _hyphen_split(name)
-    return "-".join(list(OrderedDict.fromkeys(parts[0:3])))
+    if get_vendor(name) == gc.ADOPTIUM:
+        return "-".join(list(_rpmname_split_mapper(name)[0:2]))
+    return "-".join(list(_rpmname_split_mapper(name)[0:3]))
 
 
 def get_package_name(name):
@@ -101,36 +105,27 @@ def get_package_name(name):
 
 def get_subpackage_only(name):
     """ eg devel-debug"""
-    return _get_ith_part(3, name)
+    return _rpmname_split_mapper(name).pkg
 
 
 def get_minor_ver(name):
     """ eg 1.8.0.77"""
-    return _get_ith_part(4, name)
+    return _rpmname_split_mapper(name).version
 
 
 def get_release(name):
     """ eg 2.b03"""
-    if name.endswith(".rpm"):
-        return _get_ith_dotpart(0, name)
-    else:
-        return _get_ith_dotpart(0, name + ".rpm")
+    return _rpmname_split_mapper(name).release
 
 
 def get_dist(name):
     """ eg fc25 or el6_7"""
-    if name.endswith(".rpm"):
-        return _get_ith_dotpart(1, name)
-    else:
-        return _get_ith_dotpart(1, name + ".rpm")
+    return _rpmname_split_mapper(name).dist
 
 
 def get_arch(name):
     """ eg i686 """
-    if name.endswith(".rpm"):
-        return _get_ith_dotpart(2, name)
-    else:
-        return _get_ith_dotpart(2, name + ".rpm")
+    return _rpmname_split_mapper(name).arch
 
 
 def get_arch_install(name):
@@ -188,6 +183,7 @@ def simplify_full_version(vers, keepLegacy = False):
 
 def simplify_new_version(vers):
     return simplify_full_version(vers, True)
+
 
 #recent changes in koji API started to append signature to the build path, this was screwing our download script
 def drop_signature(rpm):
