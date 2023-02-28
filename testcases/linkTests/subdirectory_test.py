@@ -75,12 +75,16 @@ class BaseMethods(JdkConfiguration):
                 passed_or_failed(self, subdirectory in expected_subdirectories,
                                  "Extra {} subdirectory in {} subpackage".format(subdirectory, _subpkg))
 
+    def _get_expected_link(self, name):
+        expected_link = JVM_DIR + "/" + self._get_nvra_suffix(name)
+        return expected_link
+
     def _test_links_are_correct(self, subdirectories, name, _subpkg):
         """ Tests if all the symlinks in /usr/lib/jvm ('fake subdirectories') are pointing at correct target (usually
         /usr/lib/jvm/nvr(a)) """
         SubdirectoryTest.instance.log("Testing subdirectory links: ")
         for subdirectory in subdirectories:
-            expected_link = JVM_DIR + "/" + self._get_nvra_suffix(name)
+            expected_link = self._get_expected_link(name)
 
             # skipping created subdirs at mock init, are dirs, not links
             if "jce" in subdirectory:
@@ -120,7 +124,6 @@ class BaseMethods(JdkConfiguration):
             subdirectories = subdirectories[0].split("\n")
             subdirectories = self._remove_fake_subdirectories(subdirectories)
             expected_subdirectories = self._get_expected_subdirectories(name)[_subpkg]
-            expected_subdirectories.append(self._get_nvra_suffix(name))
             expected_subdirectories = set(expected_subdirectories)
             SubdirectoryTest.instance.log("Testing subdirectories for {}:".format(name), vc.Verbosity.TEST)
             SubdirectoryTest.instance.log("Expected: " + str(sorted(expected_subdirectories)),
@@ -153,6 +156,8 @@ class OpenJdk8(BaseMethods):
         for suffix in get_debug_suffixes():
             for subpkg in [HEADLESS, DEFAULT, DEVEL]:
                 subdirs[subpkg + suffix] = copy.copy(subdirs[subpkg])
+        for pkg in subdirs.keys():
+            subdirs[pkg].append(self._get_nvra_suffix(name))
         return subdirs
 
     def _get_nvra_suffix(self, name):
@@ -170,6 +175,20 @@ class OpenJdk8(BaseMethods):
 class OpenJdk11(OpenJdk8):
     def _get_jre_link(self, expected_link):
         return expected_link.replace("i686", "i386")
+
+
+class Temurin(OpenJdk11):
+    def _get_expected_subdirectories(self, name):
+        subdirs = {JRE: ["-".join([gc.TEMURIN, self.rpms.getMajorVersionSimplified(), JRE])],
+                   JDK: ["-".join([gc.TEMURIN, self.rpms.getMajorVersionSimplified(), JDK])]}
+        return subdirs
+
+    def _get_expected_link(self, name):
+        expected_link = JVM_DIR + "/" + pkgsplit.get_package_name(name)
+        return expected_link
+
+    def _get_jre_link(self, expected_link):
+        return expected_link
 
 
 class Oracle7(BaseMethods):
@@ -275,6 +294,9 @@ class SubdirectoryTest(bt.BaseTest):
 
         elif rpms.getVendor() == gc.ITW:
             self.csch = ITW()
+            return
+        elif rpms.getVendor() == gc.ADOPTIUM:
+            self.csch = Temurin()
             return
 
         else:
