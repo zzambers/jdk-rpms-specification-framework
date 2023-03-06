@@ -182,6 +182,7 @@ class BaseTestRunner:
         agregator = Agregator()
         for i, arch in enumerate(archs):
             self.current_arch=arch
+            config.runtime_config.RuntimeConfig().current_arch = arch
             self.indent = "    "
             self.log("Setting configuration-specific-checks")
             self.setCSCH()
