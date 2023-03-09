@@ -84,6 +84,14 @@ class ScripletStarterFinisher:
         POSTTRANS
     ]
 
+    installScriptlets = [
+        PRETRANS,
+        PREINSTALL,
+        POSTINSTALL,
+        TGINSTALL,
+        POSTTRANS
+    ]
+
     postScripts = allScriplets[2:]
 
     scriptlet = "scriptlet"

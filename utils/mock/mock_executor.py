@@ -107,7 +107,7 @@ class Mock:
 
 
     def listSnapshots(self):
-        o =  exxec.processAsStrings(self.mainCommand() + ["--list-snapshots"])
+        o = exxec.processAsStrings(self.mainCommand() + ["--list-snapshots"])
         current = None
         items = []
         for item in o[1:len(o)]:
@@ -233,6 +233,9 @@ class Mock:
         return o
 
     def createAndExecuteShell(self, scriptSuffix, lines):
+        for line in lines.copy():
+            if line.startswith("if") or line.startswith("fi"):
+                lines.remove(line)
         script = self.importFileContnet(scriptSuffix, lines)
         o, r = self.executeShell(script)
         return o, r
@@ -274,21 +277,30 @@ class Mock:
         return self._rollbackCommand(name)
 
     def run_all_scriptlets_after_postinstall(self, pkg):
-        for script in utils.rpmbuild_utils.ScripletStarterFinisher.allScriplets:
+        key = re.sub('[^0-9a-zA-Z]+', '_', ntpath.basename(pkg) + "_" + "all_installed")
+        if key in self.snapshots:
+            la.LoggingAccess().log(pkg + " already installed in snapshot. Rolling to " + key,
+                                                             vc.Verbosity.MOCK)
+            self.getSnapshot(key)
+            return
+        self.importRpm(pkg)
+        for script in utils.rpmbuild_utils.ScripletStarterFinisher.installScriptlets:
+            la.LoggingAccess().log("        " + "running " +  script + " from " +
+                                   os.path.basename(pkg),
+                                   vc.Verbosity.TEST)
             try:
-                self._install_scriptlet(pkg, script)
+                self._only_install_scriptlet(pkg, script)
             except utils.mock.mock_execution_exception.MockExecutionException:
                 la.LoggingAccess().log("        " + script + " script not found in " +
                                        os.path.basename(pkg),
                                        vc.Verbosity.TEST)
+        self.createSnapshot(key)
         return True
 
-
-
     def install_postscript(self, pkg):
-        return self._install_scriptlet(pkg, utils.rpmbuild_utils.POSTINSTALL)
+        return self._effective_install_scriptlet(pkg, utils.rpmbuild_utils.POSTINSTALL)
 
-    def _install_scriptlet(self, pkg, scriptlet):
+    def _effective_install_scriptlet(self, pkg, scriptlet):
         key = re.sub('[^0-9a-zA-Z]+', '_', ntpath.basename(pkg) + "_" + scriptlet)
         if key in self.snapshots:
             la.LoggingAccess().log(pkg + " already extracted in snapshot. Rolling to " + key,
@@ -296,17 +308,24 @@ class Mock:
             self.getSnapshot(key)
             return
         else:
-            self.importRpm(pkg)
-            content = utils.rpmbuild_utils.getSrciplet(pkg, scriptlet)
-            if len(content) == 0:
-                raise utils.mock.mock_execution_exception.MockExecutionException(scriptlet + " scriptlet not found in given"
-                                                                                             " package.")
-
-            else:
-                o, r = self.executeScriptlet(pkg, scriptlet)
-                la.LoggingAccess().log(scriptlet + "returned " +
-                                                                 str(r) + " of " + os.path.basename(pkg), vc.Verbosity.MOCK)
+            self.importRpm(pkg, False)
+            try:
+                self._only_install_scriptlet(pkg, scriptlet)
                 self.createSnapshot(key)
+            except utils.mock.mock_execution_exception.MockExecutionException:
+                la.LoggingAccess().log("        " + scriptlet + " script not found in " +
+                                       os.path.basename(pkg),
+                                       vc.Verbosity.TEST)
+
+    def _only_install_scriptlet(self, pkg, scriptlet):
+        content = utils.rpmbuild_utils.getSrciplet(pkg, scriptlet)
+        if len(content) == 0:
+            raise utils.mock.mock_execution_exception.MockExecutionException(scriptlet + " scriptlet not found in given"
+                                                                                         " package.")
+        else:
+            o, r = self.executeScriptlet(pkg, scriptlet)
+            la.LoggingAccess().log(scriptlet + "returned " +
+                                   str(r) + " of " + os.path.basename(pkg), vc.Verbosity.MOCK)
 
     def execute_ls(self, dir):
         return self.executeCommand(["ls " + dir])
