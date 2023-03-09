@@ -1,5 +1,5 @@
 import testcases.alternativesTests.binaries_test_methods as bsm
-import utils.pkg_name_split as pkgsplit
+import utils.pkg_name_split as ns
 import testcases.alternativesTests.binaries_test_paths as btp
 import utils.test_constants as tc
 import utils.test_utils as tu
@@ -125,8 +125,8 @@ class OpenJdk11(OpenJdk8):
     def _get_binary_directory_path(self, name):
         for suffix in tc.get_debug_suffixes():
             if suffix in name:
-                return tc.JVM_DIR + "/" + tu.get_32bit_id_in_nvra(pkgsplit.get_nvra(name)) + suffix + tc.SDK_DIRECTORY
-        return tc.JVM_DIR + "/" + tu.get_32bit_id_in_nvra(pkgsplit.get_nvra(name)) + tc.SDK_DIRECTORY
+                return tc.JVM_DIR + "/" + tu.get_32bit_id_in_nvra(ns.get_nvra(name)) + suffix + tc.SDK_DIRECTORY
+        return tc.JVM_DIR + "/" + tu.get_32bit_id_in_nvra(ns.get_nvra(name)) + tc.SDK_DIRECTORY
 
     def _check_binaries_against_hardcoded_list(self, binaries, subpackage):
         hardcoded_binaries = self._get_binaries_as_dict()
@@ -353,7 +353,7 @@ class Ibm8Rhel8S390X(Ibm390Architectures):
 
 class Oracle6(IbmWithPluginSubpackage):
     def _get_binary_directory(self, name):
-        path = self._get_32bit_id_in_nvra(pkgsplit.get_nvra(name))
+        path = self._get_32bit_id_in_nvra(ns.get_nvra(name))
         release = path.split("-")[-1]
         path = path.replace("-" + release, "")
         return path
@@ -481,3 +481,73 @@ class Itw(bsm.BinarySlaveTestMethods):
         for l in links:
             installed_binaries[tc.DEFAULT].remove(l)
         return installed_binaries
+
+
+class Temurin8(bsm.BinarySlaveTestMethods):
+    JDK_BINARIES = ["appletviewer", "javac", "jdeps", "jsadebugd", "policytool", "unpack200",
+                    "clhsdb", "javadoc", "jfr", "jstack", "rmic", "wsgen",
+                    "extcheck", "javah", "jhat", "jstat", "rmid", "wsimport",
+                    "hsdb", "javap", "jinfo", "jstatd", "rmiregistry", "xjc",
+                    "idlj", "jjs", "keytool", "schemagen",
+                    "jar", "jcmd", "jmap", "native2ascii", "serialver",
+                    "jarsigner", "jconsole", "jps", "orbd", "servertool",
+                    "java", "jdb", "jrunscript", "pack200", "tnameserv"]
+
+    JRE_BINARIES = ["java", "keytool", "pack200", "rmid", "servertool", "unpack200",
+                    "jjs", "orbd", "policytool", "rmiregistry", "tnameserv"]
+    def _get_subpackages_with_binaries(self):
+        return [tc.JRE, tc.JDK]
+
+    def _get_binary_directory_path(self, name):
+        return tc.JVM_DIR + "/{}/bin".format(ns.get_package_name(name))
+
+    def _get_jre_subpackage(self):
+        return [tc.JRE]
+
+    def _get_sdk_subpackage(self):
+        return [tc.JDK]
+
+    def check_exports_slaves(self, args=None):
+        self._document("Temurin has no exports slaves.")
+        return
+
+    def _get_binaries_as_dict(self):
+        dict = {tc.JDK: self.JDK_BINARIES,
+                tc.JRE: self.JRE_BINARIES}
+        for suffix in tc.get_debug_suffixes():
+            for subpkg in [tc.DEFAULT, tc.DEVEL, tc.HEADLESS]:
+                dict[subpkg + suffix] = dict[subpkg]
+        return dict
+
+    def _check_binaries_against_hardcoded_list(self, binaries, subpackage):
+        hardcoded_binaries = self._get_binaries_as_dict()
+        if not tu.passed_or_failed(self, subpackage in hardcoded_binaries.keys(), "Binaries in unexpected subpackage: "
+                                                                                  + subpackage):
+            return
+        tu.passed_or_failed(self, sorted(binaries) == sorted(hardcoded_binaries[subpackage]),
+                                   "Hardcode check: binaries are not as expected in {} subpackage. Missing binaries: {}."
+                                   " Extra binaries: {}".format(subpackage, tu.two_lists_diff(hardcoded_binaries[subpackage],
+                                                                                  binaries),
+                                                                tu.two_lists_diff(binaries,
+                                                                                  hardcoded_binaries[subpackage])))
+        return
+
+
+class Temurin11(Temurin8):
+    JDK_BINARIES = ["javac", "jdeps", "unpack200",
+                    "javadoc", "jfr", "jstack", "rmic", "jstat", "rmid",
+                    "javap", "jinfo", "jstatd", "rmiregistry", "jjs", "keytool",
+                    "jar", "jcmd", "jmap", "serialver", "jarsigner", "jconsole",
+                    "jps", "java", "jdb", "jrunscript", "pack200", "jshell", "jhsdb",
+                    "jaotc", "jmod", "jdeprscan", "jimage", "jlink"]
+    JRE_BINARIES = ["java", "keytool", "pack200", "rmid", "unpack200",
+                    "jjs", "rmiregistry", "jfr", "jrunscript", "jaotc"]
+
+
+class Temurin17(Temurin11):
+    JDK_BINARIES = ["javac", "jdeps", "javadoc", "jfr", "jstack", "jstat",
+                    "javap", "jinfo", "jstatd", "rmiregistry", "keytool",
+                    "jar", "jcmd", "jmap", "serialver", "jarsigner", "jconsole",
+                    "jps", "java", "jdb", "jrunscript", "jshell", "jhsdb",
+                    "jmod", "jdeprscan", "jimage", "jlink", "jpackage"]
+    JRE_BINARIES = ["java", "keytool", "rmiregistry", "jfr", "jrunscript"]

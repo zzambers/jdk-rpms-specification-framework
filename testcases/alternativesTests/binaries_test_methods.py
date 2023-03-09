@@ -9,6 +9,7 @@ import utils.test_utils as tu
 import outputControl.logging_access as la
 import config.verbosity_config as vc
 
+
 class GetAllBinariesAndSlaves(btp.PathTest):
     rpms = rc.RuntimeConfig().getRpmList()
 
@@ -102,7 +103,7 @@ class GetAllBinariesAndSlaves(btp.PathTest):
                 self.binaries_test.log("Skipping binaries extraction for " + _subpkg)
                 self.skipped.append(_subpkg)
                 continue
-            if not mexe.DefaultMock().run_all_scriptlets_after_postinstall(pkg):
+            if not mexe.DefaultMock().run_all_scriptlets_for_install(pkg):
                 self.binaries_test.log("Failed to execute postinstall. Slaves will not be found for " + _subpkg)
             binary_directory_path = self._get_binary_directory_path(name)
             binaries = mexe.DefaultMock().execute_ls(binary_directory_path)
