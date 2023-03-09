@@ -205,7 +205,7 @@ class ManpageTestMethods(cs.JdkConfiguration):
                 continue
 
             # first check links
-            if not mexe.DefaultMock().run_all_scriptlets_after_postinstall(pkg):
+            if not mexe.DefaultMock().run_all_scriptlets_for_install(pkg):
                 self.skipped.append(_subpkg)
                 continue
             masters = mexe.DefaultMock().get_masters()
@@ -530,7 +530,7 @@ class Temurin8(ManpageTestMethods):
 class Temurin11(Temurin8):
     def __init__(self):
         super().__init__()
-        self.missing_manpages[tc.JDK].extend(["jaotc", "jdeprscan", "jhsdb", "jimage", "jlink", "jmod", "jshell"])
+        self.missing_manpages[tc.JDK] = ["jfr", "jaotc", "jdeprscan", "jhsdb", "jimage", "jlink", "jmod", "jshell"]
         self.missing_manpages[tc.JRE] = ["jaotc", "jfr", "jrunscript"]
         self.checked_subpackages.append(tc.JRE)
 

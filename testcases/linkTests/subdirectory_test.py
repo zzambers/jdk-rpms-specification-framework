@@ -112,7 +112,7 @@ class BaseMethods(JdkConfiguration):
             _subpkg = rename_default_subpkg(pkgsplit.get_subpackage_only(name))
             if _subpkg not in self._get_expected_subdirectories(name).keys():
                 continue
-            if not DefaultMock().run_all_scriptlets_after_postinstall(pkg):
+            if not DefaultMock().run_all_scriptlets_for_install(pkg):
                 SubdirectoryTest.instance.log("Skipping subdirectory test for {}".format(_subpkg), vc.Verbosity.TEST)
                 continue
 

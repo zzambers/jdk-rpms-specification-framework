@@ -223,8 +223,8 @@ class Mock:
         la.LoggingAccess().log(e, vc.Verbosity.MOCK)
         return o, r
 
-    def executeShell(self, scriptFilePath):
-        o, e, r = exxec.processToStringsWithResult(self.mainCommand() + ["--chroot", "sh", scriptFilePath])
+    def executeShell(self, scriptFilePath, params=""):
+        o, e, r = exxec.processToStringsWithResult(self.mainCommand() + ["--chroot", "sh", scriptFilePath, params])
         la.LoggingAccess().log(e, vc.Verbosity.MOCK)
         return o, r
 
@@ -232,12 +232,9 @@ class Mock:
         o = exxec.processAsStrings(self.mainCommand() + ["--chroot", "find"] + Mock.caredTopDirs, log=False)
         return o
 
-    def createAndExecuteShell(self, scriptSuffix, lines):
-        for line in lines.copy():
-            if line.startswith("if") or line.startswith("fi"):
-                lines.remove(line)
+    def createAndExecuteShell(self, scriptSuffix, lines, params=""):
         script = self.importFileContnet(scriptSuffix, lines)
-        o, r = self.executeShell(script)
+        o, r = self.executeShell(script, params)
         return o, r
 
     def provideCleanUsefullRoot(self):
@@ -258,11 +255,11 @@ class Mock:
                     self.mkdirP("/usr/lib/jvm/jce-1.7.0-oracle")
                     self.mkdirP("/usr/lib/jvm/jce-1.8.0-oracle")
 
-    def executeScriptlet(self, rpmFile, scripletName):
+    def executeScriptlet(self, rpmFile, scripletName, params=""):
         scriplet = rpmuts.getSrciplet(rpmFile, scripletName)
         if scriplet is None or len(scriplet) == 0:
             raise Exception("Scriptlet " + scripletName + " is not in " + rpmFile)
-        return self.createAndExecuteShell("_" + scripletName + "_" + ntpath.basename(rpmFile), scriplet)
+        return self.createAndExecuteShell("_" + scripletName + "_" + ntpath.basename(rpmFile), scriplet, params)
 
     def _getAbsFiles(self, files):
         absDirs = []
@@ -276,7 +273,7 @@ class Mock:
     def getSnapshot(self, name):
         return self._rollbackCommand(name)
 
-    def run_all_scriptlets_after_postinstall(self, pkg):
+    def run_all_scriptlets_for_install(self, pkg):
         key = re.sub('[^0-9a-zA-Z]+', '_', ntpath.basename(pkg) + "_" + "all_installed")
         if key in self.snapshots:
             la.LoggingAccess().log(pkg + " already installed in snapshot. Rolling to " + key,
@@ -289,7 +286,7 @@ class Mock:
                                    os.path.basename(pkg),
                                    vc.Verbosity.TEST)
             try:
-                self._only_install_scriptlet(pkg, script)
+                self._only_run_scriptlet(pkg, script, "1")
             except utils.mock.mock_execution_exception.MockExecutionException:
                 la.LoggingAccess().log("        " + script + " script not found in " +
                                        os.path.basename(pkg),
@@ -310,20 +307,20 @@ class Mock:
         else:
             self.importRpm(pkg, False)
             try:
-                self._only_install_scriptlet(pkg, scriptlet)
+                self._only_run_scriptlet(pkg, scriptlet)
                 self.createSnapshot(key)
             except utils.mock.mock_execution_exception.MockExecutionException:
                 la.LoggingAccess().log("        " + scriptlet + " script not found in " +
                                        os.path.basename(pkg),
                                        vc.Verbosity.TEST)
 
-    def _only_install_scriptlet(self, pkg, scriptlet):
+    def _only_run_scriptlet(self, pkg, scriptlet, params):
         content = utils.rpmbuild_utils.getSrciplet(pkg, scriptlet)
         if len(content) == 0:
             raise utils.mock.mock_execution_exception.MockExecutionException(scriptlet + " scriptlet not found in given"
                                                                                          " package.")
         else:
-            o, r = self.executeScriptlet(pkg, scriptlet)
+            o, r = self.executeScriptlet(pkg, scriptlet, params)
             la.LoggingAccess().log(scriptlet + "returned " +
                                    str(r) + " of " + os.path.basename(pkg), vc.Verbosity.MOCK)
 
