@@ -18,6 +18,7 @@ import utils.pkg_name_split as ns
 
 
 MANPAGE_SUFFIX = ".1.gz"
+TEMURIN_MANPAGE_SUFFIX = ".1"
 SUBPACKAGE = "subpackage"
 MANPAGE = "Man page"
 SDK_BINARIES = "SDK binaries"
@@ -41,7 +42,7 @@ class ManpageTestMethods(cs.JdkConfiguration):
     def __init__(self):
         super().__init__()
         self.list_of_failed_tests = []
-        self.missing_manpages = []
+        self.missing_manpages = dict()
         self.checked_subpackages = []
 
     skipped = []
@@ -62,15 +63,17 @@ class ManpageTestMethods(cs.JdkConfiguration):
         if manpages_list.__len__() == 0 or subpackages_list.__len__() == 0:
             return binaries
         self._document("There are multiple binaries, that are missing manpages in " +
-                       " and ".join(subpackages_list) + "subpackage: " + ", ".join(manpages_list))
-        for item in manpages_list:
-            for subpackage in subpackages_list:
+                       " and ".join(manpages_list.keys()) + " subpackage:")
+        for subpackage in manpages_list.keys():
+            self._document(subpackage + ": " + ", ".join(manpages_list[subpackage]))
+        for subpackage in subpackages_list:
+            for item in manpages_list[subpackage]:
                 try:
                     binaries[subpackage].remove(item)
                 except KeyError:
                     tu.passed_or_failed(self, False, subpackage + " is not present.")
                 except ValueError:
-                    tu.passed_or_failed(self, False, item + " is not present in manpages! This is unexpected behaviour.")
+                    tu.passed_or_failed(self, False, item + " is not present in binaries! This is unexpected behaviour.")
 
         return binaries
 
@@ -91,6 +94,12 @@ class ManpageTestMethods(cs.JdkConfiguration):
 
     def _get_manpage_suffixes(self, subpackage):
         return [MANPAGE_SUFFIX, "-" + self.rpms.getMajorPackage() + MANPAGE_SUFFIX]
+
+    # this is a hack accomodating for temurins having manpages in jvm dir, this should be gone once it gets fixed by adoptium
+    def _get_manpages_without_postscript(self, default_mans, subpkg):
+        return self._clean_default_mpges(default_mans,
+                                  mexe.DefaultMock().execute_ls(tc.MAN_DIR)[0]
+                                  .split("\n"))
 
     def _get_subpackages(self):
         return []
@@ -149,11 +158,13 @@ class ManpageTestMethods(cs.JdkConfiguration):
                        "with {} suffix.".format(tu.replace_archs_with_general_arch(self._get_manpage_suffixes(tc.DEFAULT),
                                                 self._get_arch())[FILE]))
         binaries = self._get_manpage_files_names(bins[subpackage], plugin_bin_content)
-        manpage_files = manpages_without_postscript[subpackage]
+        manpage_contents = manpages_without_postscript[subpackage]
         # now check that every binary has a man file
+        manpage_files = []
         for b in binaries:
             manpage = b + self._get_manpage_suffixes(subpackage)[FILE]
-            tu.passed_or_failed(self, manpage in manpage_files, manpage + " man page file not in " + subpackage)
+            if tu.passed_or_failed(self, manpage in manpage_contents, manpage + " man page file not in " + subpackage):
+                manpage_files.append(manpage)
         return manpage_files
 
     def manpage_links_check(self, bins, subpackage=None, manpages_with_postscript=None, manpage_files=None):
@@ -164,7 +175,11 @@ class ManpageTestMethods(cs.JdkConfiguration):
         self._document("Each man page slave has {} suffix.".format(self._get_manpage_suffixes(tc.DEFAULT)[LINK]))
         links = self._get_manpage_link_names(bins[subpackage])
         # now remove all files from man pages
-        manpage_links = list(set(manpages_with_postscript[subpackage]) - set(manpage_files))
+        try:
+            manpage_links = list(set(manpages_with_postscript[subpackage]) - set(manpage_files))
+        except KeyError:
+            tu.passed_or_failed(self, False, "No manpages or links found in " + tc.MAN_DIR + " for " + subpackage)
+            return
 
         for l in links:
             link = l + self._get_manpage_suffixes(subpackage)[LINK]
@@ -226,9 +241,7 @@ class ManpageTestMethods(cs.JdkConfiguration):
 
             # then check files
             mexe.DefaultMock().importRpm(pkg)
-            manpages_without_postscript[_subpkg] = self._clean_default_mpges(default_mans,
-                                                                             mexe.DefaultMock().execute_ls(tc.MAN_DIR)[0]
-                                                                             .split("\n"))
+            manpages_without_postscript[_subpkg] = self._get_manpages_without_postscript(default_mans, _subpkg)
         try:
             bins = self._clean_sdk_from_jre(bins, self._get_subpackages())
             bins = self.binaries_without_manpages(bins)
@@ -305,13 +318,15 @@ class OpenJdk8(ManpageTestMethods):
 class OpenJdk8JfrArchs(OpenJdk8):
     def __init__(self):
         super().__init__()
-        self.missing_manpages.append("jfr")
+        for package in self.checked_subpackages:
+            self.missing_manpages[package] = ["jfr"]
 
 
 class OpenJdk11(OpenJdk8):
     def __init__(self):
         super().__init__()
-        self.missing_manpages = ["jdeprscan", "jhsdb", "jimage", "jlink", "jmod", "jshell", "jfr"]
+        for package in self.checked_subpackages:
+            self.missing_manpages[package] = ["jdeprscan", "jhsdb", "jimage", "jlink", "jmod", "jshell", "jfr"]
 
     def _clean_up_binaries(self, binaries, master, usr_bin):
         return binaries
@@ -320,7 +335,8 @@ class OpenJdk11(OpenJdk8):
 class OpenJdk11NoJaotcMan(OpenJdk11):
     def __init__(self):
         super().__init__()
-        self.missing_manpages.append("jaotc")
+        for package in self.checked_subpackages:
+            self.missing_manpages[package].append("jaotc")
 
 
 class OpenJdk11s390x(OpenJdk11):
@@ -330,13 +346,15 @@ class OpenJdk11s390x(OpenJdk11):
         for suffix in tc.get_debug_suffixes():
             for subpkg in self.checked_subpackages.copy():
                 self.checked_subpackages.append(subpkg + suffix)
-        self.missing_manpages.remove("jhsdb")
+        for package in self.checked_subpackages:
+            self.missing_manpages[package].remove("jhsdb")
 
 
 class OpenJdk11JfrArchs(OpenJdk11):
     def __init__(self):
         super().__init__()
-        self.missing_manpages.append("jfr")
+        for package in self.checked_subpackages:
+            self.missing_manpages[package].append("jfr")
 
 
 class OpenJdk17(OpenJdk11):
@@ -350,7 +368,8 @@ class OpenJdk17s390x(OpenJdk17):
         for suffix in tc.get_debug_suffixes():
             for subpkg in self.checked_subpackages.copy():
                 self.checked_subpackages.append(subpkg + suffix)
-        self.missing_manpages.remove("jhsdb")
+        for package in self.checked_subpackages:
+            self.missing_manpages[package].remove("jhsdb")
 
 
 class OpenJdk17JaotcMan(OpenJdk17):
@@ -475,6 +494,53 @@ class Ibm(ManpageTestMethods):
         return
 
 
+class Temurin8(ManpageTestMethods):
+    def __init__(self):
+        super().__init__()
+        self.missing_manpages[tc.JDK] = ["jfr", "clhsdb", "hsdb"]
+        self.checked_subpackages = [tc.JDK]
+
+    def _get_subpackages(self):
+        return [tc.JDK, tc.JRE]
+
+    def _get_checked_masters(self):
+        return [tc.JAVA]
+
+    def _clean_sdk_from_jre(self, bins, packages):
+        return bins
+
+    def _get_manpage_suffixes(self, subpackage):
+        return [TEMURIN_MANPAGE_SUFFIX, TEMURIN_MANPAGE_SUFFIX]
+
+    def manpage_file_check(self, bins, subpackage=None, plugin_bin_content=None, manpages_without_postscript=None):
+        """
+        temurins are treated a little differently, as manpage files and links have the same naming, therefore the
+        manpage_file_check which is normally returning list of manpage files to be subtracted from manpage dir contents
+        in order to get the manpage links list, must be empty
+        """
+        super().manpage_file_check(bins, subpackage, plugin_bin_content, manpages_without_postscript)
+        return []
+
+    def _get_manpages_without_postscript(self, default_mans, subpkg):
+        return self._clean_default_mpges(default_mans,
+                                  mexe.DefaultMock().execute_ls(tc.JVM_DIR + "/" + self.rpms.getMajorPackage() + "-" + subpkg + "/man/man1")[0]
+                                  .split("\n"))
+
+
+class Temurin11(Temurin8):
+    def __init__(self):
+        super().__init__()
+        self.missing_manpages[tc.JDK].extend(["jaotc", "jdeprscan", "jhsdb", "jimage", "jlink", "jmod", "jshell"])
+        self.missing_manpages[tc.JRE] = ["jaotc", "jfr", "jrunscript"]
+        self.checked_subpackages.append(tc.JRE)
+
+class Temurin17(Temurin11):
+    def __init__(self):
+        super().__init__()
+        for pkg in self.missing_manpages.keys():
+            self.missing_manpages[pkg].remove("jaotc")
+
+
 class ManpageTests(bt.BaseTest):
     instance = None
 
@@ -543,7 +609,16 @@ class ManpageTests(bt.BaseTest):
         elif rpms.getVendor() == gc.IBM:
             self.csch = Ibm()
             return
-
+        elif rpms.getVendor() == gc.ADOPTIUM:
+            if int(rpms.getMajorVersionSimplified()) == 8:
+                self.csch = Temurin8()
+                return
+            elif int(rpms.getMajorVersionSimplified()) == 11:
+                self.csch = Temurin11()
+                return
+            else:
+                self.csch = Temurin17()
+                return
         else:
             raise ex.UnknownJavaVersionException("Unknown platform, java was not identified.")
 
