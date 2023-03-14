@@ -44,12 +44,12 @@ def processAsStringsWithResult(args, starter=None, finisher=None, initialCanRead
             canRead = finisher(line)
             if not canRead:
                 la.LoggingAccess().log(str(finisher)+" stopped recording", vc.Verbosity.MOCK)
-        if canRead:
-            res.append(line)
         if not canRead and starter is not None:
             canRead = starter(line)
             if canRead:
                 la.LoggingAccess().log(str(starter) + " started recording", vc.Verbosity.MOCK)
+        if canRead:
+            res.append(line)
     ret = proc.wait()
     return res, ret
 

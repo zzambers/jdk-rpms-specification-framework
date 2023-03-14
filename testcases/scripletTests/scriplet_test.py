@@ -8,12 +8,12 @@ from utils.mock.mock_executor import DefaultMock
 from utils.rpmbuild_utils import ScripletStarterFinisher
 import utils.pkg_name_split as ns
 import utils.test_utils as tu
+import utils.core.configuration_specific as cs
+import config.runtime_config as rc
+import config.global_config as gc
 
 
-class ScriptletTest(utils.core.base_xtest.BaseTest):
-    def __init__(self):
-        super().__init__()
-
+class GenericScriptletCsch(cs.JdkConfiguration):
     expected_scriptlets={"devel":[rpmbu.POSTINSTALL, rpmbu.POSTUNINSTALL, rpmbu.POSTTRANS],
                          "default":[rpmbu.POSTINSTALL, rpmbu.POSTUNINSTALL, rpmbu.POSTTRANS],
                          "javadoc":[rpmbu.POSTUNINSTALL, rpmbu.POSTTRANS],
@@ -40,59 +40,68 @@ class ScriptletTest(utils.core.base_xtest.BaseTest):
             return self.expected_scriptlets[subpkg]
         else:
             return []
+
     # this test has no asserts, therefore it is not working properly, must be fixed, now gives 0 passes, 0 fails
-    def test_allScripletsPresentedAsExpected(self):
-        pkgs = self.getBuild()
+    def check_allScripletsPresentedAsExpected(self, this):
+        pkgs = this.getBuild()
         for pkg in pkgs:
             expected = self._get_expected_scriptlets(pkg)
             for scriplet in rpmbu.ScripletStarterFinisher.allScriplets:
-                self.log("searching for " + scriplet + " in " + ntpath.basename(pkg))
-                content = utils.rpmbuild_utils.getSrciplet(pkg, scriplet)
+                this.log("searching for " + scriplet + " in " + ntpath.basename(pkg))
+                executor, content = utils.rpmbuild_utils.getSrciplet(pkg, scriplet)
                 if len(content) == 0:
                     tu.passed_or_failed(self, scriplet not in expected, "missing scriptlet {} in {}".format(scriplet, pkg))
-                    self.log("is " + str(len(content)) + " lines long")
-                    self.log("not found?")
-                    # todo add asserts
+                    this.log("is " + str(len(content)) + " lines long")
+                    this.log("not found?")
                 else:
                     tu.passed_or_failed(self, scriplet in expected, "extra scriptlet {} in {}".format(scriplet, pkg))
-                    self.log("is " + str(len(content)) + " lines long")
-                    # todo add asserts
+                    this.log("is " + str(len(content)) + " lines long")
         return self.passed, self.failed
 
     # this test is currently disabled
-    def _allScripletsPReturnsZero(self):
-        pkgs = self.getBuild()
-        failures=[]
-        passes=[]
-        skippes=[]
+    def check_allScripletsPReturnsZero(self, this):
+        pkgs = this.getBuild()
         for pkg in pkgs:
             DefaultMock().importRpm(pkg)
             # now applying scriplets in order
-            for scriplet in ScripletStarterFinisher.allScriplets:
-                self.log("searching for " + scriplet + " in " + ntpath.basename(pkg))
-                content = utils.rpmbuild_utils.getSrciplet(pkg, scriplet)
-                if len(content) == 0:
-                    self.log(scriplet + " not found in " + ntpath.basename(pkg))
-                    skippes.append(scriplet + " - " + ntpath.basename(pkg))
-                else:
-                    self.log("is " + str(len(content)) + " lines long")
-                    self.log("executing " + scriplet + " in " + ntpath.basename(pkg))
-                    o, r = DefaultMock().executeScriptlet(pkg, scriplet)
-                    self.log(scriplet + "returned " + str(r) + " of " + ntpath.basename(pkg))
-                    if r == 0:
-                        passes.append(scriplet + " - " + ntpath.basename(pkg))
+            for phase in [ScripletStarterFinisher.installScriptlets, ScripletStarterFinisher.uninstallScriptlets]:
+                for scriplet in phase:
+                    this.log("searching for " + scriplet + " in " + ntpath.basename(pkg))
+                    executor, content = utils.rpmbuild_utils.getSrciplet(pkg, scriplet)
+                    if len(content) == 0:
+                        this.log(scriplet + " not found in " + ntpath.basename(pkg))
                     else:
-                        failures.append(scriplet + " - " + ntpath.basename(pkg))
-        for s in skippes:
-            self.log("skipped: " + s)
-        for s in skippes:
-            self.log("passed : " + s)
-        for s in skippes:
-            self.log("failed : " + s)
-        assert len(failures) == 0
+                        this.log("is " + str(len(content)) + " lines long")
+                        this.log("executing " + scriplet + " in " + ntpath.basename(pkg))
+                        arg = "1" if scriplet in ScripletStarterFinisher.installScriptlets else "0"
+                        o, r = DefaultMock().executeScriptlet(pkg, scriplet, arg)
+                        this.log(scriplet + " returned " + str(r) + " of " + ntpath.basename(pkg))
+                        tu.passed_or_failed(self, r == 0, "scriptlet {} returning non zero value for {}".format(scriplet, pkg))
+        return self.passed, self.failed
+
+
+class TemurinScriptletCsch(GenericScriptletCsch):
+    def _get_expected_scriptlets(self, pkg):
+        return [rpmbu.POSTINSTALL, rpmbu.PREUNINSTALL]
+
+
+class ScriptletTest(utils.core.base_xtest.BaseTest):
+    def __init__(self):
+        super().__init__()
+        self.passed = 0
+        self.failed = 0
 
     def setCSCH(self):
-        self.csch = None
+        rpms = rc.RuntimeConfig().getRpmList()
+        if rpms.getVendor() == gc.ADOPTIUM:
+            self.csch = TemurinScriptletCsch()
+        else:
+            self.csch = GenericScriptletCsch()
+        return
+
+    def test_scriptlets(self):
+        self.csch.check_allScripletsPresentedAsExpected(self)
+        return self.csch.check_allScripletsPReturnsZero(self)
 
 
 def testAll():

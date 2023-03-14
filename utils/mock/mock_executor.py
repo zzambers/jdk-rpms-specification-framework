@@ -160,6 +160,7 @@ class Mock:
         o, e = exxec.processToStrings(self.mainCommand() + ["--install", "symlinks"])
         la.LoggingAccess().log(e, vc.Verbosity.MOCK)
         o, e = exxec.processToStrings(self.mainCommand() + ["--install", "tzdata-java"])
+        la.LoggingAccess().log(e, vc.Verbosity.MOCK)
         self.createSnapshot("alternatives")
         self.alternatives = True
 
@@ -232,9 +233,9 @@ class Mock:
         o = exxec.processAsStrings(self.mainCommand() + ["--chroot", "find"] + Mock.caredTopDirs, log=False)
         return o
 
-    def createAndExecuteShell(self, scriptSuffix, lines, params=""):
+    def createAndExecuteScriptlet(self, executor, scriptSuffix, lines, params=""):
         script = self.importFileContnet(scriptSuffix, lines)
-        o, r = self.executeShell(script, params)
+        o, r = self.executeCommand([executor, script, params])
         return o, r
 
     def provideCleanUsefullRoot(self):
@@ -256,10 +257,10 @@ class Mock:
                     self.mkdirP("/usr/lib/jvm/jce-1.8.0-oracle")
 
     def executeScriptlet(self, rpmFile, scripletName, params=""):
-        scriplet = rpmuts.getSrciplet(rpmFile, scripletName)
+        executor, scriplet = rpmuts.getSrciplet(rpmFile, scripletName)
         if scriplet is None or len(scriplet) == 0:
             raise Exception("Scriptlet " + scripletName + " is not in " + rpmFile)
-        return self.createAndExecuteShell("_" + scripletName + "_" + ntpath.basename(rpmFile), scriplet, params)
+        return self.createAndExecuteScriptlet(executor, "_" + scripletName + "_" + ntpath.basename(rpmFile), scriplet, params)
 
     def _getAbsFiles(self, files):
         absDirs = []
@@ -315,7 +316,7 @@ class Mock:
                                        vc.Verbosity.TEST)
 
     def _only_run_scriptlet(self, pkg, scriptlet, params):
-        content = utils.rpmbuild_utils.getSrciplet(pkg, scriptlet)
+        executor, content = utils.rpmbuild_utils.getSrciplet(pkg, scriptlet)
         if len(content) == 0:
             raise utils.mock.mock_execution_exception.MockExecutionException(scriptlet + " scriptlet not found in given"
                                                                                          " package.")

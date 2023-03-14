@@ -92,6 +92,13 @@ class ScripletStarterFinisher:
         POSTTRANS
     ]
 
+    uninstallScriptlets = [
+        TGUNINSTALL,
+        PREUNINSTALL,
+        POSTUNINSTALL,
+        TGPOSTUNINSTALL
+    ]
+
     postScripts = allScriplets[2:]
 
     scriptlet = "scriptlet"
@@ -111,7 +118,7 @@ class ScripletStarterFinisher:
 
 scriptlets = dict()
 
-
+# returns tuple of executor of the string (eg. lua, shell) and the script itself
 def getSrciplet(rpmFile, scripletId):
     if not isScripletNameValid(scripletId):
         la.LoggingAccess().log("warning! Scriplet name " + scripletId
@@ -126,8 +133,14 @@ def getSrciplet(rpmFile, scripletId):
     sf = ScripletStarterFinisher(scripletId)
     script = utils.process_utils.processAsStrings(['rpm', '-qp', '--scripts', rpmFile], sf.start, sf.stop,
                                                 False)
-    scriptlets[key] = script
-    return script
+    if len(script) == 0:
+        scriptlet = ("/bin/sh", [])
+    else:
+        #two argumentless strips to accommodate for whitespace before the "<lua>"
+        executor = script[0].split("using")[1].strip().strip("):<>").strip()
+        scriptlet = (executor, script[1:])
+    scriptlets[key] = scriptlet
+    return scriptlet
 
 
 def unpackFilesFromRpm(rpmFile, destination):
