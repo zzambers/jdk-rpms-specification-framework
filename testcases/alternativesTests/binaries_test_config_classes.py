@@ -145,6 +145,31 @@ class OpenJdk11(OpenJdk8):
         return
 
     def all_jre_in_sdk_check(self, args=None):
+        # binaries from jre pkg not permitted in sdk pkg since ojdk11 as this is handeled by install dependency
+        jre_subpackages = self._get_jre_subpackage()
+        sdk_subpackages = self._get_sdk_subpackage()
+        self._document("Jre binaries must be present in {} subpackages. Jre slaves are in {} subpackages. "
+                       "Sdk binaries must be present in {} subpackages. Sdk slaves are in {} "
+                       "subpackages. ".format(" and ".join(jre_subpackages + sdk_subpackages),
+                                              " and ".join(jre_subpackages),
+                                              " and ".join(sdk_subpackages),
+                                              " and ".join(sdk_subpackages)))
+        current_subpkg = ""
+        for subpkg in jre_subpackages:
+            for sdk_subpkg in sdk_subpackages:
+                try:
+                    if self._extract_suffix_from_subpkg(subpkg) == self._extract_suffix_from_subpkg(sdk_subpkg):
+                        current_subpkg = subpkg
+                        jre = self.installed_binaries[current_subpkg].copy()
+                        current_subpkg = sdk_subpkg
+                        sdk = self.installed_binaries[current_subpkg].copy()
+                    else:
+                        continue
+                except KeyError:
+                    la.LoggingAccess().log("Subpkg " + current_subpkg + " not containing binaries or is missing.")
+                    continue
+                for j in jre:
+                    tu.passed_or_failed(self, j not in sdk, "Binary {} in both jre and sdk subpkgs, this is unwanted since ojdk11".format(j))
         return
 
     def _policytool_slave_subpackages(self):

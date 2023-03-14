@@ -139,23 +139,17 @@ class BinarySlaveTestMethods(GetAllBinariesAndSlaves):
         current_subpkg = ""
         for subpkg in jre_subpackages:
             for sdk_subpkg in sdk_subpackages:
-                cont = False
                 try:
                     if self._extract_suffix_from_subpkg(subpkg) == self._extract_suffix_from_subpkg(sdk_subpkg):
                         current_subpkg = subpkg
-                        jre = self.installed_binaries[current_subpkg]
+                        jre = self.installed_binaries[current_subpkg].copy()
                         current_subpkg = sdk_subpkg
-                        sdk = self.installed_binaries[current_subpkg]
-                        break
+                        sdk = self.installed_binaries[current_subpkg].copy()
                     else:
-                        cont = True
-                        break
+                        continue
                 except KeyError:
                     la.LoggingAccess().log("Subpkg " + current_subpkg + " not containing binaries and is probably "
-                                                                            "missing. This is being reported in subpkg test.")
-                if cont:
-                    continue
-
+                                                                        "missing. This is being reported in subpkg test.")
                 for j in jre:
                     try:
                         sdk.remove(j)
@@ -209,7 +203,6 @@ class BinarySlaveTestMethods(GetAllBinariesAndSlaves):
         self.all_jre_in_sdk_check()
         self.check_exports_slaves()
         self.check_subdirectory_slaves()
-
         self._perform_all_checks()
         self.path_test()
 
