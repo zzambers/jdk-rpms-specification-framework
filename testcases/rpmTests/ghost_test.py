@@ -29,11 +29,6 @@ class GhostTest(bt.BaseTest):
             if (arch in ["armv7hl", "s390x"] or tc.is_arch_jitarch(arch)) and "ppc" not in arch:
                 self.csch = Ojdk11JIT()
                 return
-        elif int(rpms.getMajorVersionSimplified()) == 11:
-            if (arch in ["armv7hl", "s390x"] or tc.is_arch_jitarch(arch)) and "ppc" not in arch:
-                    self.csch = Ojdk11JIT()
-                    return
-
             elif int(rpms.getMajorVersionSimplified()) == 11:
                 self.csch = Ojdk11JIT()
                 return
