@@ -147,7 +147,7 @@ ARM_32_IDENTIFIER = "arm"
 INTEL_IDENTIFIER= "i386"
 
 JAVA_STRING = "java"
-
+UNSPECIFIED = "unspecified"
 FEDORA = "Fedora"
 RHEL = "RHEL"
 
