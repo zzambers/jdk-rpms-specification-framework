@@ -58,6 +58,7 @@ class ObsolateTest(utils.core.base_xtest.BaseTest):
         for pkg in rpms:
             if split.get_subpackage_only(pkg) == '':
                 return self.csch._checkJreObsolete(rpmuts.listOfVersionlessObsoletes(pkg))
+        return 0, 0
 
     def setCSCH(self):
         if config.runtime_config.RuntimeConfig().getRpmList().isItw() :
