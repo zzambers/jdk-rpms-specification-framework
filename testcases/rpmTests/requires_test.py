@@ -5,6 +5,7 @@ import outputControl.logging_access as la
 import utils.process_utils as pu
 import utils.test_utils as tu
 import utils.core.configuration_specific as cs
+import config.global_config as gc
 
 import sys
 
@@ -73,8 +74,12 @@ class Default(cs.JdkConfiguration):
             requires = Src(filename)
         elif "javadoc" in pkg:
             requires = Javadoc(filename)
-
         return requires.expected_req
+
+
+class Temurin(Default):
+    def _get_expected_articial_requires(self, filename):
+        return TemurinRequires(filename).expected_req
 
 
 class RequiresTest(bt.BaseTest):
@@ -84,6 +89,10 @@ class RequiresTest(bt.BaseTest):
         super().__init__()
 
     def setCSCH(self):
+        rpms = rc.RuntimeConfig().getRpmList()
+        if rpms.getVendor() == gc.ADOPTIUM:
+            self.csch = Temurin(self)
+            return
         self.csch = Default(self)
 
     def test_artificial_requires(self):
@@ -123,6 +132,29 @@ class Empty:
             "arch": special_names[arch] if arch in special_names.keys() else arch,
             "start": name + '-' + java_ver + '-' + vendor
         }
+
+
+class TemurinRequires(Empty):
+    def __init__(self, filename):
+        super().__init__(filename)
+        self.expected_req.extend([
+            "/bin/sh",
+            "/usr/sbin/alternatives",
+            f"alsa-lib({self.desc['arch']})",
+            "ca-certificates",
+            "dejavu-sans-fonts",
+            f"fontconfig({self.desc['arch']})",
+            f"glibc({self.desc['arch']})",
+            f"libX11({self.desc['arch']})",
+            f"libXi({self.desc['arch']})",
+            f"libXrender({self.desc['arch']})",
+            f"libXtst({self.desc['arch']})",
+            f"zlib({self.desc['arch']})",
+            "rpmlib(CompressedFileNames)",
+            "rpmlib(FileDigests)",
+            "rpmlib(PayloadFilesHavePrefix)",
+            "rpmlib(PayloadIsXz)"
+        ])
 
 
 class Basic(Empty):
