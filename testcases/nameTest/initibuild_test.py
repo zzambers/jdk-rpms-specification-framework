@@ -162,21 +162,16 @@ class InitTest(utils.core.base_xtest.BaseTest):
 
     def test_os(self):
         _reinit(self)
-        l = config.runtime_config.RuntimeConfig().getRpmList()
-        self.log("Os: " + l.getOs())
-        self.log("Version: " + l.getOsVersion())
-        self.log("Version major: " + str(l.getOsVersionMajor()))
-        passed_or_failed(self, l.isFedora() | l.isRhel(), "Pkgs are not rhel, neither fedora")
-        passed_or_failed(self, l.isFedora() != l.isRhel(), "Both Rhel and fedora pkgs are present")
-        passed_or_failed(self, l.getOs() is not None, "Os was equal to None")
-        passed_or_failed(self, l.getOsVersion() is not None, "OsVersion was equal to None")
-        passed_or_failed(self, l.getOsVersionMajor() is not None, "OsVersionMajor was equal to None")
-        return self.passed, self.failed
+        return self.csch.checkOs()
 
     def setCSCH(self):
-        if config.runtime_config.RuntimeConfig().getRpmList().getJava() == gc.ITW:
+        rpms = config.runtime_config.RuntimeConfig().getRpmList()
+        if rpms.getJava() == gc.ITW:
             self.log("Set ItwVersionCheck")
             self.csch = testcases.nameTest.connfigs.initbuild_config.ItwVersionCheck()
+        elif rpms.getVendor() == gc.ADOPTIUM:
+            self.log("Set TemurinCheck")
+            self.csch = testcases.nameTest.connfigs.initbuild_config.TemurinCheck()
         else:
             self.log("Set OthersVersionCheck")
             self.csch = testcases.nameTest.connfigs.initbuild_config.OthersVersionCheck()

@@ -3,10 +3,37 @@ import re
 import config.global_config as gc
 import outputControl.logging_access as la
 from utils.core.configuration_specific import JdkConfiguration
+import utils.test_utils as tu
+import config.runtime_config as rc
 
 
+class DefaultCheck(JdkConfiguration):
+    def checkMajorVersionSimplified(self, version=None):
+        pass
 
-class ItwVersionCheck(JdkConfiguration):
+    def checkMajorVersion(self, version=None):
+        pass
+
+    def checkPrefix(self, version=None):
+        pass
+
+    def checkVendor(self, vendor=None):
+        pass
+
+    def checkOs(self):
+        l = rc.RuntimeConfig().getRpmList()
+        la.LoggingAccess().log("Os: " + l.getOs())
+        la.LoggingAccess().log("Version: " + l.getOsVersion())
+        la.LoggingAccess().log("Version major: " + str(l.getOsVersionMajor()))
+        tu.passed_or_failed(self, l.isFedora() | l.isRhel(), "Pkgs are not rhel, neither fedora")
+        tu.passed_or_failed(self, l.isFedora() != l.isRhel(), "Both Rhel and fedora pkgs are present")
+        tu.passed_or_failed(self, l.getOs() is not None, "Os was equal to None")
+        tu.passed_or_failed(self, l.getOsVersion() is not None, "OsVersion was equal to None")
+        tu.passed_or_failed(self, l.getOsVersionMajor() is not None, "OsVersionMajor was equal to None")
+        return self.passed, self.failed
+
+
+class ItwVersionCheck(DefaultCheck):
 
     def checkMajorVersionSimplified(self, version=None):
         self._document("IcedTea-Web do not have any version contained in name.")
@@ -27,7 +54,7 @@ class ItwVersionCheck(JdkConfiguration):
         return vendor == gc.ITW
 
 
-class OthersVersionCheck(JdkConfiguration):
+class OthersVersionCheck(DefaultCheck):
 
     def checkMajorVersionSimplified(self, version=None):
         self._document(
@@ -53,3 +80,8 @@ class OthersVersionCheck(JdkConfiguration):
             gc.LIST_OF_POSSIBLE_VENDORS_WITHOUT_ITW))
         la.LoggingAccess().log("non itw call for checkVendor")
         return vendor in gc.LIST_OF_POSSIBLE_VENDORS_WITHOUT_ITW
+
+class TemurinCheck(OthersVersionCheck):
+    def checkOs(self):
+        la.LoggingAccess().log("Temurin is not os or osversion specific, this test is being skipped.")
+        return self.passed, self.failed
