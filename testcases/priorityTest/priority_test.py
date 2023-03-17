@@ -15,11 +15,13 @@ from utils.test_utils import log_failed_test, rename_default_subpkg, passed_or_f
 from outputControl import dom_objects as do
 import config.verbosity_config as vc
 
+PREFIX_111 = "111"
 PREFIX_160 = "160"
 PREFIX_170 = "170"
 PREFIX_180 = "180"
 PREFIX_190 = "190"
 PREFIX_1100 = "1100"
+LEN_4 = 4
 LEN_5 = 5
 LEN_6 = 6
 LEN_7 = 7
@@ -163,6 +165,7 @@ class OpenJdk11(MajorCheck):
     def __init__(self):
         super().__init__(LEN_8, PREFIX_1100)
 
+
 class NonSystemJDK(MajorCheck):
     def __init__(self):
         super().__init__(1, 1)
@@ -198,6 +201,11 @@ class Ibm8Rhel8Java(ProprietaryJava8):
         if "plugin" in pkg:
             output = DefaultMock().run_all_scriptlets_for_install(pkg.replace("plugin", "webstart"))
         return DefaultMock().run_all_scriptlets_for_install(pkg) and output
+
+
+class Temurin(MajorCheck):
+    def __init__(self):
+        super().__init__(LEN_4, PREFIX_111)
 
 
 class PriorityCheck(utils.core.base_xtest.BaseTest):
@@ -237,6 +245,9 @@ class PriorityCheck(utils.core.base_xtest.BaseTest):
                 raise ex.UnknownJavaVersionException("Unknown " + rpms.getVendor() + " version.")
         elif rpms.getVendor() == gc.ITW:
             self.csch = IcedTeaWeb()
+            return
+        elif rpms.getVendor() == gc.ADOPTIUM:
+            self.csch = Temurin()
             return
         else:
             raise ex.UnknownJavaVersionException("Unknown platform, java was not identified.")
