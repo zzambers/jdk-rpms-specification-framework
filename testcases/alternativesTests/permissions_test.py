@@ -261,9 +261,8 @@ class OpenJdk8(BaseTest):
 
     def _get_target_java_directory(self, name):
         directory = super()._get_target_java_directory(name)
-        unnecessary_part = directory.split("-")[-1]
-        directory = directory.replace("-" + unnecessary_part, "")
         return directory
+
 
 class Oracle(BaseTest):
     pass
@@ -299,6 +298,9 @@ class PermissionTest(bt.BaseTest):
 
         if rpms.getVendor() == gc.ITW:
             # TODO might be worth to check also other subdirectories
+            self.csch = BaseTest()
+            return
+        if rpms.getVendor() == gc.ADOPTIUM:
             self.csch = BaseTest()
             return
         raise UnknownJavaVersionException("Unknown JDK version!!!")
