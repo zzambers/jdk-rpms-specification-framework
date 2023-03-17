@@ -349,14 +349,20 @@ class Oracle7a8x86(Oracle7):
         return masters
 
 
+class Temurin(CheckPostinstallScript):
+    def _generate_masters(self):
+        masters = dict()
+        masters[JDK] = [JAVA, JAVAC]
+        masters[JRE] = [JAVA]
+        return masters
+
+
 class PostinstallScriptTest(bt.BaseTest):
     instance = None
-
 
     def test_contains_postscript(self):
         pkgs = self.getBuild()
         return self.csch._check_post_in_script(pkgs)
-
 
     def setCSCH(self):
         PostinstallScriptTest.instance = self
@@ -471,7 +477,9 @@ class PostinstallScriptTest(bt.BaseTest):
                     return
             else:
                 raise ex.UnknownJavaVersionException("Unknown Oracle java version.")
-
+        elif rpms.getVendor() == gc.ADOPTIUM:
+            self.csch = Temurin()
+            return
         else:
             raise ex.UnknownJavaVersionException("Unknown platform, java was not identified.")
 
