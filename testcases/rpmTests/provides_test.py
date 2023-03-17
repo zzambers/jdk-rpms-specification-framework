@@ -36,7 +36,6 @@ class NonITW(cs.JdkConfiguration):
         if not self.documenting:
             files = [x for x in files if tu.validate_arch_for_rpms(this.current_arch) == ns.get_arch(x)]
         for filename in files:
-            filename = filename.split("/")[-1]
             expected_provides = self._get_expected_artificial_provides(filename)
             documentation += make_rpm_readable(filename) + " should have these and no other provides: " + ", ".join(list(expected_provides.keys())) + "\n"
             if self.documenting:
