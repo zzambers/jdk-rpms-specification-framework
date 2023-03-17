@@ -28,6 +28,7 @@ class Openjdk8Fedora(Base):
         "java-1.5.0-gcj",
         "sinjdoc"
     ]
+
     def _checkJreObsolete(self, obsoletes=None):
         self._document("jre OpenJdk8 in Fedora must obsolate: " +",".join(Openjdk8Fedora.jreRequiredObsolete))
         obsoleteJdk7Set = set(Openjdk8Fedora.jreRequiredObsolete).intersection(set(obsoletes))
@@ -39,9 +40,11 @@ class Openjdk8Fedora(Base):
 
 class JdkRhel(Base):
     jreExceptionsObsolete = [
-        "java-1.5.0-gcj",
-        "sinjdoc"
+        "java-1.8.0-openjdk-accessibility",
+        "java-1.8.0-openjdk-accessibility-fastdebug",
+        "java-1.8.0-openjdk-accessibility-slowdebug"
     ]
+
     def _checkJreObsolete(self, obsoletes=None):
         self._document("Jdks in rhel must NOT obsolete anything. Possible exceptions: " +
                        ",".join(JdkRhel.jreExceptionsObsolete))
