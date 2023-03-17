@@ -8,6 +8,7 @@ import utils.process_utils
 import utils.test_utils
 import utils.test_constants as tc
 import config.verbosity_config as vc
+import config.global_config as gc
 
 
 class RpmList:
@@ -173,7 +174,8 @@ class RpmList:
         return isEpel(self.getDist())
 
     def getOs(self):
-        return getOs(self.getDist())
+        os = getOs(self.getDist())
+        return os if os is not None else "unspecified"
 
     def getOsVersion(self):
         if self.isFedora():
@@ -182,11 +184,14 @@ class RpmList:
             return str(self.getDist()[2]).replace("_",".")
         if self.isEpel():
             return str(self.getDist()[4:]).replace("_",".")
-        return None
+        return "unspecified"
 
     def getOsVersionMajor(self):
         os = self.getOsVersion()
-        return int(re.sub("\..*","", os))
+        version = gc.UNSPECIFIED
+        if os is not gc.UNSPECIFIED:
+            version = int(re.sub("\..*","", os))
+        return version
 
     def getRpmWholeName(self, pkg, arch):
         defaultrpm = "nonexistent"
@@ -204,6 +209,8 @@ class RpmList:
                 return int(self.getMajorVersionSimplified()) == 11
             else:
                 return int(self.getMajorVersionSimplified()) == 8
+        elif self.getVendor() == gc.ADOPTIUM:
+            return False
         else:
             if int(self.getOsVersion()) <= 8:
                 return int(self.getMajorVersionSimplified()) == 8
