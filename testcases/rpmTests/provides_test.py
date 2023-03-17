@@ -19,7 +19,7 @@ class NonITW(cs.JdkConfiguration):
         self.rpms = rc.RuntimeConfig().getRpmList()
         self.this=this
 
-    def _get_artificial_provides(self, filename):
+    def _get_artificial_provides(self, filename, get_versionless_provides=False):
             output, error, res = pu.executeShell("rpm -q --provides rpms/" + filename)
             lines = output.split("\n")
             provides_dict = {}
@@ -27,6 +27,8 @@ class NonITW(cs.JdkConfiguration):
                 if "=" in line and "debuginfo(build" not in line and "bundled" not in line:
                     actual_line = line.split("=")
                     provides_dict[actual_line[0].strip()] = actual_line[1].strip()
+                elif get_versionless_provides:
+                    provides_dict[line] = ""
             return provides_dict
 
     def check_artificial_provides(self, this):
@@ -164,6 +166,55 @@ class ITWeb(NonITW):
         return provides
 
 
+class Temurin(NonITW):
+    def _get_expected_artificial_provides(self, filename):
+        name, java_ver, vendor, pkg, version, end = ns._hyphen_split(filename)
+        arch = tu.validate_arch_for_provides(ns.get_arch(filename))
+        full_version = ns.get_version(filename).split(":")[1]
+        provides = dict()
+        jre_jdk = tc.JRE
+        if tc.JDK in filename:
+            java = "java"
+            jre_jdk = tc.JDK
+            provides[java] = ""
+            provides["-".join([java, java_ver])] = ""
+            provides["-".join([java, java_ver, "open" + jre_jdk])] = ""
+            provides["-".join([java, java_ver, "open" + jre_jdk, tc.HEADLESS])] = ""
+            provides["-".join([java, java_ver, "open" + jre_jdk, tc.DEVEL])] = ""
+            provides["-".join([java, java_ver, tc.DEVEL])] = ""
+            provides["-".join([java, java_ver, tc.HEADLESS])] = ""
+            provides["-".join([java, tc.DEVEL, "open"+jre_jdk])] = ""
+            provides["-".join([java, tc.HEADLESS])] = ""
+            provides["-".join([java, tc.DEVEL])] = ""
+            provides["-".join([java, "open" + jre_jdk])] = ""
+            provides["-".join([java, "open" + jre_jdk, tc.HEADLESS])] = ""
+            provides["-".join([java, "open" + jre_jdk, tc.DEVEL])] = ""
+            provides["-".join([java, "sdk"])] = ""
+            provides["-".join([java, "sdk", java_ver])] = ""
+            provides["-".join([java, "sdk", java_ver, "open"+jre_jdk])] = ""
+            provides["-".join([java, "sdk", "open"+jre_jdk])] = ""
+
+        java = "jre"
+        provides[java] = ""
+        provides["-".join([java, java_ver])] = ""
+        provides["-".join([java, java_ver,"open" + jre_jdk])] = ""
+        provides["-".join([java, java_ver,"open" + jre_jdk, tc.HEADLESS])] = ""
+        provides["-".join([java, tc.HEADLESS])] = ""
+        provides["-".join([java, java_ver, tc.HEADLESS])] = ""
+        provides["-".join([java, "open"+jre_jdk])] = ""
+        provides["-".join([java, "open"+jre_jdk, tc.HEADLESS])] = ""
+        provides["-".join([gc.TEMURIN, java_ver, jre_jdk])] = full_version
+        provides["-".join([gc.TEMURIN, java_ver, jre_jdk])+"({})".format(arch)] = full_version
+        return provides
+
+    def _get_artificial_provides(self, filename, get_versionless_provides=True):
+        return super()._get_artificial_provides(filename, get_versionless_provides)
+
+    # temurin packages are not mutually dependant, therefore this check is disabled
+    def cross_check_artificial_provides(self, this):
+        return
+
+
 class ProvidesTest(bt.BaseTest):
     """ Framework class that runs the testcase. """
     instance=None
@@ -182,6 +233,9 @@ class ProvidesTest(bt.BaseTest):
         if rc.RuntimeConfig().getRpmList().getJava() == gc.ITW:
             self.log("Set ItwVersionCheck")
             self.csch = ITWeb(ProvidesTest.instance)
+            return
+        elif rpms.getVendor() == gc.ADOPTIUM:
+            self.csch = Temurin(ProvidesTest.instance)
             return
         else:
             arch = self.getCurrentArch()
