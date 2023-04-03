@@ -61,20 +61,30 @@ class Default(cs.JdkConfiguration):
         rpm_ghosts = self._get_actual_ghosts(file)
         default_masters = set(mexe.DefaultMock().get_default_masters())
         mexe.DefaultMock().run_all_scriptlets_for_install("rpms/" + file)
-        if rc.RuntimeConfig().getRpmList().is_system_jdk():
-            actual_ghosts = set(mexe.DefaultMock().get_masters()).difference(default_masters)
-        else:
-            actual_ghosts = set()
         resolved_rpm_ghosts = set()
-        resolved_actual_ghosts = {}
         for ghost in rpm_ghosts:
             newghost = ghost.replace("\n", "")
             # skipping rpmmoved ghosts - those are only for removed/moved directories so that user doesnt loose data upon upgrade
             if not newghost.endswith(".rpmmoved"):
                 resolved_rpm_ghosts.add(tu.resolve_link(newghost))
-        for ghost in actual_ghosts:
+        if "debug" in file:
+            tu.passed_or_failed(self, resolved_rpm_ghosts == self._get_hardcoded_ghosts(file),
+                                "Debug packages are not expected to have any ghosts. Found ghosts: " + str(
+                                    resolved_rpm_ghosts))
+            return
+        expected_master_ghosts = set()
+        expected_follower_ghosts = set()
+        if rc.RuntimeConfig().getRpmList().is_system_jdk():
+            expected_master_ghosts = set(mexe.DefaultMock().get_masters()).difference(default_masters)
+            for master in expected_master_ghosts.copy():
+                expected_follower_ghosts = expected_follower_ghosts.union(set(mexe.DefaultMock().get_slaves_with_links(master).values()))
+        resolved_actual_ghosts = {}
+        for ghost in expected_master_ghosts:
             resolved_ghost = tu.resolve_link(mexe.DefaultMock().get_target(ghost))
             resolved_actual_ghosts[resolved_ghost] = ghost
+        for ghost in expected_follower_ghosts:
+            if ghost.startswith("/usr/lib/jvm/"):
+                resolved_actual_ghosts[ghost] = "follower"
         for ghost in self._get_hardcoded_ghosts(file):
             resolved_actual_ghosts[ghost] = "hardcoded"
         if not tu.passed_or_failed(self, set(resolved_actual_ghosts.keys()) == resolved_rpm_ghosts, "Sets of ghost are not correct for " + file + ". Differences will follow."):
