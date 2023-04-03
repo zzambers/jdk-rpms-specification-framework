@@ -369,7 +369,7 @@ class Mock:
         data[TARGET] = otp[2].split(" ")[0]
         slaves = {}
         for o in otp:
-            if "slave" in o:
+            if "follower" in o:
                 slaves[o.split(" ")[2].strip(":")] = o.split(" ")[3]
         data[SLAVES] = slaves
         return data
