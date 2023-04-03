@@ -20,7 +20,7 @@ class DefaultCheck(JdkConfiguration):
     def checkVendor(self, vendor=None):
         pass
 
-    def checkOs(self):
+    def checkOs(self, vendor=None):
         l = rc.RuntimeConfig().getRpmList()
         la.LoggingAccess().log("Os: " + l.getOs())
         la.LoggingAccess().log("Version: " + l.getOsVersion())
