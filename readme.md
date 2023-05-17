@@ -9,10 +9,10 @@ The framework is capable of testing multiple architectures during a single run b
 **Step 2.** - Fork this repository and clone it.
 
 ```
-git clone https://github.com/your_username/jdk-rpms-specification-framework.git
+git clone https://github.com/your_username/JSF.git
 ```
 
-**Step 3.** - Download rpms. The test looks for the rpms in the *jdk-rpms-specification-framework/rpms/* directory.
+**Step 3.** - Download rpms. The test looks for the rpms in the *JSF/rpms/* directory.
 - rpms are usually downloaded directly from
             -  koji-like systems. Eg: https://koji.fedoraproject.org/koji/packageinfo?packageID=28488
             - bodhi like udpates. eg: https://bodhi.fedoraproject.org/updates/FEDORA-2021-8dab50bea8
@@ -23,7 +23,7 @@ git clone https://github.com/your_username/jdk-rpms-specification-framework.git
 
 **Step 4.** - Run tests. Tests are runnable both via the main method as well as via running their own respective main as "standalone" python script. The framework will most probably need dependencies (namely koji and mock for starters) installed and will fail during the first run.
 
-For arguments and additional wisdom, feel free to check the old [readme](https://github.com/andrlos/jdk-rpms-specification-framework/blob/master/readme-old).
+For arguments and additional wisdom, feel free to check the old [readme](https://github.com/andrlos/JSF/blob/master/readme-old).
 
 # Getting started:
 
