@@ -1,0 +1,40 @@
+on:
+  pull_request:
+    branches:
+      - "*"
+  push:
+    branches:
+      - "*"
+
+jobs:
+  test:
+    name: "Test"
+    runs-on: "fedora-latest"
+    strategy:
+      fail-fast: false
+      matrix:
+        jdkconf:
+          - JDK 8
+          - JDK 11
+          - JDK 17
+          - JDK 20
+        include:
+          - jdkconf: JDK 8
+            jdkver: "8"
+          - jdkconf: JDK 11
+            jdkver: "11"
+          - jdkconf: JDK 17
+            jdkver: "17"
+          - jdkconf: JDK 20
+            jdkver: "20"
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          update: true
+          install: wget mock python3
+      - name: Download Installer
+        run: |
+          wget -P "input/" "https://packages.adoptium.net/artifactory/rpm/rhel/8/x86_64/Packages/temurin-8-jdk-8.0.372.0.0.7-1.x86_64.rpm" "https://packages.adoptium.net/artifactory/rpm/rhel/8/x86_64/Packages/temurin-8-jre-8.0.372.0.0.7-1.x86_64.rpm"
+          ls -lah input
+      - name: Run
+        run: ./generic_runner/runner.sh
