@@ -21,9 +21,9 @@ jobs:
             jdkver: "8"
     steps:
       - uses: actions/checkout@v3
-        with:
-          update: true
-          install: wget mock python3
+      - name: Init
+        run: |
+          dnf -y install mock wget python3 
       - name: Download Rpms
         run: |
           wget -P "rpms/" "https://packages.adoptium.net/artifactory/rpm/rhel/8/x86_64/Packages/temurin-8-jdk-8.0.372.0.0.7-1.x86_64.rpm" "https://packages.adoptium.net/artifactory/rpm/rhel/8/x86_64/Packages/temurin-8-jre-8.0.372.0.0.7-1.x86_64.rpm"
