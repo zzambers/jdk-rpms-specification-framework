@@ -32,7 +32,7 @@ jobs:
       - name: Pack results
         if: ${{ always() }}
         run: |
-          tar -c "results-jdk${{ matrix.jdkver }}.tar.gz" jtregLogs/ verbose_log_file.log jsf.log
+          tar -c jtregLogs/ verbose_log_file.log jsf.log "results-jdk${{ matrix.jdkver }}.tar.gz"
       - name: Upload results
         if: ${{ always() }}
         uses: actions/upload-artifact@v3
