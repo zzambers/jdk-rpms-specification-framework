@@ -7,9 +7,10 @@ on:
       - "*"
 
 jobs:
-  test:
-    name: "Test"
-    runs-on: "rhel-latest"
+  test-jdk8:
+    name: "rawhide - jdk8"
+    runs-on: "ubuntu-latest"
+    container: "quay.io/fedora/fedora:37"
     strategy:
       fail-fast: false
       matrix:
