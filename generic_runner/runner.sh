@@ -13,8 +13,6 @@ done
 SCRIPT_DIR="$(cd -P "$(dirname "$SCRIPT_SOURCE")" && pwd)"
 readonly SCRIPT_DIR
 
-who
-
 set -x
 set -e
 set -o pipefail
@@ -25,6 +23,8 @@ sudo dnf -y upgrade distribution-gpg-keys mock
 sudo dnf install -y pip
 sudo pip install virtualenv
 sudo pip install urllib3
+
+who
 
 sudo usermod -aG mock tester
 
