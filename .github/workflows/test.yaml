@@ -30,10 +30,12 @@ jobs:
       - name: Run
         run: ./generic_runner/runner.sh
       - name: Pack results
+        if: ${{ always() }}
         shell: msys2 {0}
         run: |
           tar -c "results-jdk${{ matrix.jdkver }}.tar.gz" jtregLogs/ verbose_log_file.log jsf.log
       - name: Upload results
+        if: ${{ always() }}
         uses: actions/upload-artifact@v3
         with:
           path: "results-jdk${{ matrix.jdkver }}.tar.gz"
