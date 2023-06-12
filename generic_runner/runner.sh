@@ -24,7 +24,7 @@ sudo dnf install -y pip
 sudo pip install virtualenv
 sudo pip install urllib3
 
-sudo usermod -aG mock $USER
+#sudo usermod -aG mock $USER
 
 echo "config_opts['plugin_conf']['overlayfs_enable'] = True" | sudo tee --append /etc/mock/site-defaults.cfg
 echo "config_opts['plugin_conf']['root_cache_enable'] = False" | sudo tee --append /etc/mock/site-defaults.cfg
