@@ -13,6 +13,8 @@ done
 SCRIPT_DIR="$(cd -P "$(dirname "$SCRIPT_SOURCE")" && pwd)"
 readonly SCRIPT_DIR
 
+who
+
 set -x
 set -e
 set -o pipefail
