@@ -79,7 +79,7 @@ class Mock:
         return self.getDir() + "/result"
 
     def mainCommand(self):
-        return [self.command, "--isolation=simple", "-r", self.getMockName()]
+        return [self.command, "--old-chroot", "-r", self.getMockName()]
 
     def mainCommandAsString(self):
         s = ""
