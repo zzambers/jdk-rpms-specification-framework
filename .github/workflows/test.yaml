@@ -59,6 +59,7 @@ jobs:
           useradd tester
           usermod -a -G wheel tester
           usermod -a -G mock tester
+          ln -s /bin/true /usr/sbin/modprobe
           su tester
       - name: Download Rpms
         run: |
@@ -92,6 +93,7 @@ jobs:
       - name: Init
         run: |
           dnf -y install mock wget python3
+          ln -s /bin/true /usr/sbin/modprobe
       - name: Download Rpms
         run: |
           wget -P "rpms/" "https://packages.adoptium.net/artifactory/rpm/rhel/8/x86_64/Packages/temurin-17-jdk-17.0.7.0.0.7-1.x86_64.rpm" "https://packages.adoptium.net/artifactory/rpm/rhel/8/x86_64/Packages/temurin-17-jre-17.0.7.0.0.7-1.x86_64.rpm"
