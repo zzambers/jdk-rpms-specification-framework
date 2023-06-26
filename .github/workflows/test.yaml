@@ -68,6 +68,9 @@ jobs:
           wget -P "rpms/" "https://packages.adoptium.net/artifactory/rpm/rhel/8/x86_64/Packages/temurin-11-jdk-11.0.19.0.0.7-1.x86_64.rpm" "https://packages.adoptium.net/artifactory/rpm/rhel/8/x86_64/Packages/temurin-11-jre-11.0.19.0.0.7-1.x86_64.rpm"
       - name: Run
         run: ./generic_runner/runner.sh
+      - name: Dmesg
+        if: ${{ always() }}
+        run: dmesg
       - name: Pack results
         if: ${{ always() }}
         run: |
@@ -103,6 +106,9 @@ jobs:
           wget -P "rpms/" "https://packages.adoptium.net/artifactory/rpm/rhel/8/x86_64/Packages/temurin-17-jdk-17.0.7.0.0.7-1.x86_64.rpm" "https://packages.adoptium.net/artifactory/rpm/rhel/8/x86_64/Packages/temurin-17-jre-17.0.7.0.0.7-1.x86_64.rpm"
       - name: Run
         run: ./generic_runner/runner.sh
+      - name: Dmesg
+        if: ${{ always() }}
+        run: dmesg
       - name: Pack results
         if: ${{ always() }}
         run: |

@@ -28,7 +28,10 @@ sudo pip install urllib3
 
 echo "config_opts['plugin_conf']['overlayfs_enable'] = True" | sudo tee --append /etc/mock/site-defaults.cfg
 echo "config_opts['plugin_conf']['root_cache_enable'] = False" | sudo tee --append /etc/mock/site-defaults.cfg
-echo "config_opts['plugin_conf']['overlayfs_opts']['base_dir'] = '/var/lib/MOCK_OVERLAYFS'" | sudo tee --append /etc/mock/site-defaults.cfg
+echo "config_opts['plugin_conf']['overlayfs_opts']['base_dir'] = '${GITHUB_WORKSPACE}/MOCK_OVERLAYFS'" | sudo tee --append /etc/mock/site-defaults.cfg
+echo "config_opts['basedir'] = '${GITHUB_WORKSPACE}/mock-base'" | sudo tee --append /etc/mock/site-defaults.cfg
+
+sudo mount
 
 sudo mock --dnf -r fedora-rawhide-x86_64 --scrub all
 
